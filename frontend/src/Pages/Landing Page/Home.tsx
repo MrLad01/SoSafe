@@ -488,9 +488,9 @@ const Home = () => {
         </div>
         <div className="relative">
             <SocialFeeds 
-                twitterUsername="Aytolu7"
-                facebookPageUrl="yourpage"
-                instagramUsername="laddurojaiye"
+                // twitterUsername="Aytolu7"
+                // facebookPageUrl="yourpage"
+                // instagramUsername="laddurojaiye"
                 />
         </div>
     </>
