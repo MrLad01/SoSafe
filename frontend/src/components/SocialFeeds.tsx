@@ -7,10 +7,10 @@ import {
   Twitter,
   Facebook,
   Instagram,
-  ArrowUpRight
+  ArrowUpRight,
+  // Share
 } from 'lucide-react';
 
-// This interface defines the expected props for real data integration
 // interface SocialStats {
 //   twitter?: {
 //     followers: number;
@@ -30,8 +30,6 @@ import {
 // }
 
 const CompactSocialFeeds = () => {
-  // In a real implementation, you would fetch this data from your backend
-  // which would use the respective platform APIs
   const socialCards = [
     {
       title: 'Twitter',
@@ -73,7 +71,19 @@ const CompactSocialFeeds = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <div className="bg-gray-50 p-8 text-[#006838]">
+      {/* Header Section */}
+      <div className="max-w-5xl mx-auto mb-8">
+        <div className="flex items-center justify-center space-x-3 mb-4">
+          {/* <Share className="w-6 h-6 text-gray-600" /> */}
+          <h2 className="text-3xl font-bold text-[#006838]">Our Social Media</h2>
+        </div>
+        <p className="text-center text-[#006838] max-w-2xl mx-auto">
+          Stay connected and join our community across all platforms
+        </p>
+      </div>
+
+      {/* Cards Grid */}
       <div className="max-w-5xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {socialCards.map((card) => (
@@ -99,12 +109,12 @@ const CompactSocialFeeds = () => {
                 <div className="relative p-6">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center space-x-3">
-                      <card.icon className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors duration-300" />
-                      <h3 className="font-semibold text-gray-800 group-hover:text-white transition-colors duration-300">
+                      <card.icon className="w-5 h-5 text-[#006838] group-hover:text-white transition-colors duration-300" />
+                      <h3 className="font-semibold text-[#006838] group-hover:text-white transition-colors duration-300">
                         {card.title}
                       </h3>
                     </div>
-                    <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-white transition-colors duration-300" />
+                    <ExternalLink className="w-4 h-4 text-[#006838] group-hover:text-white transition-colors duration-300" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -114,12 +124,12 @@ const CompactSocialFeeds = () => {
                         className="flex flex-col space-y-1"
                       >
                         <div className="flex items-center space-x-1.5">
-                          <stat.icon className="w-4 h-4 text-gray-500 group-hover:text-white/80 transition-colors duration-300" />
-                          <span className="font-semibold text-gray-800 group-hover:text-white transition-colors duration-300">
+                          <stat.icon className="w-4 h-4 text-[#006838] group-hover:text-white/80 transition-colors duration-300" />
+                          <span className="font-semibold text-[#006838] group-hover:text-white transition-colors duration-300">
                             {stat.value}
                           </span>
                         </div>
-                        <span className="text-xs text-gray-500 group-hover:text-white/80 transition-colors duration-300">
+                        <span className="text-xs text-[#006838] group-hover:text-white/80 transition-colors duration-300">
                           {stat.label}
                         </span>
                       </div>
