@@ -1,4 +1,5 @@
 import  { useState, useCallback, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.webp';
 import image from '../../assets/image.webp';
 import image3 from '../../assets/image3.webp';
@@ -10,6 +11,8 @@ import { ChevronLeft, ChevronRight, Menu, X, Target, Eye, Heart } from 'lucide-r
 import NewsCarousel, { NewsItem } from '../../components/NewsCarousel';
 import AlertsDisplay, { Person } from '../../components/AlertsDisplay';
 import SocialFeeds from '../../components/SocialFeeds';
+import Footer from '../../components/Footer';
+// import { useRoutes } from 'react-router-dom';
 
 interface ContentItem {
   title: string;
@@ -29,6 +32,8 @@ const Home = () => {
   const [hoveredSlide, setHoveredSlide] = useState<number | null>(null);
 
   const [activeCard, setActiveCard] = useState<number | null>(null);
+
+  const navigate = useNavigate();
 
 
     // Track the current slide index
@@ -86,8 +91,14 @@ const Home = () => {
     if (emblaApi) emblaApi.scrollNext()
   }, [emblaApi])
 
+  interface HeroContent {
+    image: string;
+    title: string;
+    description: string;
+    badge: string;
+  }
     // Hero section content
-    const heroContent = [
+    const heroContent: HeroContent[] = [
         {
           image: image,
           title: "Protecting Our Community",
@@ -110,6 +121,19 @@ const Home = () => {
 
     //   color: "from-[#FFD700] to-[#E6C200]",
     // hoverColor: "group-hover:from-[#FFE03D] group-hover:to-[#FFD700]",
+    const handleLearnMore = (content: HeroContent) => {
+        // Create URL-friendly slug from title
+        const slug = content.title.toLowerCase().replace(/\s+/g, '-');
+        // Navigate to dynamic page with state
+        navigate(`/news/${slug}`, { 
+          state: { 
+            title: content.title,
+            description: content.description,
+            badge: content.badge,
+            image: content.image
+          }
+        });
+      };
 
     const organizationalContent: ContentItem[] = [
     {
@@ -348,7 +372,9 @@ const Home = () => {
                        {/* CTA Button */}
                         <button className={`mt-8 px-6 py-3 bg-[#FFD700] text-[#006838] font-bold rounded-lg hover:bg-white transition-colors duration-300 w-fit transform ${
                         hoveredSlide === index ? 'translate-y-0 opacity-100' : '-translate-y-4 opacity-0'
-                        }`}>
+                        }`}
+                            onClick={() => handleLearnMore(content)}
+                        >
                             Learn More
                         </button>
                         </div>
@@ -493,6 +519,7 @@ const Home = () => {
                 // instagramUsername="laddurojaiye"
                 />
         </div>
+        <Footer />
     </>
   );
 };
