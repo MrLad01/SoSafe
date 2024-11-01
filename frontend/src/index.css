@@ -1,3 +1,58 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* styles/alerts.css */
+
+@media print {
+  /* Hide navigation and footer */
+  nav,
+  .back-button,
+  .background,
+  .action-buttons,
+  footer, 
+  .print-hidden {
+    display: none !important;
+  }
+
+  /* Reset page margins */
+  @page {
+    margin: 2cm;
+    /* size: portrait; */
+  }
+
+  /* Ensure text is black */
+  body {
+    color: black;
+    background: white;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Prevent page breaks inside cards */
+  .break-inside-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Force background colors and images */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+
+  /* Ensure links are visible */
+  a {
+    text-decoration: underline;
+    color: #006838;
+  }
+
+  /* Show URLs after links */
+  a[href]:after {
+    content: " (" attr(href) ")";
+    font-size: 90%;
+  }
+}

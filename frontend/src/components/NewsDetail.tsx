@@ -1,8 +1,9 @@
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation, useParams, useNavigate } from 'react-router-dom';
 import { NavBar } from './NavBar';
 import Footer from './Footer';
 import { format, isValid, parseISO } from 'date-fns';
-import { CalendarDays, Clock, User } from 'lucide-react';
+import { CalendarDays, Clock, User, ArrowLeft } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface NewsState {
   title: string;
@@ -16,8 +17,14 @@ interface NewsState {
 
 const NewsDetail = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { slug } = useParams();
   const state = location.state as NewsState;
+
+    // Reset scroll when component mounts
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
 
   if (!state) {
     console.log(slug);
@@ -56,10 +63,19 @@ const NewsDetail = () => {
   const readingTime = calculateReadingTime(state.content);
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen scroll-smooth flex flex-col">
       <NavBar />
       <main className="flex-grow">
         <div className="max-w-6xl mx-auto py-6 px-4">
+          {/* Back Button */}
+          <button
+            onClick={() => navigate(-1)}
+            className="inline-flex items-center mb-4 px-4 py-2 text-sm font-medium text-[#006838] hover:text-[#004d2b] transition-colors duration-200"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Previous page
+          </button>
+
           {/* Hero Section */}
           <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
             <div className="relative h-[425px]">

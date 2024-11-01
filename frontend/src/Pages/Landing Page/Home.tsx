@@ -1,20 +1,19 @@
 import  { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, Target, Eye, Heart } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 
-import image from '../../assets/image.webp';
-import image3 from '../../assets/image3.webp';
-import image2 from '../../assets/image (1).webp';
-
-import { ChevronLeft, ChevronRight, Target, Eye, Heart } from 'lucide-react';
-import NewsCarousel, { NewsItem } from '../../components/NewsCarousel';
-import AlertsDisplay, { Person } from '../../components/AlertsDisplay';
+import NewsCarousel from '../../components/NewsCarousel';
+import AlertsDisplay from '../../components/AlertsDisplay';
 import SocialFeeds from '../../components/SocialFeeds';
 import Footer from '../../components/Footer';
-import { heroContent, HeroContent } from '../../data/HeroContent';
 import { NavBar } from '../../components/NavBar';
-// import { useRoutes } from 'react-router-dom';
+
+import { heroContent, HeroContent } from '../../data/HeroContent';
+import { latestNews } from '../../data/LatestNews';
+import { missingPersons } from '../../data/MissingPersons';
+import { wantedPeople } from '../../data/WantedPersons';
 
 interface ContentItem {
   title: string;
@@ -28,27 +27,23 @@ interface ContentItem {
 
 
 const Home = () => {
-
   const [hoveredSlide, setHoveredSlide] = useState<number | null>(null);
-
   const [activeCard, setActiveCard] = useState<number | null>(null);
-
   const navigate = useNavigate();
 
+  // Track the current slide index
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
 
-    // Track the current slide index
-    const [currentSlide, setCurrentSlide] = useState<number>(0);
-
-    // Modified carousel setup with scroll snap
-    const [emblaRef, emblaApi] = useEmblaCarousel({ 
-        loop: true,
-        duration: 20,
-        skipSnaps: false
-    }, [Autoplay({ delay: 5000, stopOnInteraction: false })]);
+  // Modified carousel setup with scroll snap
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+      loop: true,
+      duration: 20,
+      skipSnaps: false
+  }, [Autoplay({ delay: 5000, stopOnInteraction: false })]);
 
 
-   // Update current slide when it changes
-   useEffect(() => {
+  // Update current slide when it changes
+  useEffect(() => {
     if (!emblaApi) return;
 
     const onSelect = () => {
@@ -91,114 +86,56 @@ const Home = () => {
     if (emblaApi) emblaApi.scrollNext()
   }, [emblaApi])
 
+  const handleLearnMore = (content: HeroContent) => {
+    // Create URL-friendly slug from title
+    const slug = content.title.toLowerCase().replace(/\s+/g, '-');
+    // Navigate to dynamic page with state
+    navigate(`/announcement/${slug}`, { 
+      state: { 
+        title: content.title,
+        description: content.description,
+        badge: content.badge,
+        image: content.image,
+        content: content.content,
+        date: content.date,
+        author: content.author
+      }
+    });
+  };
 
-
-    //   color: "from-[#FFD700] to-[#E6C200]",
-    // hoverColor: "group-hover:from-[#FFE03D] group-hover:to-[#FFD700]",
-    const handleLearnMore = (content: HeroContent) => {
-        // Create URL-friendly slug from title
-        const slug = content.title.toLowerCase().replace(/\s+/g, '-');
-        // Navigate to dynamic page with state
-        navigate(`/news/${slug}`, { 
-          state: { 
-            title: content.title,
-            description: content.description,
-            badge: content.badge,
-            image: content.image,
-            content: content.content,
-            date: content.date,
-            author: content.author
-          }
-        });
-      };
-
-    const organizationalContent: ContentItem[] = [
-    {
-        title: "OUR MISSION",
-        icon: <Target className="w-8 h-8" />,
-        content: "To provide professional security services that ensure the safety and well-being of all residents in Ogun State through community partnership, technological innovation, and dedicated service.",
-        color: "from-[#006838] to-[#005830]",
-        hoverColor: "group-hover:from-[#007840] group-hover:to-[#006838]"
-    },
-    {
-        title: "OUR VISION",
-        icon: <Eye className="w-8 h-8" />,
-        content: "To be the leading community security organization in Nigeria, setting the standard for excellence in public safety and security services while fostering trust and collaboration within our communities.",
-        color: "from-[#006838] to-[#005830]",
-        hoverColor: "group-hover:from-[#007840] group-hover:to-[#006838]"
-    },
-    {
-        title: "OUR CORE VALUES",
-        icon: <Heart className="w-8 h-8" />,
-        values: [
-        "Integrity & Professionalism",
-        "Community Partnership",
-        "Excellence in Service",
-        "Accountability & Transparency",
-        "Innovation & Continuous Improvement"
-        ],
-        color: "from-[#006838] to-[#005830]",
-        hoverColor: "group-hover:from-[#007840] group-hover:to-[#006838]"
-    }
-    ];
-
-    // Latest news data
-  const latestNews: NewsItem[] = [
-    {
-      title: "Enhanced Security Measures Implemented",
-      date: "October 28, 2024",
-      image: image,
-      excerpt: "New security protocols have been established across Ogun State...",
-      category: "Security Update"
-    },
-    {
-      title: "Community Outreach Program Success",
-      date: "October 27, 2024",
-      image: image2,
-      excerpt: "Recent community engagement initiatives show positive results...",
-      category: "Community"
-    },
-    {
-      title: "Community Outreach Program Success",
-      date: "October 27, 2024",
-      image: image2,
-      excerpt: "Recent community engagement initiatives show positive results...",
-      category: "Community"
-    },
-    {
-      title: "Training Program Graduates 200 Officers",
-      date: "October 26, 2024",
-      image: image3,
-      excerpt: "Latest batch of security officers complete advanced training...",
-      category: "Training"
-    }
+  const organizationalContent: ContentItem[] = [
+  {
+      title: "OUR MISSION",
+      icon: <Target className="w-8 h-8" />,
+      content: "To provide professional security services that ensure the safety and well-being of all residents in Ogun State through community partnership, technological innovation, and dedicated service.",
+      color: "from-[#006838] to-[#005830]",
+      hoverColor: "group-hover:from-[#007840] group-hover:to-[#006838]"
+  },
+  {
+      title: "OUR VISION",
+      icon: <Eye className="w-8 h-8" />,
+      content: "To be the leading community security organization in Nigeria, setting the standard for excellence in public safety and security services while fostering trust and collaboration within our communities.",
+      color: "from-[#006838] to-[#005830]",
+      hoverColor: "group-hover:from-[#007840] group-hover:to-[#006838]"
+  },
+  {
+      title: "OUR CORE VALUES",
+      icon: <Heart className="w-8 h-8" />,
+      values: [
+      "Integrity & Professionalism",
+      "Community Partnership",
+      "Excellence in Service",
+      "Accountability & Transparency",
+      "Innovation & Continuous Improvement"
+      ],
+      color: "from-[#006838] to-[#005830]",
+      hoverColor: "group-hover:from-[#007840] group-hover:to-[#006838]"
+  }
   ];
-
-  const missingPersons: Person[] = [
-    {
-      name: "John Doe",
-      image: "/api/placeholder/400/300",
-      description: "Last seen wearing blue jeans and a red t-shirt",
-      date: "Missing since: Jan 15, 2024",
-      location: "Downtown Plaza, Main Street"
-    },
-    {
-      name: "John Doe",
-      image: "/api/placeholder/400/300",
-      description: "Last seen wearing blue jeans and a red t-shirt",
-      date: "Missing since: Jan 15, 2024",
-      location: "Downtown Plaza, Main Street"
-    },
-
-  ];
-  
-  const wantedPeople: Person[] = []; // Empty array will trigger the "nothing to display" state
-  
 
   return (
     <div className=' scroll-smooth'>
-        <NavBar />
-            
+        <NavBar />        
         {/* Enhanced Hero Section with Carousel */}
         <div className="relative max-w-7xl mx-auto my-8">
             <div className="overflow-hidden rounded-xl shadow-2xl" ref={emblaRef}>
@@ -368,7 +305,6 @@ const Home = () => {
             `}</style>
         </div>
 
-      {/* Enhanced Mission Statement Section */}
         {/* New Latest News Section */}
         <div className="bg-[#006838] py-6">
             <div className="max-w-7xl mx-auto">
@@ -382,17 +318,31 @@ const Home = () => {
                 <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-[#FFD700] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000" />
                 <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-[#006838] rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000" />
             </div>
+            {/* Add a subtle CSS animation for the background blobs */}
+            <style>{`
+                @keyframes blob {
+                0%, 100% { transform: translate(0, 0) scale(1); }
+                25% { transform: translate(20px, -20px) scale(1.1); }
+                50% { transform: translate(-20px, 20px) scale(0.9); }
+                75% { transform: translate(20px, 20px) scale(1.05); }
+                }
+                .animate-blob {
+                animation: blob 10s infinite;
+                }
+                .animation-delay-2000 {
+                animation-delay: 2s;
+                }
+                .animation-delay-4000 {
+                animation-delay: 4s;
+                }
+            `}</style>
             <AlertsDisplay 
                 missingPersons={missingPersons}
                 wantedPeople={wantedPeople}
             />
         </div>
         <div className="relative">
-            <SocialFeeds 
-                // twitterUsername="Aytolu7"
-                // facebookPageUrl="yourpage"
-                // instagramUsername="laddurojaiye"
-                />
+            <SocialFeeds />
         </div>
         <Footer />
     </div>

@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
+import { useNavigate } from 'react-router-dom';
 
 export interface NewsItem {
   title: string;
@@ -9,6 +10,8 @@ export interface NewsItem {
   image: string;
   excerpt: string;
   category: string;
+  content: string;
+  author: string;
 }
 
 interface NewsCarouselProps {
@@ -33,6 +36,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({ news }) => {
 
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+  const navigate = useNavigate();
 
   const scrollPrev = useCallback((): void => {
     if (newsEmblaApi) newsEmblaApi.scrollPrev();
@@ -59,8 +63,25 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({ news }) => {
     };
   }, [newsEmblaApi, onSelect]);
 
+  const handleLearnMore = (content: NewsItem) => {
+    // Create URL-friendly slug from title
+    const slug = content.title.toLowerCase().replace(/\s+/g, '-');
+    // Navigate to dynamic page with state
+    navigate(`/announcement/${slug}`, { 
+      state: { 
+        title: content.title,
+        description: content.excerpt,
+        badge: content.category,
+        image: content.image,
+        content: content.content,
+        date: content.date,
+        author: content.author
+      }
+    });
+  };
+
   return (
-    <div className="bg-[#006838] py-6 px-4">
+    <div className="bg-[#006838] scroll-smooth py-6 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-12">
           <h2 className="text-[#FFD700] text-3xl font-bold text-center">Latest News</h2>
@@ -118,7 +139,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({ news }) => {
                     </h3>
                     <p className="text-gray-600 line-clamp-2 mb-4">{item.excerpt}</p>
                     <button 
-                      onClick={() => console.log(`Read more about: ${item.title}`)}
+                      onClick={() => handleLearnMore(item)}
                       className="w-full px-6 py-2 bg-[#006838] text-white rounded-lg hover:bg-[#005830] transition-colors duration-300 transform hover:-translate-y-1 hover:shadow-lg"
                     >
                       Read More
