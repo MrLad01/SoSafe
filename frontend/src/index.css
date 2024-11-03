@@ -56,3 +56,63 @@
     font-size: 90%;
   }
 }
+
+/* Modern scrollbar styling */
+* {
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: #006838 #f1f5f9;
+}
+
+/* WebKit and Chromium browsers */
+::-webkit-scrollbar {
+  width: 12px;  /* Slightly wider to accommodate more rounded corners */
+  height: 12px;
+  padding: 2px;  /* Creates space around the scrollbar */
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 100vh;  /* Very round corners */
+  margin: 4px;  /* Creates padding effect around the thumb */
+}
+
+::-webkit-scrollbar-thumb {
+  background: #006838;
+  border-radius: 100vh;  /* Very round corners */
+  border: 3px solid #f1f5f9;  /* Creates padding effect */
+  transition: background 0.2s ease-in-out;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #005530;
+}
+
+/* Fancy version with gradients */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #006838, #00875a);
+  border: 3px solid #f1f5f9;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+  margin: 4px;
+}
+
+/* Dark theme version */
+@media (prefers-color-scheme: dark) {
+  * {
+    scrollbar-color: #00a15c #1e293b;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(45deg, #006838, #00a15c);
+    border: 3px solid #1e293b;
+  }
+}

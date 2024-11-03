@@ -7,7 +7,10 @@
       "default",
       {
         "ignore": [
-          "color-adjust"
+          "color-adjust",
+          "scrollbar-width",
+          "scrollbar-width: thin",
+          "scrollbar-color"
         ]
       }
     ]

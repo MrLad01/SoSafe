@@ -4,6 +4,8 @@ import Home from './Pages/Landing Page/Home';
 import 'rsuite/dist/rsuite-no-reset.min.css';
 import NewsDetail from "./components/NewsDetail";
 import PersonAlertDetail from "./components/PersonAlertDetail";
+import NewsPage from "./Pages/NewsPage";
+import { AgencyPage, ManagementTeamPage } from "./Pages/AboutPage";
 
 
 
@@ -13,7 +15,10 @@ function App() {
             <Route>
                 <Route index element={<Home />} />
                 <Route path="/announcement/:slug" element={<NewsDetail />} />
+                <Route path="/news" element={<NewsPage />} />
                 <Route path="/news/:slug" element={<NewsDetail />} />
+                <Route path="/about/agency" element={<AgencyPage />} />
+                <Route path="/about/management" element={<ManagementTeamPage />} />
                 <Route path="/missing/:person" element={<PersonAlertDetail />} />
                 <Route path="/wanted/:person" element={<PersonAlertDetail />} />
             </Route>

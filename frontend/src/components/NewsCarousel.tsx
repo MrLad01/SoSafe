@@ -105,7 +105,7 @@ const NewsCarousel: React.FC<NewsCarouselProps> = ({ news }) => {
         
         <div className="overflow-hidden" ref={newsEmblaRef}>
           <div className="flex">
-            {news.map((item, index) => (
+            {news.slice(0, 10).map((item, index) => (
               <div 
                 key={index} 
                 className="flex-none w-full md:w-1/2 lg:w-1/3 pl-4 first:pl-0"
