@@ -5,7 +5,7 @@ import 'rsuite/dist/rsuite-no-reset.min.css';
 import NewsDetail from "./components/NewsDetail";
 import PersonAlertDetail from "./components/PersonAlertDetail";
 import NewsPage from "./Pages/NewsPage";
-import { AgencyPage, ManagementTeamPage } from "./Pages/AboutPage";
+import { AgencyPage, ContactPage, ManagementTeamPage } from "./Pages/AboutPage";
 
 
 
@@ -19,6 +19,7 @@ function App() {
                 <Route path="/news/:slug" element={<NewsDetail />} />
                 <Route path="/about/agency" element={<AgencyPage />} />
                 <Route path="/about/management" element={<ManagementTeamPage />} />
+                <Route path="/about/contact" element={<ContactPage />} />
                 <Route path="/missing/:person" element={<PersonAlertDetail />} />
                 <Route path="/wanted/:person" element={<PersonAlertDetail />} />
             </Route>

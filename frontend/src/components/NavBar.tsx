@@ -43,9 +43,9 @@ export const NavBar = () => {
                                 <a href="/about/agency" className="block px-4 py-2 text-gray-800 hover:bg-green-100">Agency</a>
                                 <a href="/about/management" className="block px-4 py-2 text-gray-800 hover:bg-green-100">Management Team</a>
                                 <div className="relative group/nested">
-                                <button className="w-full text-left px-4 py-2 text-gray-800 hover:bg-green-100 flex items-center justify-between">
+                                <a href='/about/contact' className="w-full text-left px-4 py-2 text-gray-800 hover:bg-green-100 flex items-center justify-between">
                                     Contact
-                                </button>
+                                </a>
                                 </div>
                             </div>
                         )
@@ -53,6 +53,7 @@ export const NavBar = () => {
                 </div>
                 <a href="#" className="text-white hover:text-[#FFD700]">Department</a>
                 <a href="#" className="text-white hover:text-[#FFD700]">Zones</a>
+                <a href="#" className="text-white hover:text-[#FFD700]">Personnel</a>
             </div>
 
             {/* Mobile menu button */}
@@ -69,7 +70,8 @@ export const NavBar = () => {
             {/* Mobile Navigation */}
             {isOpen && (
             <div className="md:hidden mt-4">
-                <a href="#" className="block py-2 text-white hover:text-[#FFD700]">Home</a>
+                <a href="/" className="block py-2 text-white hover:text-[#FFD700]">Home</a>
+                <a href="/news" className="block py-2 text-white hover:text-[#FFD700]">News and updates</a>
                 <div>
                 <button 
                     onClick={() => setIsAboutOpen(!isAboutOpen)}
@@ -84,16 +86,18 @@ export const NavBar = () => {
                     <div className="pl-4">
                     <a href="/about/agency" className="block py-2 text-white hover:text-[#FFD700]">Agency</a>
                     <a href="/about/management" className="block py-2 text-white hover:text-[#FFD700]">Management Team</a>
-                    <button
+                    <a
+                        href='/about/contact'
                         className="w-full text-left py-2 text-white hover:text-[#FFD700] flex items-center justify-between"
                     >
                         Contact
-                    </button>
+                    </a>
                     </div>
                 )}
                 </div>
-                <a href="#" className="block py-2 text-white hover:text-[#FFD700]">News</a>
-                <a href="#" className="block py-2 text-white hover:text-[#FFD700]">Products</a>
+                <a href="#" className="block py-2 text-white hover:text-[#FFD700]">Department</a>
+                <a href="#" className="block py-2 text-white hover:text-[#FFD700]">Zones</a>
+                <a href="#" className="block py-2 text-white hover:text-[#FFD700]">Personnel</a>
             </div>
             )}
         </div>
