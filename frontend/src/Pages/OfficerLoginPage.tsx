@@ -77,7 +77,7 @@ const OfficerLoginPage = (): JSX.Element => {
               }`}
             >
               <Shield size={20} />
-              <span>Supervisor</span>
+              <span>Supervisor / Admin</span>
             </button>
           </div>
 
