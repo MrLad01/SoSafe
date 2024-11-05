@@ -6,11 +6,15 @@ import Footer from '../components/Footer';
 import { NavBar } from '../components/NavBar';
 import { latestNews } from '../data/LatestNews';
 import { heroContent, HeroContent } from '../data/HeroContent';
+import { useNavigate } from 'react-router-dom';
+import { NewsItem } from '../components/NewsCarousel';
 
 const NewsPage = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [prevBtnEnabled, setPrevBtnEnabled] = useState(false);
   const [nextBtnEnabled, setNextBtnEnabled] = useState(false);
+
+  const navigate = useNavigate();
 
   // Initialize Embla with proper typing and options
   const [emblaRef, emblaApi] = useEmblaCarousel(
@@ -63,6 +67,40 @@ const NewsPage = () => {
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
+    });
+  };
+
+  const handleLearnMore = (content: HeroContent) => {
+    // Create URL-friendly slug from title
+    const slug = content.title.toLowerCase().replace(/\s+/g, '-');
+    // Navigate to dynamic page with state
+    navigate(`/announcement/${slug}`, { 
+      state: { 
+        title: content.title,
+        description: content.description,
+        badge: content.badge,
+        image: content.image,
+        content: content.content,
+        date: content.date,
+        author: content.author
+      }
+    });
+  };
+
+  const handleReadMore = (content: NewsItem) => {
+    // Create URL-friendly slug from title
+    const slug = content.title.toLowerCase().replace(/\s+/g, '-');
+    // Navigate to dynamic page with state
+    navigate(`/announcement/${slug}`, { 
+      state: { 
+        title: content.title,
+        description: content.excerpt,
+        badge: content.category,
+        image: content.image,
+        content: content.content,
+        date: content.date,
+        author: content.author
+      }
     });
   };
 
@@ -150,59 +188,61 @@ const NewsPage = () => {
             {/* News Grid */}
             <div className="grid gap-6 h-[80vh] px-5 overflow-auto ">
               {latestNews.slice(0, 10).map((news, index) => (
-                <div key={index} 
-                     className="bg-white rounded-lg shadow-sm p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
-                  <div className="flex flex-col md:flex-row gap-4">
-                    <div className="md:w-48 relative group">
-                      <img 
-                        src={news.image} 
-                        alt={news.title}
-                        className="w-full h-48 md:h-32 object-cover rounded-lg group-hover:opacity-90 transition-opacity"
-                      />
-                      <div className="absolute top-2 right-2 flex gap-2">
-                        <button 
-                          className="p-1.5 bg-white/90 rounded-full hover:bg-white transition-colors"
-                          aria-label="Bookmark article"
-                          title="Bookmark this article"
-                        >
-                          <BookMarked size={16} className="text-gray-700" />
-                        </button>
-                        <button 
-                          className="p-1.5 bg-white/90 rounded-full hover:bg-white transition-colors"
-                          aria-label="Share article"
-                          title="Share this article"
-                        >
-                          <Share2 size={16} className="text-gray-700" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-xs px-2 py-1 bg-[#006838]/10 text-[#006838] rounded-full font-medium">
-                          {news.category}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(news.date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <h3 className="font-bold text-lg mb-2 hover:text-[#006838] transition-colors duration-200">
-                        {news.title}
-                      </h3>
-                      <p className="text-sm text-gray-600 line-clamp-2">{news.excerpt}</p>
-                      <div className="mt-4 flex items-center text-sm text-gray-500">
+                <button onClick={() => handleReadMore(news)} className='text-left'>
+                  <div key={index} 
+                      className="bg-white rounded-lg shadow-sm p-4 hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1">
+                    <div className="flex flex-col md:flex-row gap-4">
+                      <div className="md:w-48 relative group">
                         <img 
-                          src="/api/placeholder/32/32"
-                          alt={`${news.author}'s avatar`}
-                          className="w-6 h-6 rounded-full mr-2"
+                          src={news.image} 
+                          alt={news.title}
+                          className="w-full h-48 md:h-32 object-cover rounded-lg group-hover:opacity-90 transition-opacity"
                         />
-                        <span>{news.author}</span>
-                        <span className="mx-2">•</span>
-                        <Eye size={16} className="mr-1" />
-                        <span>4 views</span>
+                        <div className="absolute top-2 right-2 flex gap-2">
+                          <button 
+                            className="p-1.5 bg-white/90 rounded-full hover:bg-white transition-colors"
+                            aria-label="Bookmark article"
+                            title="Bookmark this article"
+                          >
+                            <BookMarked size={16} className="text-gray-700" />
+                          </button>
+                          <button 
+                            className="p-1.5 bg-white/90 rounded-full hover:bg-white transition-colors"
+                            aria-label="Share article"
+                            title="Share this article"
+                          >
+                            <Share2 size={16} className="text-gray-700" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs px-2 py-1 bg-[#006838]/10 text-[#006838] rounded-full font-medium">
+                            {news.category}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(news.date).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <h3 className="font-bold text-lg mb-2 hover:text-[#006838] transition-colors duration-200">
+                          {news.title}
+                        </h3>
+                        <p className="text-sm text-gray-600 line-clamp-2">{news.excerpt}</p>
+                        <div className="mt-4 flex items-center text-sm text-gray-500">
+                          <img 
+                            src="/api/placeholder/32/32"
+                            alt={`${news.author}'s avatar`}
+                            className="w-6 h-6 rounded-full mr-2"
+                          />
+                          <span>{news.author}</span>
+                          <span className="mx-2">•</span>
+                          <Eye size={16} className="mr-1" />
+                          <span>4 views</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -215,32 +255,34 @@ const NewsPage = () => {
             </h2>
             <div className="bg-white p-6 rounded-lg shadow-sm space-y-6 h-[76vh] px-5 overflow-auto ">
               {heroContent.slice(0, 5).map((news, index) => (
-                <div key={index}>
-                  <div className="group cursor-pointer">
-                    <div className="relative mb-3">
-                      <img 
-                        src={news.image} 
-                        alt={news.title}
-                        className="w-full h-48 object-cover rounded-lg group-hover:opacity-90 transition-opacity"
-                      />
-                      <div className="absolute top-2 right-2">
-                        <span className="bg-white/90 text-sm px-2 py-1 rounded-full">
-                          <Eye size={14} className="inline mr-1" />
-                          4 views
-                        </span>
+                <button onClick={() => handleLearnMore(news)} className='text-left'>
+                  <div key={index}>
+                    <div className="group cursor-pointer">
+                      <div className="relative mb-3">
+                        <img 
+                          src={news.image} 
+                          alt={news.title}
+                          className="w-full h-48 object-cover rounded-lg group-hover:opacity-90 transition-opacity"
+                        />
+                        <div className="absolute top-2 right-2">
+                          <span className="bg-white/90 text-sm px-2 py-1 rounded-full">
+                            <Eye size={14} className="inline mr-1" />
+                            4 views
+                          </span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="text-sm text-gray-500">
+                          {new Date(news.date).toLocaleDateString()}
+                        </div>
+                        <h4 className="font-bold group-hover:text-[#006838] transition-colors duration-200">
+                          {news.title}
+                        </h4>
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <div className="text-sm text-gray-500">
-                        {new Date(news.date).toLocaleDateString()}
-                      </div>
-                      <h4 className="font-bold group-hover:text-[#006838] transition-colors duration-200">
-                        {news.title}
-                      </h4>
-                    </div>
+                    {index < 2 && <hr className="my-6 border-gray-200" />}
                   </div>
-                  {index < 2 && <hr className="my-6 border-gray-200" />}
-                </div>
+                </button>
               ))}
             </div>
           </div>
