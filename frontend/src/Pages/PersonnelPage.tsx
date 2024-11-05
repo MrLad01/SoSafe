@@ -1,12 +1,13 @@
 import { UserPlus, Shield, Users, Award, Star, Clock, CheckCircle } from 'lucide-react';
 import { NavBar } from '../components/NavBar';
 import Footer from '../components/Footer';
+import { useEffect } from 'react';
 
 const PersonnelPage = () => {
   const stats = [
     { 
       icon: <Users className="w-8 h-8 text-[#006838]" />,
-      value: "1000+",
+      value: "9000+",
       label: "Active Officers"
     },
     {
@@ -26,11 +27,32 @@ const PersonnelPage = () => {
     }
   ];
 
+      // Add viewport height fix for iOS
+      useEffect(() => {
+        // Function to update CSS variable for viewport height
+        const updateVH = () => {
+          const vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+    
+        // Initial call
+        updateVH();
+    
+        // Update on resize and orientation change
+        window.addEventListener('resize', updateVH);
+        window.addEventListener('orientationchange', updateVH);
+    
+        return () => {
+          window.removeEventListener('resize', updateVH);
+          window.removeEventListener('orientationchange', updateVH);
+        };
+      }, []);
+
   const features = [
     {
       icon: <Shield className="w-6 h-6 text-[#FFD700]" />,
       title: "Professional Training",
-      description: "All officers undergo rigorous training in security operations and community relations."
+      description: "All officers undergo compulsory twice in a year rigorous training in security operations and community relations."
     },
     {
       icon: <Star className="w-6 h-6 text-[#FFD700]" />,
@@ -112,7 +134,7 @@ const PersonnelPage = () => {
       {/* Mission Statement */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <blockquote className="text-xl italic text-gray-700">
-          "Our personnel are more than security officers; they are community guardians, dedicated to creating a safer and more secure environment for all residents of Ogun State."
+          "Our personnel are more than security officers; they are community guardians, dedicated to creating a safer and more secure environment for all residents of Ogun State." - Commander (Dr.) Soji Ganzallo FCAI, FIIM, fisn
         </blockquote>
       </div>
 

@@ -4,7 +4,7 @@ import logo from '../assets/logo.webp'
 import commander from '../assets/state-commander.jpg'
 import { NavBar } from '../components/NavBar';
 import Footer from '../components/Footer';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // Background Watermark Component
 const Watermark = () => (
@@ -66,8 +66,29 @@ const AgencyPage = () => {
     { title: "Training Hours", stat: "10,000+", description: "Annual personnel development" }
   ];
 
+    // Add viewport height fix for iOS
+    useEffect(() => {
+      // Function to update CSS variable for viewport height
+      const updateVH = () => {
+        const vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+      };
+  
+      // Initial call
+      updateVH();
+  
+      // Update on resize and orientation change
+      window.addEventListener('resize', updateVH);
+      window.addEventListener('orientationchange', updateVH);
+  
+      return () => {
+        window.removeEventListener('resize', updateVH);
+        window.removeEventListener('orientationchange', updateVH);
+      };
+    }, []);
+
   return (
-    <div className="relative min-h-screen bg-gray-50">
+    <div className="relative min-h-[calc(var(--vh,1vh)*100)] bg-gray-50">
       <NavBar />
       <div className="max-w-7xl mx-auto px-4 py-8 relative">
         {/* <Watermark /> */}
@@ -85,7 +106,7 @@ const AgencyPage = () => {
           <div className="flex items-start gap-4 mb-6">
             <BookOpen className="w-8 h-8 text-green-700 flex-shrink-0" />
             <div>
-              <h2 className="text-2xl font-bold text-green-800 mb-3">Our Formation</h2>
+              <h2 className="text-2xl font-bold text-green-800 mb-3">Our Establishment</h2>
               <p className="text-gray-600 leading-relaxed">
                 {formationText}
               </p>
@@ -192,7 +213,7 @@ const ManagementTeamPage = () => {
     ];
   
     const fullBio = `
-        Soji Ganzallo, the State Commander of Ogun State Community, Social Orientation and Safety Corps ( So-Safe Corps) was born on 7th February, 1962. This great indigene of Egba, from the Ligegere’s Family, Ake Land, Abeokuta, Ogun State has strong passion for security and safety of people lives and property.
+        Soji Ganzallo, the State Commander of Ogun State Community, Social Orientation and Safety Corps ( So-Safe Corps). This great indigene of Egba, from the Ligegere’s Family, Ake Land, Abeokuta, Ogun State has strong passion for security and safety of people lives and property.
 
 
         He began his elementary education in Ibadan, Oyo State, where he proceeded to Iseyin Distinct Grammar School at Iseyin, there he successfully obtained his West African School Certificate (WASC).
@@ -204,7 +225,7 @@ const ManagementTeamPage = () => {
 
         He is a professional member of the Institute of Corporate Administration(ICAD)
 
-        He is a Professional Fellow Institute of Information Management Africa (FIIM)as well as FELLOW  Institute of Security Management, United Kingdom (UK).
+        He is a Professional Fellow Institute of Information Management Africa (FIIM) as well as FELLOW  Institute of Security Management, United Kingdom (UK).
 
         He ventured into security, the terrain where his qualitative and brilliant performance has been of tremendous benefit to humanity, community and Ogun State.
 
@@ -216,19 +237,19 @@ const ManagementTeamPage = () => {
 
         Ganzallo, a holder of Advance Diploma in Security Operations Management , Institute of Security Nigeria (ISN) UNILAG- 2018
 
-        He is also a Professional Specialist in Criminal Investigation, Digital Forensic and Intelligence Studies ,ISN, UNILAG.
+        He is also a Professional Specialist in Criminal Investigation, Digital Forensic and Intelligence Studies, ISN, UNILAG.
 
         He has Diploma in Security Operational Management, Olabisi Onabanjo University Consult in collaboration with Institute of Criminology Studies and Security Management of Nigeria- 2018.
 
         He is a Certified security Guru in Managing Security and Security Challenges for Grassroots’ Transformation by House of Representatives Committee on National Security and Intelligence- 2018.
 
-        He has attended a number of courses on Firearms handling and Intelligence gathering techniques both at home and aboad ( South Africa ,Ghana etc)
+        He has attended a number of courses on Firearms handling and Intelligence gathering techniques both at home and abroad( South Africa, Ghana etc)
 
         He is a holder of certificate in Security Management, London Royal College of Secutity- Jan-Nov 2006
         
         Certificate holder in Advanced Firearms Training, South Africa- 2015
 
-        Commander Soji Ganzallo was the State Vice Chairman in charge of  Community Policing and Intelligence Gathering of Police Community Relations Committee (PCRC) Ogun State Command .And presently, he is a State Patron of PCRC in the State. 
+        Commander Soji Ganzallo was the State Vice Chairman in charge of  Community Policing and Intelligence Gathering of Police Community Relations Committee(PCRC) Ogun State Command. And presently, he is a State Patron of PCRC in the State. 
 
         Commander Ganzallo is an Ambassador of War Against Drug Abuse(WADA) 
 
@@ -286,7 +307,7 @@ const ManagementTeamPage = () => {
                         </div>
                         <div className="md:col-span-2">
                         <h2 className="text-3xl font-bold text-green-800 mb-3">
-                            Commander (Dr.) Soji Ganzallo FCAI,FIIM,fisn
+                            Commander (Dr.) Soji Ganzallo FCAI, FIIM, fisn
                         </h2>
                         <p className="text-xl text-green-600 mb-6">State Commander</p>
                         <div className="prose prose-lg max-w-none">
@@ -359,12 +380,20 @@ const ManagementTeamPage = () => {
                         Deputy State Commander
                     </div>
                     <div className="w-0.5 h-8 bg-green-600"></div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {['Directors', 'Zonal Commander', 'Area Commander'].map((title, i) => (
+                    <div className="w-72 bg-gradient-to-r from-green-600 to-green-700 text-white p-6 rounded-xl text-center shadow-lg">
+                        Directors
+                    </div>
+                    <div className="w-0.5 h-8 bg-green-600"></div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {['Zonal Commander', 'Marshalls'].map((title, i) => (
                         <div key={i} className="w-56 bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl text-center shadow-lg">
                             {title}
                         </div>
                         ))}
+                    </div>
+                    <div className="w-0.5 h-8 bg-green-500"></div>
+                    <div className="w-72 bg-gradient-to-r from-green-400 to-green-500 text-white p-6 rounded-xl text-center shadow-lg">
+                        Area Commander
                     </div>
                     <div className="w-0.5 h-8 bg-green-500"></div>
                     <div className="w-72 bg-gradient-to-r from-green-400 to-green-500 text-white p-6 rounded-xl text-center shadow-lg">

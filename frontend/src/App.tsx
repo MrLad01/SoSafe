@@ -6,7 +6,7 @@ import NewsDetail from "./components/NewsDetail";
 import PersonAlertDetail from "./components/PersonAlertDetail";
 import NewsPage from "./Pages/NewsPage";
 import { AgencyPage, ContactPage, ManagementTeamPage } from "./Pages/AboutPage";
-import DepartmentsPage from "./Pages/DepatmentsPage";
+import DepartmentsPage from "./Pages/DepartmentsPage";
 import PersonnelPage from "./Pages/PersonnelPage";
 import UnderConstructionPage from "./Pages/UnderConstructionPage";
 import OfficerLoginPage from "./Pages/OfficerLoginPage";

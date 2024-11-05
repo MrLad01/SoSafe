@@ -1,11 +1,33 @@
 import { useNavigate } from 'react-router-dom';
 import { Construction, Hammer, Clock, ArrowLeft, Wrench } from 'lucide-react';
+import { useEffect } from 'react';
 
 const UnderConstructionPage = () => {
   const navigate = useNavigate();
 
+      // Add viewport height fix for iOS
+      useEffect(() => {
+        // Function to update CSS variable for viewport height
+        const updateVH = () => {
+          const vh = window.innerHeight * 0.01;
+          document.documentElement.style.setProperty('--vh', `${vh}px`);
+        };
+    
+        // Initial call
+        updateVH();
+    
+        // Update on resize and orientation change
+        window.addEventListener('resize', updateVH);
+        window.addEventListener('orientationchange', updateVH);
+    
+        return () => {
+          window.removeEventListener('resize', updateVH);
+          window.removeEventListener('orientationchange', updateVH);
+        };
+      }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center p-4">
+    <div className="min-h-[calc(var(--vh,1vh)*100)] bg-gradient-to-b from-green-50 to-green-100 flex items-center justify-center p-4">
       <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8 mx-4 border-2 border-green-700">
         <div className="flex flex-col items-center text-center space-y-6">
           {/* Icon and Title Section */}

@@ -63,6 +63,27 @@ const NewsPage = () => {
     };
   }, []);
 
+  // Add viewport height fix for iOS
+  useEffect(() => {
+    // Function to update CSS variable for viewport height
+    const updateVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    // Initial call
+    updateVH();
+
+    // Update on resize and orientation change
+    window.addEventListener('resize', updateVH);
+    window.addEventListener('orientationchange', updateVH);
+
+    return () => {
+      window.removeEventListener('resize', updateVH);
+      window.removeEventListener('orientationchange', updateVH);
+    };
+  }, []);
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
@@ -130,7 +151,7 @@ const NewsPage = () => {
   );
 
   return (
-    <div className="scroll-smooth bg-gray-50">
+    <div className="scroll-smooth min-h-[calc(var(--vh,1vh)*100)] bg-gray-50">
       <div className="fixed z-30 w-full">
         <NavBar />
       </div>

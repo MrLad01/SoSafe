@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
 import { Shield, Users, ChevronRight, Mail, IdCard, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.webp';
@@ -17,6 +17,27 @@ const OfficerLoginPage = (): JSX.Element => {
     e.preventDefault();
     navigate('/under-construction');
   };
+
+  // Add viewport height fix for iOS
+  useEffect(() => {
+    // Function to update CSS variable for viewport height
+    const updateVH = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    // Initial call
+    updateVH();
+
+    // Update on resize and orientation change
+    window.addEventListener('resize', updateVH);
+    window.addEventListener('orientationchange', updateVH);
+
+    return () => {
+      window.removeEventListener('resize', updateVH);
+      window.removeEventListener('orientationchange', updateVH);
+    };
+  }, []);
 
   const handleBack = (): void => {
     navigate(-1);
