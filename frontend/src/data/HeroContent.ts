@@ -1,6 +1,6 @@
-import image from '../assets/image.webp';
-import image3 from '../assets/image3.webp';
-import image2 from '../assets/image (1).webp';
+import image from '../assets/image.jpg';
+import image3 from '../assets/image3.jpg';
+import image2 from '../assets/image (1).jpg';
 // Note: You'll need to import additional images for the new content
 // import image4 from '../assets/image4.webp';
 // import image5 from '../assets/image5.webp';

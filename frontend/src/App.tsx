@@ -6,6 +6,10 @@ import NewsDetail from "./components/NewsDetail";
 import PersonAlertDetail from "./components/PersonAlertDetail";
 import NewsPage from "./Pages/NewsPage";
 import { AgencyPage, ContactPage, ManagementTeamPage } from "./Pages/AboutPage";
+import DepartmentsPage from "./Pages/DepatmentsPage";
+import PersonnelPage from "./Pages/PersonnelPage";
+import UnderConstructionPage from "./Pages/UnderConstructionPage";
+import OfficerLoginPage from "./Pages/OfficerLoginPage";
 
 
 
@@ -22,6 +26,10 @@ function App() {
                 <Route path="/about/contact" element={<ContactPage />} />
                 <Route path="/missing/:person" element={<PersonAlertDetail />} />
                 <Route path="/wanted/:person" element={<PersonAlertDetail />} />
+                <Route path="/departments" element={<DepartmentsPage />} />
+                <Route path="/personnel" element={<PersonnelPage />} />
+                <Route path="/login" element={<OfficerLoginPage />} />
+                <Route path="/under-construction" element={<UnderConstructionPage />} />
             </Route>
         )
     );

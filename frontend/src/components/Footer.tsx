@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Facebook, Twitter, Instagram, Phone, Mail, MapPin, Shield, Bell, Clock } from 'lucide-react';
+import { Facebook, Twitter, Instagram, Phone, Mail, MapPin, Home, Newspaper, Building2, Users, Contact, LayoutGrid, UserCircle} from 'lucide-react';
 import PolicyModals from './PolicyModals';
 
 
@@ -64,29 +64,42 @@ const defaultSocialLinks: SocialLink[] = [
   }
 ];
 
+
 const defaultQuickLinks: QuickLink[] = [
   {
-    title: 'About Us',
-    url: '#',
-    icon: <Shield size={16} />
+    title: 'Home',
+    url: '/',
+    icon: <Home size={16}  />
   },
   {
-    title: 'Report Incident',
-    url: '#',
-    icon: <Bell size={16} />
+    title: 'News and Updates',
+    url: '/news',
+    icon: <Newspaper size={16}  />
   },
   {
-    title: 'Emergency Response',
-    url: '#',
-    icon: <Clock size={16} />
+    title: 'Agency',
+    url: '/about/agency',
+    icon: <Building2 size={16}  />
   },
   {
-    title: 'Careers',
-    url: '#'
+    title: 'Management Team',
+    url: '/about/management',
+    icon: <Users size={16}  />
   },
   {
-    title: 'Training Programs',
-    url: '#'
+    title: 'Contact',
+    url: '/about/contact',
+    icon: <Contact size={16}  />
+  },
+  {
+    title: 'Department',
+    url: '/departments',
+    icon: <LayoutGrid size={16}  />
+  },
+  {
+    title: 'Personnel',
+    url: '/personnel',
+    icon: <UserCircle size={16}  />
   }
 ];
 

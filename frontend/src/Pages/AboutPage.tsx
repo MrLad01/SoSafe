@@ -86,7 +86,7 @@ const AgencyPage = () => {
             <BookOpen className="w-8 h-8 text-green-700 flex-shrink-0" />
             <div>
               <h2 className="text-2xl font-bold text-green-800 mb-3">Our Formation</h2>
-              <p className="text-gray-600 leading-relaxed text-justify">
+              <p className="text-gray-600 leading-relaxed">
                 {formationText}
               </p>
             </div>

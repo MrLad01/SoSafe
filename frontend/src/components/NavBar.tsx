@@ -51,9 +51,9 @@ export const NavBar = () => {
                         )
                     }
                 </div>
-                <a href="#" className="text-white hover:text-[#FFD700]">Department</a>
-                <a href="#" className="text-white hover:text-[#FFD700]">Zones</a>
-                <a href="#" className="text-white hover:text-[#FFD700]">Personnel</a>
+                <a href="/departments" className="text-white hover:text-[#FFD700]">Department</a>
+                {/* <a href="#" className="text-white hover:text-[#FFD700]">Zones</a> */}
+                <a href="/personnel" className="text-white hover:text-[#FFD700]">Personnel</a>
             </div>
 
             {/* Mobile menu button */}
@@ -95,9 +95,9 @@ export const NavBar = () => {
                     </div>
                 )}
                 </div>
-                <a href="#" className="block py-2 text-white hover:text-[#FFD700]">Department</a>
-                <a href="#" className="block py-2 text-white hover:text-[#FFD700]">Zones</a>
-                <a href="#" className="block py-2 text-white hover:text-[#FFD700]">Personnel</a>
+                <a href="/departments" className="block py-2 text-white hover:text-[#FFD700]">Department</a>
+                {/* <a href="#" className="block py-2 text-white hover:text-[#FFD700]">Zones</a> */}
+                <a href="/personnel" className="block py-2 text-white hover:text-[#FFD700]">Personnel</a>
             </div>
             )}
         </div>
