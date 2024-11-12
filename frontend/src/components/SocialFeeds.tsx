@@ -47,10 +47,10 @@ const CompactSocialFeeds = () => {
       icon: Facebook,
       color: 'bg-blue-600',
       hoverColor: 'group-hover:bg-blue-700',
-      url: 'https://facebook.com/yourpage',
+      url: 'https://www.facebook.com/profile.php?id=100068904112382&mibextid=ZbWKwL',
       stats: [
-        { icon: Users, value: '45K', label: 'Likes' },
-        { icon: Share2, value: '2.8K', label: 'Shares' },
+        { icon: Users, value: '2.8K', label: 'Followers' },
+        { icon: Share2, value: '4', label: 'Following' },
       ]
     },
     {
