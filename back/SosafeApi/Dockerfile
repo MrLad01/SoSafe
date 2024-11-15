@@ -10,7 +10,9 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    nginx
+    nginx \
+    nodejs \
+    npm
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -24,18 +26,25 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
+# Copy composer files first for better caching
+COPY composer.json composer.lock ./
+
 # Copy existing application directory
-COPY . /var/www
+COPY . .
 
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
 
+# Set up environment file
+COPY .env.example .env
+RUN chmod 777 storage -R
+
 # Generate application key
-RUN php artisan key:generate
+RUN php artisan key:generate --force
 
 # Set permissions
-RUN chown -R www-data:www-data /var/www/storage
-RUN chmod -R 775 /var/www/storage
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
+RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 # Configure Nginx
 COPY docker/nginx.conf /etc/nginx/sites-available/default
