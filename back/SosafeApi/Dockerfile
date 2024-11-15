@@ -51,6 +51,9 @@ RUN chmod 777 storage -R
 # Generate application key
 RUN php artisan key:generate --force
 
+# Generate JWT secret
+RUN php artisan jwt:secret
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
