@@ -36,14 +36,11 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy composer files first for better caching
-COPY composer.json composer.lock ./
+# Copy the entire application
+COPY . .
 
 # Install dependencies
 RUN composer install --no-interaction --no-dev --optimize-autoloader
-
-# Copy existing application directory
-COPY . .
 
 # Set up environment file
 COPY .env.example .env
