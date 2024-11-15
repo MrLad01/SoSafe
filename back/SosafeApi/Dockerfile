@@ -14,7 +14,8 @@ RUN apt-get update && apt-get install -y \
     npm \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
-    libzip-dev
+    libzip-dev \
+    libpq-dev
 
 # Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -23,6 +24,7 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
+        pdo_pgsql \
         mbstring \
         exif \
         pcntl \
