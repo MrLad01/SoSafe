@@ -1,0 +1,18 @@
+# render.yaml
+services:
+  - type: web
+    name: SosafeApi
+    runtime: docker
+    plan: free
+    region: ohio
+    healthCheckPath: /
+    buildCommand: docker build -t SosafeApi .
+    startCommand: docker run -p $PORT:80 SosafeApi
+    envVars:
+      - key: APP_KEY
+        generateValue: true
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"    # Note: boolean values need to be quoted
+    autoDeploy: true
