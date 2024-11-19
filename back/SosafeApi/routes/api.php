@@ -9,6 +9,8 @@ use App\Http\Controllers\HeroController;
 use App\Http\Controllers\MissingWantedController;
 use App\Http\Controllers\NewsController;
 use App\Http\Controllers\ZonalCommandController;
+use App\Http\Controllers\AdminZonalCommandController;
+use App\Http\Controllers\AdminDivisionCommandController;
 use App\Http\Controllers\DivisionCommandController;
 use App\Http\Controllers\SoSafeCorpsBiodataController;
 use App\Http\Controllers\CommunityController;
@@ -32,13 +34,20 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('register', [authenticationController::class, 'register']);
 Route::post('login', [authenticationController::class, 'login']);
 Route::get('user', [authenticationController::class, 'getUser']);
+Route::get('Missing', [MissingWantedController::class, 'getMissing']);
+
+Route::post('news', [NewsController::class, 'storeNews']);
+Route::get('Hero', [HeroController::class, 'getHero']);
+Route::get('division', [DivisionCommandController::class, 'getDivision']);
+Route::put('community/{id}', [CommunityController::class, 'editCommunity']);
+Route::get('Zonal_command', [ZonalCommandController::class, 'getZonalCommands']);
+
 
 Route::middleware([JwtMiddleware::class],'role:admin')->group(function () {
     Route::get('/data',[biodataController::class, 'getdata']);
     Route::get('user', [authenticationController::class, 'getUser']);
     Route::post('logout', [authenticationController::class, 'logout']);
     // news controller
-    Route::post('news', [NewsController::class, 'storeNews']);
     Route::put('news/{id}', [NewsController::class, 'editNews']);
     Route::get('news', [NewsController::class, 'getNews']);
     Route::delete('news/{id}',[NewsController::class,'deleteNews']);
@@ -46,19 +55,16 @@ Route::middleware([JwtMiddleware::class],'role:admin')->group(function () {
     // missing/wanted controller
     Route::post('missing', [MissingWantedController::class, 'storeNews']);
     Route::put('Missing/{id}', [MissingWantedController::class, 'editMissing']);
-    Route::get('Missing', [MissingWantedController::class, 'getMissing']);
     Route::delete('Missing/{id}',[MissingWantedController::class,'deleteMissing']);
 
     // hero controller
     Route::post('hero', [HeroController::class, 'storeNews']);
     Route::put('Hero/{id}', [HeroController::class, 'editHero']);
-    Route::get('Hero', [HeroController::class, 'getHero']);
     Route::delete('Hero/{id}',[HeroController::class,'deleteHero']);
 
     //community controller
 
     Route::post('community', [CommunityController::class, 'storeCommunity']);
-    Route::put('community/{id}', [CommunityController::class, 'editCommunity']);
     Route::get('community', [CommunityController::class, 'getCommunities']);
     Route::delete('community/{id}',[CommunityController::class,'deleteCommunity']);
 
@@ -66,14 +72,12 @@ Route::middleware([JwtMiddleware::class],'role:admin')->group(function () {
 
     Route::post('division', [DivisionCommandController::class, 'storeDivision']);
     Route::put('division/{id}', [DivisionCommandController::class, 'editDivision']);
-    Route::get('division', [DivisionCommandController::class, 'getDivision']);
     Route::delete('division/{id}',[DivisionCommandController::class,'deleteDivision']);
 
     // zonal area controller
 
     Route::post('Zonal_command', [ZonalCommandController::class, 'storeZonalCommand']);
     Route::put('Zonal_command/{id}', [ZonalCommandController::class, 'editZonalCommand']);
-    Route::get('Zonal_command', [ZonalCommandController::class, 'getZonalCommands']);
     Route::delete('Zonal_command/{id}',[ZonalCommandController::class,'deleteZonalCommand']);
 
     // biodata controller
@@ -83,9 +87,17 @@ Route::middleware([JwtMiddleware::class],'role:admin')->group(function () {
     Route::get('biodata', [SosafeCorpsBiodataController::class, 'getBiodatas']);
 
 });
-
-Route::middleware([JwtMiddleware::class],'role:Zonal_command')->group(function(){
-    Route::get('/zonal/data',[ZonalCommandController::class, 'getSoSafeCorpsBiodata']);
-    Route::get('user', [ZonalCommandController::class, 'getUser']);
+//Admin Zonal Area Controller
+Route::middleware([JwtMiddleware::class,'role:Zonal_command'])->group(function(){
+    Route::get('/z/records',[AdminZonalCommandController::class, 'getSoSafeCorpsBiodata']);
+    Route::get('/z/record', [AdminZonalCommandController::class, 'getRecords']);
 });
+
+// Admin Division Controller
+
+Route::middleware([JwtMiddleware::class,'role:division_command'])->group(function(){
+    Route::get('/d/records',[AdminDivisionCommandController::class, 'getSoSafeCorpsBiodata']);
+    Route::get('/d/record', [AdminDivisionCommandController::class, 'getRecords']);
+});
+
 
