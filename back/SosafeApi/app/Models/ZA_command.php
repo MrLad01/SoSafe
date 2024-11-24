@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ZA_command extends Model
 {
@@ -14,10 +15,10 @@ class ZA_command extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
+    protected $table = 'za_commands';
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'za_command_id', 'id');
+        return $this->belongsTo(soSafeCorpsBiodata::class,'za_command_id');
     }
     protected $fillable =['name'];
-    protected $table = 'za_commands';
 }

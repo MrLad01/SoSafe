@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\biodataController;
+use App\Http\Controllers\ExcelController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -14,9 +16,10 @@ use App\Http\Controllers\biodataController;
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+// Route::get('/', function () {
+//     return view('welcome');
+// });
 
 Route::get('/test',[biodataController::class, 'test']);
+Route::get('/',[ExcelController::class, 'export']);
 

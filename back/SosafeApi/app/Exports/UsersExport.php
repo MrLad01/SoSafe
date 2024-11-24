@@ -3,15 +3,18 @@
 namespace App\Exports;
 
 use App\Models\sobiodata;
-use Maatwebsite\Excel\Concerns\FromCollection;
+use App\Models\User;
+use Maatwebsite\Excel\Concerns\FromQuery;
+use Maatwebsite\Excel\Concerns\Exportable;
 
-class UsersExport implements FromCollection
+class UsersExport implements FromQuery
 {
+    use exportable;
     /**
     * @return \Illuminate\Support\Collection
     */
-    public function collection()
+    public function query()
     {
-        return sobiodata::chunk('sno', '61')->get();
+        return User::query();
     }
 }

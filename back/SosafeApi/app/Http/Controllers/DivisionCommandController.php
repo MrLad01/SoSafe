@@ -39,12 +39,8 @@ class DivisionCommandController extends Controller
         $validate = $request->all();
 
         $rules = [
-            'title' =>['string','required'],
-            'image'=>['required'],
-            'excerpt' =>['string','required'],
-            'category' =>['string','required'],
-            'content' =>['string','required'],
-            'author' =>['string','required']
+            'name' =>['string','required'],
+            'za_command_id'=>['integer','required']
 
         ];
 

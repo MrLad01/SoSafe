@@ -5,76 +5,72 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SoSafeCorpsBiodata;
 use Illuminate\Support\Facades\Validator;
+use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminZonalCommandController extends Controller{
     public function getSoSafeCorpsBiodata(){
-        $area = Auth::user()->area;
-        $SoSafeCorpsBiodata = SoSafeCorpsBiodata::where('zonal_command',$area)->get();
+        $area = JWTAuth::user()->Area;
+        $SoSafeCorpsBiodata = soSafeCorpsBiodata::where('za_command_id',$area)->with('ZonalArea')->get();
         return response()->json($SoSafeCorpsBiodata, 200);
     }
 
-    public function storeSoSafeCorpsBiodata(Request $request){
+public function editBiodata(Request $request, $id){
+    try{
         $validate = $request->all();
+    $rules = [
+        'code' =>['string','required','unique:so_safe_corps_biodatas'],
+        'firstname'=>['required'],
+        'lastname' =>['string','required'],
+        'othername' =>['string','required'],
+        'address' =>['string','required'],
+        'phone_no' =>['string','required'],
+        'dob' =>['date','required'],
+        'sex' =>['string','required'],
+        'community_id' =>['integer','required'],
+        'za_command_id' =>['integer','required'],
+        'division_command_id' =>['integer','required'],
+        'service_code' =>['string','required','unique:so_safe_corps_biodatas'],
+        'position' =>['string','required'],
+        'date_engage' =>['string','required'],
+        'rank' =>['string','required'],
+        'nok' =>['string','required'],
+        'relationship' =>['string','required'],
+        'nok_phone' =>['string','required'],
+        'qualification' =>['string','required']
+    ];
 
-        $rules = [
-            'image'=>['required'],
-            'title' =>['string','required'],
-            'description' =>['string','required'],
-            'badge' =>['string','required'],
-            'date' =>['string','required'],
-            'content' =>['string','required'],
-            'author' =>['string','required']
+    $validator=Validator::make($validate,$rules);
 
-        ];
-
-        $validator=Validator::make($validate,$rules);
-
-        if($validator->fails()){
-            $errors = $validator->messages()->all();
-            return response()->json(['errors' => $errors]);
-        }
-        $SoSafeCorpsBiodata = SoSafeCorpsBiodata::create($validate);
-        return response()->json(['message'=> 'success']);
+    if($validator->fails()){
+        $errors = $validator->messages()->all();
+        return response()->json(['errors' => $errors]);
     }
+    $data = soSafeCorpsBiodata::findOrFail($id)->where('division_command_id',$area)->with('ZonalArea')->get();
+    $data->code = $request->code;
+    $data->firstname = $request->firstname;
+    $data->lastname = $request->lastname;
+    $data->othername = $request->othername;
+    $data->address = $request->address;
+    $data->phone_no = $request->phone_no;
+    $data->dob = $request->dob;
+    $data->sex = $request->sex;
+    $data->community_id = $request->community_id;
+    $data->za_command_id = $request->za_command_id;
+    $data->division_command_id = $request->division_command_id;
+    $data->service_code = $request->service_code;
+    $data->position = $request->position;
+    $data->date_engage = $request->date_engage;
+    $data->rank = $request->rank;
+    $data->nok = $request->nok;
+    $data->relationship = $request->relationship;
+    $data->nok_phone = $request->nok_phone;
+    $data->qualification = $request->qualification;
+    $data->update(); 
+}catch(ModelNotFoundException $exception){
+return response(["Status"=>"Error",
+        "Message"=>" {$id} not found"]);
+}
 
-    public function editSoSafeCorpsBiodata(Request $request,$id){
-        $validate = $request->all();
-
-        $rules = [
-            'image'=>['required'],
-            'title' =>['string','required'],
-            'description' =>['string','required'],
-            'badge' =>['string','required'],
-            'date' =>['string','required'],
-            'content' =>['string','required'],
-            'author' =>['string','required']
-
-        ];
-
-        $validator=Validator::make($validate,$rules);
-
-        if($validator->fails()){
-            $errors = $validator->messages()->all();
-            return response()->json(['errors' => $errors]);
-        }
-        try {
-            $SoSafeCorpsBiodata = SoSafeCorpsBiodata::findOrFail($id);
-            $SoSafeCorpsBiodata->update($request->all());
-        } catch (ModelNotFoundException $exception) {
-            return response(["Status"=>"Error",
-            "Message"=>"SoSafeCorpsBiodata with id {$id} not found"]);
-        } 
-
-    }
-    public function deleteSoSafeCorpsBiodata($id){
-        try {
-        $SoSafeCorpsBiodata = SoSafeCorpsBiodata::findOrFail($id);
-        $SoSafeCorpsBiodata->status = 0;
-        $SoSafeCorpsBiodata->update();
-    } catch (ModelNotFoundException $exception) {
-        return response(["Status"=>"Error",
-        "Message"=>"SoSafeCorpsBiodata with id {$id} not found"]);
-    }
 }
 
     

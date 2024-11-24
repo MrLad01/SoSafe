@@ -10,7 +10,7 @@ class soSafeCorpsBiodata extends Model
 {
     use HasFactory;
 
-    protected $table = 'so_safe_corps_biodatas';
+    // protected $table = 'so_safe_corps_biodatas';
 
     /**
      * Get the user associated with the soSafeCorpsBiodata
@@ -19,7 +19,7 @@ class soSafeCorpsBiodata extends Model
      */
         public function zonalArea(): HasOne{
        
-            return $this->hasOne(ZA_command::class, 'za_command_id', 'id');
+            return $this->hasOne(ZA_command::class, 'id', 'za_command_id');
         
     }
 
@@ -30,7 +30,7 @@ class soSafeCorpsBiodata extends Model
      */
     public function divisionArea(): HasOne{
        
-        return $this->hasOne(divCommand::class, 'division_command_id', 'id');
+        return $this->hasOne(divCommand::class, 'id', 'division_command_id');
     
 }
 
@@ -41,7 +41,7 @@ class soSafeCorpsBiodata extends Model
      */
     public function community(): HasOne{
        
-        return $this->hasOne(community::class, 'community_id', 'community_id');
+        return $this->hasOne(community::class, 'id', 'community_id');
     
 }
 }
