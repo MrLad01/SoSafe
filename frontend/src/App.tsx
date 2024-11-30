@@ -10,6 +10,7 @@ import DepartmentsPage from "./Pages/DepartmentsPage";
 import PersonnelPage from "./Pages/PersonnelPage";
 import UnderConstructionPage from "./Pages/UnderConstructionPage";
 import OfficerLoginPage from "./Pages/OfficerLoginPage";
+import AdminDashboard from "./Pages/AdminDashboard";
 
 
 
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/departments" element={<DepartmentsPage />} />
                 <Route path="/personnel" element={<PersonnelPage />} />
                 <Route path="/login" element={<OfficerLoginPage />} />
+                <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/under-construction" element={<UnderConstructionPage />} />
             </Route>
         )
