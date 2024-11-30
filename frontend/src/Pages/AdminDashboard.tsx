@@ -8,7 +8,7 @@ const AdminDashboard: React.FC = () => {
       <div className="flex-1">
         {/* Header */}
         <header className="bg-[#006838] text-white p-4 text-xl font-bold text-center">
-        Ogun So-Safe Corps Admin Dashboard
+        OGUN SO-SAFE CORPS Admin Dashboard
         </header>
 
         {/* Main Content */}

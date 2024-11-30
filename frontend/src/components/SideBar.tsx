@@ -6,7 +6,7 @@ const SideBar: React.FC = () => {
   return (
     <div className="w-64 bg-[#006838] text-white h-full flex flex-col">
       {/* Logo Section */}
-      <div className="flex justify-center items-center py-1 border-b border-green-800">
+      <div className="flex justify-center items-center py-4 border-b border-green-800">
         <img 
           src={logo} 
           alt="Logo" 
@@ -17,22 +17,25 @@ const SideBar: React.FC = () => {
       {/* Navigation Links */}
       <ul className="flex-1 p-4 space-y-4">
         <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/news" className="block text-white">News & Updates</Link>
+          <Link to="/admin/news" className="block text-white">News & Updates</Link>
         </li>
         <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/agency" className="block text-white">Agency</Link>
+          <Link to="/admin/agency" className="block text-white">Agency</Link>
         </li>
         <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/management-team" className="block text-white">Management Team</Link>
+          <Link to="/admin/management-team" className="block text-white">Management Team</Link>
         </li>
         <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/contact" className="block text-white">Contact</Link>
+          <Link to="/admin/contact" className="block text-white">Contact</Link>
         </li>
         <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/department" className="block text-white">Department</Link>
+          <Link to="/admin/department" className="block text-white">Department</Link>
         </li>
         <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/personnel" className="block text-white">Personnel</Link>
+          <Link to="/admin/personnel" className="block text-white">Personnel</Link>
+        </li>
+        <li className="hover:bg-green-600 p-2 rounded">
+          <Link to="/login" className="block text-white">Log Out</Link>
         </li>
       </ul>
     </div>
