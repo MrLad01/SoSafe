@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import SideBar from '../components/SideBar';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 
 const AdminNews: React.FC = () => {
   const [view, setView] = useState<'list' | 'edit'>('list');
@@ -89,9 +90,19 @@ const AdminNews: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowAllNews((prev) => !prev)}
-                className="text-white bg-gray-400 px-2 py-1 rounded-lg mt-2"
+                className="mt-6 flex items-center gap-2 text-green-700 hover:text-green-800 font-semibold transition-colors duration-200"
               >
-                {showAllNews ? 'Show Less' : 'Show More'}
+                {showAllNews ? (
+                  <>
+                  Show Less
+                  <ChevronUp className="w-5 h-5" />
+                  </>
+                ):(
+                  <> 
+                  Show More
+                  <ChevronDown className="w-5 h-5" />
+                  </>
+                  )}
               </button>
             </div>
 
@@ -126,9 +137,19 @@ const AdminNews: React.FC = () => {
               </div>
               <button
                 onClick={() => setShowAllAnnouncements((prev) => !prev)}
-                className="text-white bg-gray-400 px-2 py-1 rounded-lg mt-2"
+                className="mt-6 flex items-center gap-2 text-green-700 hover:text-green-800 font-semibold transition-colors duration-200"
               >
-                {showAllAnnouncements ? 'Show Less' : 'Show More'}
+                {showAllAnnouncements ? ( 
+                  <>
+                  Show Less
+                  <ChevronUp className="w-5 h-5" />
+                  </>
+                ):(
+                  <> 
+                  Show More
+                  <ChevronDown className="w-5 h-5" />
+                  </>
+                  )}
               </button>
             </div>
           </div>
