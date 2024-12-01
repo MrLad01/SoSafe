@@ -14,6 +14,7 @@ import AdminDashboard from "./Pages/AdminDashboard";
 import AdminNews from "./Pages/AdminNews";
 import AdminAgency from "./Pages/AdminAgency";
 import AdminManagement from "./Pages/AdminManagement";
+import AdminContact from "./Pages/AdminContact";
 
 
 
@@ -37,6 +38,7 @@ function App() {
                 <Route path="/admin/news" element={<AdminNews />} />
                 <Route path="/admin/agency" element={<AdminAgency />} />
                 <Route path="/admin/management-team" element={<AdminManagement />} />
+                <Route path="/admin/contact" element={<AdminContact />} />
                 <Route path="/under-construction" element={<UnderConstructionPage />} />
             </Route>
         )

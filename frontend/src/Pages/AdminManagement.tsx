@@ -21,7 +21,7 @@ const AdminManagement: React.FC = () => {
     setExecutives(updatedExecutives);
   };
 
-  const addImpact = () => {
+  const addExecutive = () => {
     setExecutives([
       ...executives,
       { name: "", position: "", description: "", responsibilities: "", image: null },
@@ -97,7 +97,7 @@ const AdminManagement: React.FC = () => {
             <button
               type="button"
               className="px-4 py-2 bg-green-600 text-white rounded"
-              onClick={addImpact}
+              onClick={addExecutive}
             >
               + Add More
             </button>
