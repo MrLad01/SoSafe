@@ -2,47 +2,49 @@ import React, { useState } from 'react';
 import SideBar from '../components/SideBar';
 
 const AdminNews: React.FC = () => {
-  const [view, setView] = useState<'list' | 'edit'>('list'); // Toggle between 'list' and 'edit' views
-  const [editType, setEditType] = useState<'news' | 'announcement' | null>(null); // Type of edit
-  const [editId, setEditId] = useState<number | null>(null); // ID of the item being edited
-  const [editTitle, setEditTitle] = useState<string>(''); // Title of the item being edited
+  const [view, setView] = useState<'list' | 'edit'>('list');
+  const [editType, setEditType] = useState<'news' | 'announcement' | null>(null);
+  const [editId, setEditId] = useState<number | null>(null);
+  const [editTitle, setEditTitle] = useState<string>('');
+  const [showAllNews, setShowAllNews] = useState(false); // Toggle for showing all news
+  const [showAllAnnouncements, setShowAllAnnouncements] = useState(false); // Toggle for showing all announcements
 
-  // Data for news and announcements
   const newsData = [
     { id: 1, title: 'So-Safe Corps Apprehend Two for Theft' },
     { id: 2, title: 'Enhanced Security Measures' },
     { id: 3, title: 'Community Outreach Program Success' },
     { id: 4, title: 'Training Program Graduates 200 Officers' },
+    { id: 5, title: 'Smart City Initiative Launched' },
+    { id: 6, title: 'Rural Security Task Force Established' },
+    { id: 7, title: 'Youth Security Awareness Campaign Launches' },
+    { id: 8, title: 'Emergency Response System Upgrade Complete' },
+    { id: 9, title: 'Business District Security Enhancement' },
   ];
 
   const announcementsData = [
     { id: 1, title: 'Protecting Our Community' },
     { id: 2, title: 'Professional Security Services' },
     { id: 3, title: 'Community Partnership' },
+    { id: 4, title: 'Technology Innovation in Security' },
+    { id: 5, title: 'Youth Engagement Programs' },
   ];
 
-  // Handle Edit Button Click
   const handleEdit = (id: number, type: 'news' | 'announcement') => {
     setEditType(type);
     setEditId(id);
-
-    // Find the item to edit based on type and ID, and set its title
     const data = type === 'news' ? newsData : announcementsData;
     const item = data.find((item) => item.id === id);
     setEditTitle(item?.title || '');
-
     setView('edit');
   };
 
-  // Handle "Write New" Button Click
   const handleWriteNew = (type: 'news' | 'announcement') => {
     setEditType(type);
-    setEditId(null); // No specific ID since this is a new entry
-    setEditTitle(''); // Reset the title for new entries
+    setEditId(null);
+    setEditTitle('');
     setView('edit');
   };
 
-  // Handle Save and Back
   const handleSave = () => {
     console.log('Save the changes:', { editId, editType, editTitle });
     setView('list');
@@ -55,21 +57,25 @@ const AdminNews: React.FC = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       <SideBar />
-      {/* Main Content */}
-      <div className="flex-1">
+      <div className="flex-1 flex flex-col">
         <header className="bg-[#006838] text-white p-4 text-xl font-bold text-center">
           Admin News and Announcement Page
         </header>
         {view === 'list' ? (
-          // List View
-          <div className="flex-1 p-8">
-            <h1 className="text-xl font-bold mb-4">Latest News</h1>
-            <table className="w-full mb-4">
-              <tbody>
-                {newsData.map((news) => (
-                  <tr key={news.id}>
-                    <td className="p-2">{news.title}</td>
-                    <td className="p-2 flex space-x-4 justify-end mr-20">
+          <div className="flex-1 overflow-y-auto p-8">
+            <div>
+              <h1 className="text-xl font-bold mb-2">Latest News</h1>
+              <button
+                onClick={() => handleWriteNew('news')}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg mb-4"
+              >
+                Write New News
+              </button>
+              <div className="space-y-2">
+                {(showAllNews ? newsData : newsData.slice(0, 4)).map((news) => (
+                  <div key={news.id} className="flex justify-between items-center">
+                    <span>{news.title}</span>
+                    <div className="flex space-x-4">
                       <button
                         onClick={() => handleEdit(news.id, 'news')}
                         className="bg-blue-500 text-white px-3 py-1 rounded"
@@ -77,46 +83,56 @@ const AdminNews: React.FC = () => {
                         Edit
                       </button>
                       <button className="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
-                    </td>
-                  </tr>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-            <button
-              onClick={() => handleWriteNew('news')}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg mb-8"
-            >
-              Write New News
-            </button>
+              </div>
+              <button
+                onClick={() => setShowAllNews((prev) => !prev)}
+                className="text-white bg-gray-400 px-2 py-1 rounded-lg mt-2"
+              >
+                {showAllNews ? 'Show Less' : 'Show More'}
+              </button>
+            </div>
 
-            <h1 className="text-xl font-bold mb-4">Latest Announcements</h1>
-            <table className="w-full mb-4">
-              <tbody>
-                {announcementsData.map((announcement) => (
-                  <tr key={announcement.id}>
-                    <td className="p-2">{announcement.title}</td>
-                    <td className="p-2 flex space-x-4 justify-end mr-20">
-                      <button
-                        onClick={() => handleEdit(announcement.id, 'announcement')}
-                        className="bg-blue-500 text-white px-3 py-1 rounded"
-                      >
-                        Edit
-                      </button>
-                      <button className="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            <button
-              onClick={() => handleWriteNew('announcement')}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg"
-            >
-              Write New Announcement
-            </button>
+            <div className="mt-8">
+              <h1 className="text-xl font-bold mb-2">Latest Announcements</h1>
+              <button
+                onClick={() => handleWriteNew('announcement')}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg mb-4"
+              >
+                Write New Announcement
+              </button>
+              <div className="space-y-2">
+                {(showAllAnnouncements ? announcementsData : announcementsData.slice(0, 4)).map(
+                  (announcement) => (
+                    <div
+                      key={announcement.id}
+                      className="flex justify-between items-center"
+                    >
+                      <span>{announcement.title}</span>
+                      <div className="flex space-x-4">
+                        <button
+                          onClick={() => handleEdit(announcement.id, 'announcement')}
+                          className="bg-blue-500 text-white px-3 py-1 rounded"
+                        >
+                          Edit
+                        </button>
+                        <button className="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+                      </div>
+                    </div>
+                  )
+                )}
+              </div>
+              <button
+                onClick={() => setShowAllAnnouncements((prev) => !prev)}
+                className="text-white bg-gray-400 px-2 py-1 rounded-lg mt-2"
+              >
+                {showAllAnnouncements ? 'Show Less' : 'Show More'}
+              </button>
+            </div>
           </div>
         ) : (
-          // Edit View
           <div className="p-8">
             <h1 className="text-xl font-bold mb-4">
               {editId
@@ -124,7 +140,6 @@ const AdminNews: React.FC = () => {
                 : `Write New ${editType === 'news' ? 'News' : 'Announcement'}`}
             </h1>
             <form className="space-y-6">
-              {/* Title */}
               <div>
                 <label className="block text-sm font-medium mb-2">Title</label>
                 <input
@@ -135,17 +150,10 @@ const AdminNews: React.FC = () => {
                   placeholder="Enter title"
                 />
               </div>
-
-              {/* Image */}
               <div>
                 <label className="block text-sm font-medium mb-2">Image</label>
-                <input
-                  type="file"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                />
+                <input type="file" className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
               </div>
-
-              {/* Content */}
               <div>
                 <label className="block text-sm font-medium mb-2">Content</label>
                 <textarea
@@ -154,8 +162,6 @@ const AdminNews: React.FC = () => {
                   placeholder="Enter content"
                 />
               </div>
-
-              {/* Buttons */}
               <div className="flex space-x-4">
                 <button
                   type="button"

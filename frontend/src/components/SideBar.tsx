@@ -1,5 +1,5 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import logo from "../assets/logo.webp";
 
 const SideBar: React.FC = () => {
@@ -16,26 +16,82 @@ const SideBar: React.FC = () => {
 
       {/* Navigation Links */}
       <ul className="flex-1 p-4 space-y-4">
-        <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/admin/news" className="block text-white">News & Updates</Link>
+        <li>
+          <NavLink
+            to="/admin/news"
+            end
+            className={({ isActive }) =>
+              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+            }
+          >
+            News & Updates
+          </NavLink>
         </li>
-        <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/admin/agency" className="block text-white">Agency</Link>
+        <li>
+          <NavLink
+            to="/admin/agency"
+            end
+            className={({ isActive }) =>
+              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+            }
+          >
+            Agency
+          </NavLink>
         </li>
-        <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/admin/management-team" className="block text-white">Management Team</Link>
+        <li>
+          <NavLink
+            to="/admin/management-team"
+            end
+            className={({ isActive }) =>
+              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+            }
+          >
+            Management Team
+          </NavLink>
         </li>
-        <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/admin/contact" className="block text-white">Contact</Link>
+        <li>
+          <NavLink
+            to="/admin/contact"
+            end
+            className={({ isActive }) =>
+              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+            }
+          >
+            Contact
+          </NavLink>
         </li>
-        <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/admin/department" className="block text-white">Department</Link>
+        <li>
+          <NavLink
+            to="/admin/department"
+            end
+            className={({ isActive }) =>
+              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+            }
+          >
+            Department
+          </NavLink>
         </li>
-        <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/admin/personnel" className="block text-white">Personnel</Link>
+        <li>
+          <NavLink
+            to="/admin/personnel"
+            end
+            className={({ isActive }) =>
+              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+            }
+          >
+            Personnel
+          </NavLink>
         </li>
-        <li className="hover:bg-green-600 p-2 rounded">
-          <Link to="/login" className="block text-white">Log Out</Link>
+        <li>
+          <NavLink
+            to="/login"
+            end
+            className={({ isActive }) =>
+              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+            }
+          >
+            Log Out
+          </NavLink>
         </li>
       </ul>
     </div>

@@ -15,21 +15,22 @@ const OfficerLoginPage = (): JSX.Element => {
 
   const handleLogin = (e: FormEvent<HTMLFormElement>): void => {
     e.preventDefault();
-    navigate('/under-construction');
+
+    if (loginType === 'officer') {
+      navigate('/under-construction');
+    } else if (loginType === 'supervisor') {
+      navigate('/admin');
+    }
   };
 
   // Add viewport height fix for iOS
   useEffect(() => {
-    // Function to update CSS variable for viewport height
     const updateVH = () => {
       const vh = window.innerHeight * 0.01;
       document.documentElement.style.setProperty('--vh', `${vh}px`);
     };
 
-    // Initial call
     updateVH();
-
-    // Update on resize and orientation change
     window.addEventListener('resize', updateVH);
     window.addEventListener('orientationchange', updateVH);
 
@@ -45,7 +46,6 @@ const OfficerLoginPage = (): JSX.Element => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row relative">
-      {/* Back Button */}
       <button
         onClick={handleBack}
         className="absolute top-4 left-4 flex items-center space-x-2 text-white md:text-gray-600 hover:text-green-700 transition-colors duration-200 z-10"
@@ -56,32 +56,23 @@ const OfficerLoginPage = (): JSX.Element => {
         <span className="text-sm font-medium text-white opacity-50">Back</span>
       </button>
 
-      {/* Left Side - Hero Section */}
       <div className="w-full md:w-1/2 bg-gradient-to-br from-green-800 to-green-900 p-8 flex flex-col justify-center items-center text-white">
-        <img
-          src={logo}
-          alt="OGUN SO-SAFE CORPS"
-          className="h-24 w-auto mb-8"
-        />
-        <h1 className="text-4xl font-bold text-center mb-4">
-          OGUN SO-SAFE CORPS
-        </h1>
+        <img src={logo} alt="OGUN SO-SAFE CORPS" className="h-24 w-auto mb-8" />
+        <h1 className="text-4xl font-bold text-center mb-4">OGUN SO-SAFE CORPS</h1>
         <p className="text-lg text-center text-green-100 max-w-md">
           Securing our communities through dedication, vigilance, and unwavering service.
         </p>
       </div>
 
-      {/* Right Side - Login Forms */}
       <div className="w-full md:w-1/2 bg-white p-8 flex flex-col justify-center">
         <div className="max-w-md mx-auto w-full">
-          {/* Login Type Selector */}
           <div className="flex mb-8 bg-gray-100 rounded-lg p-1">
             <button
               type="button"
               onClick={() => setLoginType('officer')}
               className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md space-x-2 ${
-                loginType === 'officer' 
-                  ? 'bg-white shadow text-green-800' 
+                loginType === 'officer'
+                  ? 'bg-white shadow text-green-800'
                   : 'text-gray-600 hover:text-green-700'
               }`}
             >
@@ -92,8 +83,8 @@ const OfficerLoginPage = (): JSX.Element => {
               type="button"
               onClick={() => setLoginType('supervisor')}
               className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md space-x-2 ${
-                loginType === 'supervisor' 
-                  ? 'bg-white shadow text-green-800' 
+                loginType === 'supervisor'
+                  ? 'bg-white shadow text-green-800'
                   : 'text-gray-600 hover:text-green-700'
               }`}
             >
@@ -102,10 +93,8 @@ const OfficerLoginPage = (): JSX.Element => {
             </button>
           </div>
 
-          {/* Login Forms */}
           <form onSubmit={handleLogin} className="space-y-6">
             {loginType === 'officer' ? (
-              // Officer Login Form
               <div className="space-y-6">
                 <div>
                   <label htmlFor="idNumber" className="block text-sm font-medium text-gray-700 mb-2">
@@ -128,7 +117,6 @@ const OfficerLoginPage = (): JSX.Element => {
                 </div>
               </div>
             ) : (
-              // Supervisor Login Form
               <div className="space-y-6">
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
@@ -179,8 +167,6 @@ const OfficerLoginPage = (): JSX.Element => {
                 </div>
               </div>
             )}
-
-            {/* Login Button */}
             <button
               type="submit"
               className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-white bg-green-800 hover:bg-green-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200"
