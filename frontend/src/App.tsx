@@ -13,6 +13,7 @@ import OfficerLoginPage from "./Pages/OfficerLoginPage";
 import AdminDashboard from "./Pages/AdminDashboard";
 import AdminNews from "./Pages/AdminNews";
 import AdminAgency from "./Pages/AdminAgency";
+import AdminManagement from "./Pages/AdminManagement";
 
 
 
@@ -35,6 +36,7 @@ function App() {
                 <Route path="/admin" element={<AdminDashboard />} />
                 <Route path="/admin/news" element={<AdminNews />} />
                 <Route path="/admin/agency" element={<AdminAgency />} />
+                <Route path="/admin/management-team" element={<AdminManagement />} />
                 <Route path="/under-construction" element={<UnderConstructionPage />} />
             </Route>
         )

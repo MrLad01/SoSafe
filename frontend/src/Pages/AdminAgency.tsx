@@ -1,6 +1,12 @@
 import React, { useState } from "react";
 import SideBar from "../components/SideBar"; // Sidebar component for consistency
 
+// Define an interface for the Legal FrameWork type
+interface LegalFramework {
+  title: string;
+  content: string;
+}
+
 // Define an interface for the Impact type
 interface Impact {
   title: string;
@@ -8,17 +14,30 @@ interface Impact {
   description: string;
 }
 
+// Define an interface for the Partnership type
+interface Partnership {
+  title: string;
+  content: string;
+}
+
 const AdminAgency: React.FC = () => {
   const [milestones, setMilestones] = useState([{ year: "", event: "" }]);
   
-  // Update impacts state to use the Impact interface
   const [impacts, setImpacts] = useState<Impact[]>([{ 
     title: "", 
     stat: "", 
     description: "" 
   }]);
   
-  const [partnerships, setPartnerships] = useState([""]);
+  const [partnerships, setPartnerships] = useState<Partnership[]>([{ 
+    title: "", 
+    content: "" 
+  }]);
+
+  const [legalFrameworks, setLegalFrameworks] = useState<LegalFramework[]>([{ 
+    title: "", 
+    content: "" 
+  }]);
 
   const handleMilestoneChange = (index: number, field: "year" | "event", value: string) => {
     const updatedMilestones = [...milestones];
@@ -30,7 +49,6 @@ const AdminAgency: React.FC = () => {
     setMilestones([...milestones, { year: "", event: "" }]);
   };
 
-  // Update handleImpactChange to work with the new Impact type
   const handleImpactChange = (
     index: number, 
     field: keyof Impact, 
@@ -49,19 +67,48 @@ const AdminAgency: React.FC = () => {
     }]);
   };
 
-  const handlePartnershipChange = (index: number, value: string) => {
+  const handlePartnershipChange = (
+    index: number, 
+    field: keyof Partnership, 
+    value: string
+  ) => {
     const updatedPartnerships = [...partnerships];
-    updatedPartnerships[index] = value;
+    updatedPartnerships[index][field] = value;
     setPartnerships(updatedPartnerships);
   };
 
   const addPartnership = () => {
-    setPartnerships([...partnerships, ""]);
+    setPartnerships([...partnerships, { 
+      title: "", 
+      content: "" 
+    }]);
+  };
+
+  const handleLegalFrameworkChange = (
+    index: number, 
+    field: keyof LegalFramework, 
+    value: string
+  ) => {
+    const updatedLegalFrameworks = [...legalFrameworks];
+    updatedLegalFrameworks[index][field] = value;
+    setLegalFrameworks(updatedLegalFrameworks);
+  };
+
+  const addLegalFramework = () => {
+    setLegalFrameworks([...legalFrameworks, { 
+      title: "", 
+      content: "" 
+    }]);
   };
 
   const handleSubmit = () => {
     // Handle form submission logic
-    console.log({ milestones, impacts, partnerships });
+    console.log({ 
+      milestones, 
+      impacts, 
+      partnerships, 
+      legalFrameworks 
+    });
     alert("Data saved!");
   };
 
@@ -95,21 +142,35 @@ const AdminAgency: React.FC = () => {
               placeholder="Enter details..."
             ></textarea>
           </div>
+
+          {/* Legal Framework Section */}
           <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">Establishment Act</h2>
-            <input
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              placeholder="Enter details..."
-              type="text"
-            />
-          </div>
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold mb-4">Constitutional Backing</h2>
-            <input
-              className="w-full p-3 border border-gray-300 rounded-lg"
-              placeholder="Enter details..."
-              type="text"
-            />
+            <h2 className="text-xl font-semibold mb-4">Legal Framework</h2>
+            {legalFrameworks.map((framework, index) => (
+              <div key={index} className="flex space-x-2 mb-2">
+                <input
+                  type="text"
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  placeholder="Title"
+                  value={framework.title}
+                  onChange={(e) => handleLegalFrameworkChange(index, "title", e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  placeholder="Content"
+                  value={framework.content}
+                  onChange={(e) => handleLegalFrameworkChange(index, "content", e.target.value)}
+                />
+              </div>
+            ))}
+            <button
+              type="button"
+              className="px-4 py-2 bg-green-600 text-white rounded"
+              onClick={addLegalFramework}
+            >
+              + Add More
+            </button>
           </div>
 
           {/* Milestones Section */}
@@ -183,13 +244,20 @@ const AdminAgency: React.FC = () => {
           <div className="mb-6">
             <h2 className="text-xl font-semibold mb-4">Government Partnership</h2>
             {partnerships.map((partnership, index) => (
-              <div key={index} className="mb-2">
+              <div key={index} className="flex space-x-2 mb-2">
                 <input
                   type="text"
                   className="w-full p-3 border border-gray-300 rounded-lg"
-                  placeholder={`Partnership ${index + 1}`}
-                  value={partnership}
-                  onChange={(e) => handlePartnershipChange(index, e.target.value)}
+                  placeholder="Title"
+                  value={partnership.title}
+                  onChange={(e) => handlePartnershipChange(index, "title", e.target.value)}
+                />
+                <input
+                  type="text"
+                  className="w-full p-3 border border-gray-300 rounded-lg"
+                  placeholder="Content"
+                  value={partnership.content}
+                  onChange={(e) => handlePartnershipChange(index, "content", e.target.value)}
                 />
               </div>
             ))}
