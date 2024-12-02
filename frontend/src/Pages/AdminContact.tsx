@@ -20,12 +20,6 @@ const AdminContact: React.FC = () => {
     setContacts(updatedContacts);
   };
 
-  const addContact = () => {
-    setContacts([
-      ...contacts,
-      { hotline: "", email: "", headquarters: "", workingHours: "" },
-    ]);
-  };
 
   const handleSubmit = () => {
     // Handle form submission logic
@@ -57,7 +51,7 @@ const AdminContact: React.FC = () => {
           <div className="mb-4">
             <h2 className="text-xl font-semibold mb-4">Contact Information</h2>
             {contacts.map((executive, index) => (
-              <div key={index} className="grid grid-cols-3 grid-rows-3 gap-2 -mb-8">
+              <div key={index} className="grid grid-cols-3 grid-rows-3 gap-2 -mb-20">
                 <input
                   type="text"
                   className="w-full p-3 border border-gray-300 rounded-lg"
@@ -86,13 +80,6 @@ const AdminContact: React.FC = () => {
                 />
               </div>
             ))}
-            <button
-              type="button"
-              className="px-4 py-2 bg-green-600 text-white rounded"
-              onClick={addContact}
-            >
-              + Add More
-            </button>
           </div>
 
           {/* Save Button */}

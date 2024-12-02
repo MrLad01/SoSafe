@@ -79,11 +79,11 @@ const AdminNews: React.FC = () => {
                     <div className="flex space-x-4">
                       <button
                         onClick={() => handleEdit(news.id, 'news')}
-                        className="bg-blue-500 text-white px-3 py-1 rounded"
+                        className="bg-green-500 text-white px-3 py-1 rounded"
                       >
                         Edit
                       </button>
-                      <button className="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+                      <button className="bg-gray-500 text-white px-3 py-1 rounded">Delete</button>
                     </div>
                   </div>
                 ))}
@@ -125,11 +125,11 @@ const AdminNews: React.FC = () => {
                       <div className="flex space-x-4">
                         <button
                           onClick={() => handleEdit(announcement.id, 'announcement')}
-                          className="bg-blue-500 text-white px-3 py-1 rounded"
+                          className="bg-green-500 text-white px-3 py-1 rounded"
                         >
                           Edit
                         </button>
-                        <button className="bg-red-500 text-white px-3 py-1 rounded">Delete</button>
+                        <button className="bg-gray-500 text-white px-3 py-1 rounded">Delete</button>
                       </div>
                     </div>
                   )
