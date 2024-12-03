@@ -1,15 +1,18 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate  } from "react-router-dom";
 import logo from "../assets/logo.webp";
 
 const SideBar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const navigate = useNavigate(); // Hook for navigation
 
   const handleLogout = () => {
-    // Redirect to login or handle logout logic
+    // Clear any authentication tokens or user data here if necessary
     console.log("User logged out");
     setIsModalOpen(false);
+    navigate("/login"); // Redirect to the login page
   };
+
 
   return (
     <div className="w-64 bg-[#006838] text-white h-full flex flex-col relative">
