@@ -23,8 +23,14 @@ class biodataController extends Controller
         //     }
         // });
         // return Excel::download(new UsersExport, 'users.xlsx');
-        $data = sobiodata::chunk()->get();
-
+        // // User::chunk(2,function($users){
+        // //     foreach($users as $user) {
+                
+        // //     }
+        // });
+        $data= sobiodata::all();
+        $data = $data->chunk(5000);
+        return response()->json($data);
         // return view("s.test",compact('data'));
     }
 }
