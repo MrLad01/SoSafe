@@ -24,7 +24,7 @@ export const NavBar = () => {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-4">
+            <div className="hidden md:flex items-center space-x-5 text-[0.9rem]">
                 <a href="/" className="text-white hover:text-[#FFD700]">Home</a>
                 <a href="/news" className="text-white hover:text-[#FFD700]">News and updates</a>
                 <div className="relative group">

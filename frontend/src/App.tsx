@@ -17,6 +17,7 @@ import AdminManagement from "./Pages/AdminManagement";
 import AdminContact from "./Pages/AdminContact";
 import AdminDepartments from "./Pages/AdminDepartments";
 import AdminPersonnel from "./Pages/AdminPersonnel";
+import OfficerDashboard from "./Pages/Officer Page/OfficerDashboard";
 
 
 
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/admin/departments" element={<AdminDepartments />} />
                 <Route path="/admin/personnel" element={<AdminPersonnel />} />
                 <Route path="/under-construction" element={<UnderConstructionPage />} />
+                <Route path="/officer/name" element={<OfficerDashboard />} />
             </Route>
         )
     );
