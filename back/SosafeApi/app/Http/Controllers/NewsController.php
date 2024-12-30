@@ -33,10 +33,13 @@ class NewsController extends Controller
             $errors = $validator->messages()->all();
             return response()->json(['errors' => $errors]);
         }
-        $image = $request->file('blog_image');
-        $name_gen= hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
-        $image->move('upload/blog_images/', $name_gen);
-        $url = 'upload/brand_images/'.$name_gen;
+        $image = $request->blog_image;
+        if($request->file('blog_image')){
+            $image = $request->file('blog_image');
+            $name_gen= hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
+            $image->move('upload/blog_images/', $name_gen);
+            $url = 'upload/brand_images/'.$name_gen;
+        }
         $news = News::insert([
                                 'title'=>$request->title,
                                 'image'=>$image,
