@@ -17,6 +17,7 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ExcelController;
 
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -44,7 +45,7 @@ Route::get('news', [NewsController::class, 'getNews']);
 
 Route::middleware([JwtMiddleware::class],'role:admin')->group(function () {
     
-    
+    Route::get('/i',[ExcelController::class, 'import']);
     Route::get('/data',[biodataController::class, 'getdata']);
     Route::get('user', [authenticationController::class, 'getUser']);
     Route::post('logout', [authenticationController::class, 'logout']);
