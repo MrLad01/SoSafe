@@ -104,3 +104,6 @@ Route::post('/export', [ExcelController::class, 'export']);
 
 
 
+Route::get('/test',[biodataController::class, 'test']);
+Route::get('/',[ExcelController::class, 'export']);
+Route::get('/d',[ExcelController::class, 'download']);

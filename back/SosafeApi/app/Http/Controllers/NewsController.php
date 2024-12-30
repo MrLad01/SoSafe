@@ -19,7 +19,7 @@ class NewsController extends Controller
 
         $rules = [
             'title' =>['string','required'],
-            'image'=>['required'],
+            'blog_image'=>['required'],
             'excerpt' =>['string','required'],
             'category' =>['string','required'],
             'content' =>['string','required'],
@@ -33,7 +33,20 @@ class NewsController extends Controller
             $errors = $validator->messages()->all();
             return response()->json(['errors' => $errors]);
         }
-        $news = News::create($validate);
+        $image = $request->file('blog_image');
+        $name_gen= hexdec(uniqid()).'.'.$image->getClientOriginalExtension();
+        $image->move('upload/blog_images/', $name_gen);
+        $url = 'upload/brand_images/'.$name_gen;
+        $news = News::insert([
+                                'title'=>$request->title,
+                                'image'=>$image,
+                                'excerpt'=>$request->excerpt,
+                                'category'=>$request->category,
+                                'author'=>$request->author,
+                                'content'=>$request->content,
+                                
+
+                            ]);
         return response()->json(['message'=> 'success']);
     }
 

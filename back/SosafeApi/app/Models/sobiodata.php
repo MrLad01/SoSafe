@@ -9,4 +9,6 @@ class sobiodata extends Model
 {
     use HasFactory;
     protected $table = 'sobiodata';
+    protected $hidden = ['id'];
+    protected $primaryKey = 'sno';
 }
