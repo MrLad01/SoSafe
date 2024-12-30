@@ -155,7 +155,7 @@ const Home = () => {
   ];
 
   return (
-    <div className=' scroll-smooth min-h-[calc(var(--vh,1vh)*100)]'>
+    <div className=' scroll-smooth min-h-[calc(var(--vh,1vh)*100)] text-[0.9rem]'>
         <NavBar />        
         {/* Enhanced Hero Section with Carousel */}
         <div className="relative max-w-7xl mx-auto my-8">

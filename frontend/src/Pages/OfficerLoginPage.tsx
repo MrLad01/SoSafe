@@ -17,7 +17,7 @@ const OfficerLoginPage = (): JSX.Element => {
     e.preventDefault();
 
     if (loginType === 'officer') {
-      navigate('/under-construction');
+      navigate('/officer/name');
     } else if (loginType === 'supervisor') {
       navigate('/admin');
     }
@@ -41,7 +41,7 @@ const OfficerLoginPage = (): JSX.Element => {
   }, []);
 
   const handleBack = (): void => {
-    navigate(-1);
+    navigate('/personnel');
   };
 
   return (
