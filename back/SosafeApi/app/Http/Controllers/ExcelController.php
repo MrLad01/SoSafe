@@ -25,8 +25,23 @@ class ExcelController extends Controller
         $url = url('storage/app/biodata.xlsx');
         return Storage::download('biodata.xlsx');
     }
-    public function import(){
-        $file = public_path()."/test.xlsx";
+    public function import(Request $request){
+        $file = $request->file('raw_data');
+        $validate = $request->all();
+
+        $rules = [
+            'raw_data'=>['required',File::types(['xlsx'])
+        ],
+            
+        ];
+
+        $validator=Validator::make($validate,$rules);
+
+        if($validator->fails()){
+            $errors = $validator->messages()->all();
+            return response()->json(['errors' => $errors]);
+        }
+        // $file = public_path()."/test.xlsx";
         $users = (new FastExcel)->import($file, function ($line) {
             return biodata::firstOrCreate([
                 
