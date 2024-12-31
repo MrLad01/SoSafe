@@ -18,6 +18,7 @@ import AdminContact from "./Pages/AdminContact";
 import AdminDepartments from "./Pages/AdminDepartments";
 import AdminPersonnel from "./Pages/AdminPersonnel";
 import OfficerDashboard from "./Pages/Officer Page/OfficerDashboard";
+import AdminDatabase from "./Pages/AdminDatabase";
 
 
 
@@ -44,6 +45,7 @@ function App() {
                 <Route path="/admin/contact" element={<AdminContact />} />
                 <Route path="/admin/departments" element={<AdminDepartments />} />
                 <Route path="/admin/personnel" element={<AdminPersonnel />} />
+                <Route path="/admin/database" element={<AdminDatabase />} />
                 <Route path="/under-construction" element={<UnderConstructionPage />} />
                 <Route path="/officer/name" element={<OfficerDashboard />} />
             </Route>
