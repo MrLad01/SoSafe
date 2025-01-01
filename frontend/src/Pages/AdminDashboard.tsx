@@ -32,7 +32,32 @@ const AdminDashboard: React.FC = () => {
     setUploading(true);
 
     try {
-      const response = await axios.get('https://sosafe.onrender.com/api/i', formData);
+      const response = await axios.post('https://sosafe.onrender.com/api/i', formData);
+
+      console.log(response)
+      
+      setMessage({ type: 'success', text: 'File uploaded successfully!' });
+      setFile(null);
+      // Reset the file input
+      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+    } catch (error) {
+      setMessage({ 
+        type: 'error', 
+        text: 'Error uploading file. Please try again.' 
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+  const handleUpload2 = async () => {
+
+    try {
+      const response = await axios.get('https://sosafe.onrender.com/api/i', {
+        headers: {
+          'Authorization': 'BEARER eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vc29zYWZlLm9ucmVuZGVyLmNvbS9hcGkvbG9naW4iLCJpYXQiOjE3MzU2NzI3MjgsImV4cCI6MTczNTY3NjMyOCwibmJmIjoxNzM1NjcyNzI4LCJqdGkiOiJoeWM5dnpWdFV3SGhOcTdOIiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjciLCJyb2xlIjpudWxsfQ.z01M83-wTXPgW7Wf6q5QVJqfJ_ytVot2GBzuoQQt-BU'
+        }
+      });
 
       console.log(response)
       
@@ -100,6 +125,17 @@ const AdminDashboard: React.FC = () => {
               <button
                 onClick={handleUpload}
                 disabled={!file || uploading}
+                className={`w-full py-2 px-4 rounded-md text-white font-medium
+                  ${!file || uploading 
+                    ? 'bg-gray-400 cursor-not-allowed' 
+                    : 'bg-[#006838] hover:bg-[#005a30]'
+                  } transition-colors duration-200`}
+              >
+                {uploading ? 'Uploading...' : 'Upload Excel File'}
+              </button>
+              <button
+                onClick={handleUpload2}
+                // disabled={!file || uploading}
                 className={`w-full py-2 px-4 rounded-md text-white font-medium
                   ${!file || uploading 
                     ? 'bg-gray-400 cursor-not-allowed' 
