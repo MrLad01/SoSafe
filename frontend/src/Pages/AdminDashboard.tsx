@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 import SideBar from "../components/SideBar";
+import * as XLSX from 'xlsx';
+
+const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB limit
 
 const AdminDashboard: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -10,7 +13,11 @@ const AdminDashboard: React.FC = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
     if (selectedFile) {
-      // Check if file is an Excel file
+      if (selectedFile.size > MAX_FILE_SIZE) {
+        setMessage({ type: 'error', text: 'File size must be less than 1GB' });
+        return;
+      }
+
       if (selectedFile.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
           selectedFile.type === "application/vnd.ms-excel") {
         setFile(selectedFile);
@@ -21,58 +28,72 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const compressExcel = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const firstSheet = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheet];
+          
+          // Convert to JSON and back to minimize size
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+          const newWorkbook = XLSX.utils.book_new();
+          const newWorksheet = XLSX.utils.json_to_sheet(jsonData);
+          XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, 'Sheet1');
+          
+          const compressedData = XLSX.write(newWorkbook, { bookType: 'xlsx', type: 'array' });
+          resolve(new Blob([compressedData], { type: file.type }));
+        } catch (error) {
+          reject(error);
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsBinaryString(file);
+    });
+  };
+
   const handleUpload = async () => {
     if (!file) {
       setMessage({ type: 'error', text: 'Please select a file first' });
       return;
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
     setUploading(true);
 
     try {
-      const response = await axios.post('https://sosafe.onrender.com/api/i', formData);
+      const compressedFile = await compressExcel(file);
+      const formData = new FormData();
+      formData.append('file', compressedFile, file.name);
 
-      console.log(response)
+      const response = await axios.post('https://sosafe.onrender.com/api/import', formData);
+      console.log(response);
       
       setMessage({ type: 'success', text: 'File uploaded successfully!' });
       setFile(null);
-      // Reset the file input
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
     } catch (error) {
-      setMessage({ 
-        type: 'error', 
-        text: 'Error uploading file. Please try again.' 
-      });
+      setMessage({ type: 'error', text: 'Error uploading file. Please try again.' });
     } finally {
       setUploading(false);
     }
   };
+
   const handleUpload2 = async () => {
-
     try {
-      const response = await axios.get('https://sosafe.onrender.com/api/i', {
-        headers: {
-          'Authorization': 'BEARER eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vc29zYWZlLm9ucmVuZGVyLmNvbS9hcGkvbG9naW4iLCJpYXQiOjE3MzU2NzI3MjgsImV4cCI6MTczNTY3NjMyOCwibmJmIjoxNzM1NjcyNzI4LCJqdGkiOiJoeWM5dnpWdFV3SGhOcTdOIiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjciLCJyb2xlIjpudWxsfQ.z01M83-wTXPgW7Wf6q5QVJqfJ_ytVot2GBzuoQQt-BU'
-        }
-      });
-
-      console.log(response)
-      
-      setMessage({ type: 'success', text: 'File uploaded successfully!' });
-      setFile(null);
-      // Reset the file input
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+      // const response = await axios.get('https://sosafe.onrender.com/api/i', {
+      //   headers: {
+      //     'Authorization': 'BEARER eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vc29zYWZlLm9ucmVuZGVyLmNvbS9hcGkvbG9naW4iLCJpYXQiOjE3MzU2NzI3MjgsImV4cCI6MTczNTY3NjMyOCwibmJmIjoxNzM1NjcyNzI4LCJqdGkiOiJoeWM5dnpWdFV3SGhOcTdOIiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjciLCJyb2xlIjpudWxsfQ.z01M83-wTXPgW7Wf6q5QVJqfJ_ytVot2GBzuoQQt-BU'
+      //   }
+      // });
+      const response = await axios.post('https://sosafe.onrender.com/api/import');
+      console.log(response);
+      setMessage({ type: 'success', text: 'Request successful!' });
     } catch (error) {
-      setMessage({ 
-        type: 'error', 
-        text: 'Error uploading file. Please try again.' 
-      });
-    } finally {
-      setUploading(false);
+      setMessage({ type: 'error', text: 'Error making request. Please try again.' });
     }
   };
 
