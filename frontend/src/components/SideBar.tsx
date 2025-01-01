@@ -101,6 +101,17 @@ const SideBar: React.FC = () => {
           </NavLink>
         </li>
         <li>
+          <NavLink
+            to="/admin/tracking"
+            end
+            className={({ isActive }) =>
+              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+            }
+          >
+            Tracking
+          </NavLink>
+        </li>
+        <li>
           <button
             onClick={() => setIsModalOpen(true)}
             className="block p-2 w-full text-left rounded hover:bg-green-500"
