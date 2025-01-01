@@ -45,7 +45,7 @@ Route::get('news', [NewsController::class, 'getNews']);
 
 Route::middleware([JwtMiddleware::class],'role:admin')->group(function () {
     
-    Route::get('/i',[ExcelController::class, 'import']);
+    Route::post('/import',[ExcelController::class, 'import'])->withoutMiddleware([JwtMiddleware::class]);
     Route::get('/data',[biodataController::class, 'getdata']);
     Route::get('user', [authenticationController::class, 'getUser']);
     Route::post('logout', [authenticationController::class, 'logout']);

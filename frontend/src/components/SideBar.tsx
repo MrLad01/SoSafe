@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate  } from "react-router-dom";
 import logo from "../assets/logo.webp";
+import { Newspaper } from 'lucide-react';
+import { Database } from 'lucide-react';
+import { Group } from 'lucide-react';
+import { Info } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
+import { Contact } from 'lucide-react';
+import { Users } from 'lucide-react';
+import { Activity } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 const SideBar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -28,9 +37,10 @@ const SideBar: React.FC = () => {
             to="/admin/news"
             end
             className={({ isActive }) =>
-              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
             }
           >
+            <Newspaper />
             News & Updates
           </NavLink>
         </li>
@@ -39,9 +49,10 @@ const SideBar: React.FC = () => {
             to="/admin/agency"
             end
             className={({ isActive }) =>
-              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
             }
           >
+            <Info />
             Agency
           </NavLink>
         </li>
@@ -50,9 +61,10 @@ const SideBar: React.FC = () => {
             to="/admin/management-team"
             end
             className={({ isActive }) =>
-              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
             }
           >
+            <ClipboardList />
             Management Team
           </NavLink>
         </li>
@@ -61,9 +73,10 @@ const SideBar: React.FC = () => {
             to="/admin/contact"
             end
             className={({ isActive }) =>
-              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
             }
           >
+            <Contact />
             Contact
           </NavLink>
         </li>
@@ -72,9 +85,10 @@ const SideBar: React.FC = () => {
             to="/admin/departments"
             end
             className={({ isActive }) =>
-              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
             }
           >
+            <Group />
             Department
           </NavLink>
         </li>
@@ -83,9 +97,10 @@ const SideBar: React.FC = () => {
             to="/admin/personnel"
             end
             className={({ isActive }) =>
-              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
             }
           >
+            <Users />
             Personnel
           </NavLink>
         </li>
@@ -94,17 +109,31 @@ const SideBar: React.FC = () => {
             to="/admin/database"
             end
             className={({ isActive }) =>
-              `block p-2 rounded ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
             }
           >
+            <Database />
             Database
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to="/admin/tracking"
+            end
+            className={({ isActive }) =>
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+            }
+          >
+            <Activity />
+            Tracking
           </NavLink>
         </li>
         <li>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="block p-2 w-full text-left rounded hover:bg-green-500"
+            className="flex gap-2 p-2 w-full text-left rounded hover:bg-green-500"
           >
+            <LogOut />
             Log Out
           </button>
         </li>
