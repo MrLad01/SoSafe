@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import SideBar from "../components/SideBar";
-import * as XLSX from 'xlsx';
+import FileUploader from "../components/FileUploader";
 
 const MAX_FILE_SIZE = 1 * 1024 * 1024 * 1024; // 1GB limit
 
@@ -12,6 +12,8 @@ const AdminDashboard: React.FC = () => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
+    console.log(selectedFile);
+    
     if (selectedFile) {
       if (selectedFile.size > MAX_FILE_SIZE) {
         setMessage({ type: 'error', text: 'File size must be less than 1GB' });
@@ -28,32 +30,7 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const compressExcel = async (file: File): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        try {
-          const data = e.target?.result;
-          const workbook = XLSX.read(data, { type: 'binary' });
-          const firstSheet = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[firstSheet];
-          
-          // Convert to JSON and back to minimize size
-          const jsonData = XLSX.utils.sheet_to_json(worksheet);
-          const newWorkbook = XLSX.utils.book_new();
-          const newWorksheet = XLSX.utils.json_to_sheet(jsonData);
-          XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, 'Sheet1');
-          
-          const compressedData = XLSX.write(newWorkbook, { bookType: 'xlsx', type: 'array' });
-          resolve(new Blob([compressedData], { type: file.type }));
-        } catch (error) {
-          reject(error);
-        }
-      };
-      reader.onerror = reject;
-      reader.readAsBinaryString(file);
-    });
-  };
+
 
   const handleUpload = async () => {
     if (!file) {
@@ -64,12 +41,15 @@ const AdminDashboard: React.FC = () => {
     setUploading(true);
 
     try {
-      const compressedFile = await compressExcel(file);
       const formData = new FormData();
-      formData.append('file', compressedFile, file.name);
+      formData.append('file', file.name);
 
-      const response = await axios.post('https://sosafe.onrender.com/api/import', formData);
+      const response = await axios.post('https://sosafe.onrender.com/api/import', {raw_data : file}, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }});
       console.log(response);
+
       
       setMessage({ type: 'success', text: 'File uploaded successfully!' });
       setFile(null);
@@ -82,23 +62,10 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
-  const handleUpload2 = async () => {
-    try {
-      // const response = await axios.get('https://sosafe.onrender.com/api/i', {
-      //   headers: {
-      //     'Authorization': 'BEARER eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vc29zYWZlLm9ucmVuZGVyLmNvbS9hcGkvbG9naW4iLCJpYXQiOjE3MzU2NzI3MjgsImV4cCI6MTczNTY3NjMyOCwibmJmIjoxNzM1NjcyNzI4LCJqdGkiOiJoeWM5dnpWdFV3SGhOcTdOIiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjciLCJyb2xlIjpudWxsfQ.z01M83-wTXPgW7Wf6q5QVJqfJ_ytVot2GBzuoQQt-BU'
-      //   }
-      // });
-      const response = await axios.post('https://sosafe.onrender.com/api/import');
-      console.log(response);
-      setMessage({ type: 'success', text: 'Request successful!' });
-    } catch (error) {
-      setMessage({ type: 'error', text: 'Error making request. Please try again.' });
-    }
-  };
+
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen overflow-hidden bg-gray-100">
       <SideBar />
       <div className="flex-1">
         {/* Header */}
@@ -107,7 +74,7 @@ const AdminDashboard: React.FC = () => {
         </header>
 
         {/* Main Content */}
-        <div className="p-4">
+        <div className="p-4 pb-20 h-[100vh] relative overflow-y-scroll">
           <div className="text-lg font-semibold mb-6">
             <h4>Welcome, <span className="text-yellow-300">Name of Admin</span></h4>
           </div>
@@ -154,17 +121,7 @@ const AdminDashboard: React.FC = () => {
               >
                 {uploading ? 'Uploading...' : 'Upload Excel File'}
               </button>
-              <button
-                onClick={handleUpload2}
-                // disabled={!file || uploading}
-                className={`w-full py-2 px-4 rounded-md text-white font-medium
-                  ${!file || uploading 
-                    ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-[#006838] hover:bg-[#005a30]'
-                  } transition-colors duration-200`}
-              >
-                {uploading ? 'Uploading...' : 'Upload Excel File'}
-              </button>
+
 
               {message && (
                 <div className={`p-4 rounded-md ${
@@ -178,6 +135,7 @@ const AdminDashboard: React.FC = () => {
               )}
             </div>
           </div>
+          <FileUploader />
         </div>
       </div>
     </div>
