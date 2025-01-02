@@ -118,12 +118,12 @@ class ExcelController extends Controller
 
     }
 
-    public function check($name){
-        if(Storage::exists($name)){
-            return response()->json('true');
-        }
+    public function check(){
+        // if(Storage::files('app/chunks')){
+        //     return response()->json('true');
+        // }
 
-        return response()->json('false');
+        return response()->json(Storage::files());
 
     }
 }
