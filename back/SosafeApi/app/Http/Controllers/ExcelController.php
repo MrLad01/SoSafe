@@ -11,8 +11,8 @@ use Rap2hpoutre\FastExcel\FastExcel;
 use Illuminate\Validation\Rules\File;
 use Illuminate\Support\Facades\Validator;
 use App\Models\Biodata;
-use pion\laravel\ChunkUpload\Handler\ResumableJSUploadHandler;
-use pion\laravel\ChunkUpload\Receiver\FileReceiver;
+use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
+use Pion\Laravel\ChunkUpload\Handler\ResumableJSUploadHandler;
 
 class ExcelController extends Controller
 {
@@ -49,36 +49,40 @@ class ExcelController extends Controller
             $errors = $validator->messages()->all();
             return response()->json(['errors' => $errors]);
         }
-        $receiver = new FileReceiver('file', $request, ResumableJSUploadHandler::class);
+        // dd($request->all());
+        $receiver = new FileReceiver($request->raw_data, $request, ResumableJSUploadHandler::class);
 
     if (!$receiver->isUploaded()) {
         // file not uploaded
+        return response()->json(['status'=>'file not uploaded']);
     }
 
     $fileReceived = $receiver->receive(); // receive file
     if ($fileReceived->isFinished()) { // file uploading is complete / all chunks are uploaded
         $file = $fileReceived->getFile(); // get file
-        $extension = $file->getClientOriginalExtension();
-        $fileName = str_replace('.'.$extension, '', $file->getClientOriginalName()); //file name without extenstion
-        $fileName .= '_' . md5(time()) . '.' . $extension; // a unique file name
+        $newFileName= $file->hashName();
+        $file->move(storage_path('app/chunks'),$newFileName);
+        // $extension = $file->getClientOriginalExtension();
+        // $fileName = str_replace('.'.$extension, '', $file->getClientOriginalName()); //file name without extenstion
+        // $fileName .= '_' . md5(time()) . '.' . $extension; // a unique file name
 
-        $disk = Storage::disk(config('filesystems.default'));
-        $path = $disk->putFileAs('videos', $file, $fileName);
+        // $disk = Storage::disk(config('filesystems.default'));
+        // $path = $disk->putFileAs('videos', $file, $fileName);
 
         // delete chunked file
-        unlink($file->getPathname());
-        return [
-            'path' => asset('storage/' . $path),
-            'filename' => $fileName
-        ];
+        // unlink($file->getPathname());
+        // return [
+        //     'path' => asset('storage/' . $path),
+        //     'filename' => $fileName
+        // ];
     }
 
     // otherwise return percentage information
     $handler = $fileReceived->handler();
-    return [
-        'done' => $handler->getPercentageDone(),
-        'status' => true
-    ];
+    // return [
+    //     'done' => $handler->getPercentageDone(),
+    //     'status' => true
+    // ];
         // $file = public_path()."/test.xlsx";
         // $users = (new FastExcel)->import($file, function ($line) {
         //     return biodata::firstOrCreate([
@@ -106,7 +110,10 @@ class ExcelController extends Controller
         //     ]);
         // });
 
-        return response()->json($file->getClientOriginalExtension());
+        return response()->json([
+            'progress' => $handler->getPercentageDone(),
+            'status' => true
+        ]);
 
     }
 }
