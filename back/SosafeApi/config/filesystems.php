@@ -32,7 +32,7 @@ return [
 
         'local' => [
             'driver' => 'local',
-            'root' => storage_path('app/chunks'),
+            'root' => storage_path('app/chunks/chunks'),
             'throw' => false,
         ],
 
