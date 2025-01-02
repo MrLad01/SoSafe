@@ -123,7 +123,7 @@ class ExcelController extends Controller
         //     return response()->json('true');
         // }
 
-        return response()->json(Storage::files());
+        return response()->json(Storage::files('chunks'));
 
     }
 }
