@@ -50,7 +50,7 @@ const FileUploader: React.FC = () => {
 
     try {
       const { data } = await axios.post<ChunkUploadResponse>(
-        'https://sosafe.onrender.com/api/import',
+        'https://sosafe.onrender.com/api/upload-chunk',
         {raw_data : file},
         {
           headers: {
