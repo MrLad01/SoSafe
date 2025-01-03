@@ -50,7 +50,7 @@ const FileUploader: React.FC = () => {
 
     try {
       const { data } = await axios.post<ChunkUploadResponse>(
-        'https://sosafe.onrender.com/api/upload-chunk',
+        'https://sosafe.onrender.com/api/import',
         {raw_data : file},
         {
           headers: {
@@ -143,6 +143,13 @@ const FileUploader: React.FC = () => {
     }
   };
 
+  const handleCheck = async() => {
+    const data = await axios.get('https://sosafe.onrender.com/api/check');
+
+    console.log(data);
+    
+  }
+
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-md">
       <div className="p-6 border-b border-gray-200">
@@ -196,6 +203,18 @@ const FileUploader: React.FC = () => {
           type="button"
         >
           {uploading ? 'Uploading...' : 'Upload File'}
+        </button>
+
+        <button
+          onClick={handleCheck}
+          className={`w-full py-2 px-4 rounded-md text-white font-medium
+            ${!file || uploading 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-green-600 hover:bg-green-700'
+            } transition-colors duration-200`}
+          type="button"
+        >
+          {uploading ? 'Uploading...' : 'Check File'}
         </button>
 
         {message && (
