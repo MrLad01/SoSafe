@@ -24,20 +24,20 @@ const SideBar: React.FC = () => {
 
 
   return (
-    <div className="w-64 bg-[#006838] text-white h-full flex flex-col relative">
+    <div className="w-64 bg-[#006838] text-white text-[0.89rem] h-full flex flex-col relative">
       {/* Logo Section */}
-      <div className="flex justify-center items-center py-4 border-b border-green-800">
+      <NavLink to={`/admin`} className="flex justify-center items-center py-4 border-b border-green-800">
         <img src={logo} alt="Logo" className="w-16 h-14 object-cover" />
-      </div>
+      </NavLink>
 
       {/* Navigation Links */}
-      <ul className="flex-1 p-4 space-y-4">
+      <ul className="flex-1 p-4 space-y-2">
         <li>
           <NavLink
             to="/admin/news"
             end
             className={({ isActive }) =>
-              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
             }
           >
             <Newspaper />
@@ -49,7 +49,7 @@ const SideBar: React.FC = () => {
             to="/admin/agency"
             end
             className={({ isActive }) =>
-              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
             }
           >
             <Info />
@@ -61,7 +61,7 @@ const SideBar: React.FC = () => {
             to="/admin/management-team"
             end
             className={({ isActive }) =>
-              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
             }
           >
             <ClipboardList />
@@ -73,7 +73,7 @@ const SideBar: React.FC = () => {
             to="/admin/contact"
             end
             className={({ isActive }) =>
-              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
             }
           >
             <Contact />
@@ -85,7 +85,7 @@ const SideBar: React.FC = () => {
             to="/admin/departments"
             end
             className={({ isActive }) =>
-              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
             }
           >
             <Group />
@@ -97,7 +97,7 @@ const SideBar: React.FC = () => {
             to="/admin/personnel"
             end
             className={({ isActive }) =>
-              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
             }
           >
             <Users />
@@ -109,7 +109,7 @@ const SideBar: React.FC = () => {
             to="/admin/database"
             end
             className={({ isActive }) =>
-              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
             }
           >
             <Database />
@@ -121,7 +121,7 @@ const SideBar: React.FC = () => {
             to="/admin/tracking"
             end
             className={({ isActive }) =>
-              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-500"}`
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
             }
           >
             <Activity />
@@ -131,7 +131,7 @@ const SideBar: React.FC = () => {
         <li>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex gap-2 p-2 w-full text-left rounded hover:bg-green-500"
+            className="flex gap-2 p-2 w-full text-left rounded hover:bg-green-700 hover:shadow-sm"
           >
             <LogOut />
             Log Out
