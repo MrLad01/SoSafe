@@ -65,7 +65,7 @@ class ExcelController extends Controller
         // $file = $fileReceived->getFile(); // get file
         // $newFileName= $file->hashName();
         // $file->move(storage_path('app/chunks'),$newFileName);
-        return $this->saveFile($save->getFile());
+        return $this->saveFile($fileReceived->getFile());
         // $extension = $file->getClientOriginalExtension();
         // $fileName = str_replace('.'.$extension, '', $file->getClientOriginalName()); //file name without extenstion
         // $fileName .= '_' . md5(time()) . '.' . $extension; // a unique file name
