@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\Biodata;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 use Pion\Laravel\ChunkUpload\Handler\ResumableJSUploadHandler;
+use Illuminate\Http\UploadedFile;
+use Pion\Laravel\ChunkUpload\Handler\HandlerFactory;
 
 
 class ExcelController extends Controller
@@ -60,9 +62,10 @@ class ExcelController extends Controller
 
     $fileReceived = $receiver->receive(); // receive file
     if ($fileReceived->isFinished()) { // file uploading is complete / all chunks are uploaded
-        $file = $fileReceived->getFile(); // get file
-        $newFileName= $file->hashName();
-        $file->move(storage_path('app/chunks'),$newFileName);
+        // $file = $fileReceived->getFile(); // get file
+        // $newFileName= $file->hashName();
+        // $file->move(storage_path('app/chunks'),$newFileName);
+        return $this->saveFile($save->getFile());
         // $extension = $file->getClientOriginalExtension();
         // $fileName = str_replace('.'.$extension, '', $file->getClientOriginalName()); //file name without extenstion
         // $fileName .= '_' . md5(time()) . '.' . $extension; // a unique file name
@@ -125,5 +128,45 @@ class ExcelController extends Controller
 
         return response()->json(Storage::files('chunks'));
 
+    }
+
+    protected function saveFile(UploadedFile $file)
+    {
+        $fileName = $this->createFilename($file);
+        // Group files by mime type
+        $mime = str_replace('/', '-', $file->getMimeType());
+        // Group files by the date (week
+        $dateFolder = date("Y-m-W");
+
+        // Build the file path
+        // $filePath = "upload/{$mime}/{$dateFolder}/";
+        // $finalPath = storage_path("app/".$filePath);
+        $finalPath = storage_path('app/chunks');
+
+        // move the file name
+        // move(storage_path('app/chunks'),$fileName);
+        $file->move($finalPath, $fileName);
+
+        return response()->json([
+            'path' => $filePath,
+            'name' => $fileName,
+            'mime_type' => $mime
+        ]);
+    }
+
+    /**
+     * Create unique filename for uploaded file
+     * @param UploadedFile $file
+     * @return string
+     */
+    protected function createFilename(UploadedFile $file)
+    {
+        $extension = $file->getClientOriginalExtension();
+        $filename = str_replace(".".$extension, "", $file->getClientOriginalName()); // Filename without extension
+
+        // Add timestamp hash to name of the file
+        $filename .= "_" . md5(time()) . "." . $extension;
+
+        return $filename;
     }
 }
