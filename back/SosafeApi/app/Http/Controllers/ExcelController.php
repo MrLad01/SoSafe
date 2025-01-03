@@ -51,7 +51,7 @@ class ExcelController extends Controller
             return response()->json(['errors' => $errors]);
         }
         // dd($request->all());
-        $receiver = new FileReceiver($request->raw_data, $request, ResumableJSUploadHandler::class);
+        $receiver = new FileReceiver($request->raw_data, $request, HandlerFactory::classFromRequest($request));
 
     if (!$receiver->isUploaded()) {
         // file not uploaded
