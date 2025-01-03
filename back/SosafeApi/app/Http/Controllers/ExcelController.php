@@ -14,6 +14,7 @@ use App\Models\Biodata;
 use Pion\Laravel\ChunkUpload\Receiver\FileReceiver;
 use Pion\Laravel\ChunkUpload\Handler\ResumableJSUploadHandler;
 
+
 class ExcelController extends Controller
 {
     public function export(){
@@ -114,6 +115,15 @@ class ExcelController extends Controller
             'progress' => $handler->getPercentageDone(),
             'status' => true
         ]);
+
+    }
+
+    public function check(){
+        // if(Storage::files('app/chunks')){
+        //     return response()->json('true');
+        // }
+
+        return response()->json(Storage::files('chunks'));
 
     }
 }
