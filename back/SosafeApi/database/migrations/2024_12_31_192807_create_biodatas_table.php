@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('biodatas', function (Blueprint $table) {
             $table->id();
-            $table->string('form_no')->unique();
+            $table->string('sno')->unique();
             $table->string('code')->unique();
             $table->string('firstname');
             $table->string('lastname');
