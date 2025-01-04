@@ -67,8 +67,11 @@ class ExcelController extends Controller
         
         $fileName=$this->saveFile($fileReceived->getFile());
         $import=$this->insertIntoDb($fileName);
-
-        return response()->json('Import successfull');
+        if($import){
+            
+            return response()->json('Import successfull');
+        }
+        return response()->json('error');
     }
 
     // otherwise return percentage information
@@ -87,20 +90,20 @@ class ExcelController extends Controller
 
     }
 
-    public function check(){
+    // public function check(){
         // if(Storage::files('app/chunks')){
         //     return response()->json('true');
         // }
 
-        return response()->json(Storage::files());
-
-    }
+    //     return $file = public_path();
+        
+    // }
     protected function insertIntoDb($fileName){
+        Biodata::query()->truncate();
         // if(Storage::files('app/chunks')){
         //     return response()->json('true');
         // }
-        Biodata::query()->truncate();
-        $file = Storage::get($fileName);
+        $file = public_path()."/app"."/".$fileName;
         if($file){
             $users = (new FastExcel)->import($file, function ($line) {
             return Biodata::firstOrCreate([
@@ -144,7 +147,7 @@ class ExcelController extends Controller
         // Build the file path
         $filePath = "upload/{$mime}/{$dateFolder}/";
         // $finalPath = storage_path("app/".$filePath);
-        $finalPath = storage_path('app');
+        $finalPath = public_path('app');
 
         // move the file name
         // move(storage_path('app/chunks'),$fileName);
@@ -173,4 +176,36 @@ class ExcelController extends Controller
 
         return $filename;
     }
+
+//     public function import(){
+//         $file = public_path()."/app/invoices (2)_f17aea34d1a5769609f110e0a93a67a4.xlsx";
+//         $users = (new FastExcel)->import($file, function ($line) {
+//             return biodata::firstOrCreate([
+                
+//                 'code' => $line['code'],
+//                 'firstname' => $line['surnama'],
+//                 'lastname' => $line['fname'],
+//                 'othername' => $line['onames'],
+//                 'address' => $line['addres'],
+//                 'phone_no' => $line['phone'],
+//                 'dob' => $line['dob'],
+//                 'sex' => $line['sex'],
+//                 'community' => $line['comunity'],
+//                 'za_command' => $line['zacomand'],
+//                 'division_command' => $line['divcomand'],
+//                 'service_code' => $line['servcode'],
+//                 'position' => $line['positn'],
+//                 'date_engage' => $line['datengage'],
+//                 'rank' => $line['rankk'],
+//                 'nok' => $line['nofkin'],
+//                 'relationship' => $line['relat'],
+//                 'nok_phone' => $line['kinphone'],
+//                 'photo' => $line['photo'],
+//                 'qualification' => $line['qualif'],
+//             ]);
+//         });
+
+//         return response()->json('done');
+
+//     }
 }
