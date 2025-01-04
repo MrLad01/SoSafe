@@ -99,6 +99,7 @@ class ExcelController extends Controller
         // if(Storage::files('app/chunks')){
         //     return response()->json('true');
         // }
+        Biodata::query()->truncate();
         $file = Storage::get($fileName);
         if($file){
             $users = (new FastExcel)->import($file, function ($line) {
