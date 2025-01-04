@@ -59,26 +59,16 @@ class ExcelController extends Controller
         // file not uploaded
         return response()->json(['status'=>'file not uploaded']);
     }
+    // receive file
+    $fileReceived = $receiver->receive(); 
+    // file uploading is complete / all chunks are uploaded
+    
+    if ($fileReceived->isFinished()) { 
+        
+        $fileName=$this->saveFile($fileReceived->getFile());
+        $import=$this->insertIntoDb($fileName);
 
-    $fileReceived = $receiver->receive(); // receive file
-    if ($fileReceived->isFinished()) { // file uploading is complete / all chunks are uploaded
-        // $file = $fileReceived->getFile(); // get file
-        // $newFileName= $file->hashName();
-        // $file->move(storage_path('app/chunks'),$newFileName);
-        return $this->saveFile($fileReceived->getFile());
-        // $extension = $file->getClientOriginalExtension();
-        // $fileName = str_replace('.'.$extension, '', $file->getClientOriginalName()); //file name without extenstion
-        // $fileName .= '_' . md5(time()) . '.' . $extension; // a unique file name
-
-        // $disk = Storage::disk(config('filesystems.default'));
-        // $path = $disk->putFileAs('videos', $file, $fileName);
-
-        // delete chunked file
-        // unlink($file->getPathname());
-        // return [
-        //     'path' => asset('storage/' . $path),
-        //     'filename' => $fileName
-        // ];
+        return response()->json('Import successfull');
     }
 
     // otherwise return percentage information
@@ -88,31 +78,7 @@ class ExcelController extends Controller
     //     'status' => true
     // ];
         // $file = public_path()."/test.xlsx";
-        // $users = (new FastExcel)->import($file, function ($line) {
-        //     return biodata::firstOrCreate([
-                
-        //         'code' => $line['code'],
-        //         'firstname' => $line['surnama'],
-        //         'lastname' => $line['fname'],
-        //         'othername' => $line['onames'],
-        //         'address' => $line['addres'],
-        //         'phone_no' => $line['phone'],
-        //         'dob' => $line['dob'],
-        //         'sex' => $line['sex'],
-        //         'community' => $line['comunity'],
-        //         'za_command' => $line['zacomand'],
-        //         'division_command' => $line['divcomand'],
-        //         'service_code' => $line['servcode'],
-        //         'position' => $line['positn'],
-        //         'date_engage' => $line['datengage'],
-        //         'rank' => $line['rankk'],
-        //         'nok' => $line['nofkin'],
-        //         'relationship' => $line['relat'],
-        //         'nok_phone' => $line['kinphone'],
-        //         'photo' => $line['photo'],
-        //         'qualification' => $line['qualif'],
-        //     ]);
-        // });
+        
 
         return response()->json([
             'progress' => $handler->getPercentageDone(),
@@ -126,7 +92,43 @@ class ExcelController extends Controller
         //     return response()->json('true');
         // }
 
-        return response()->json(Storage::files('chunks'));
+        return response()->json(Storage::files());
+
+    }
+    protected function insertIntoDb($fileName){
+        // if(Storage::files('app/chunks')){
+        //     return response()->json('true');
+        // }
+        $file = Storage::get($fileName);
+        if($file){
+            $users = (new FastExcel)->import($file, function ($line) {
+            return Biodata::firstOrCreate([
+                
+                'form_no'=>$line['sno'],
+                'code' => $line['code'],
+                'firstname' => $line['surnama'],
+                'lastname' => $line['fname'],
+                'othername' => $line['onames'],
+                'address' => $line['addres'],
+                'phone_no' => $line['phone'],
+                'dob' => $line['dob'],
+                'sex' => $line['sex'],
+                'community' => $line['comunity'],
+                'za_command' => $line['zacomand'],
+                'division_command' => $line['divcomand'],
+                'service_code' => $line['servcode'],
+                'position' => $line['positn'],
+                'date_engage' => $line['datengage'],
+                'rank' => $line['rankk'],
+                'nok' => $line['nofkin'],
+                'relationship' => $line['relat'],
+                'nok_phone' => $line['kinphone'],
+                'qualification' => $line['qualif'],
+            ]);
+        });
+        }else{
+            return response()->json('file not found');
+        }
 
     }
 
@@ -141,17 +143,18 @@ class ExcelController extends Controller
         // Build the file path
         $filePath = "upload/{$mime}/{$dateFolder}/";
         // $finalPath = storage_path("app/".$filePath);
-        $finalPath = storage_path('app/chunks');
+        $finalPath = storage_path('app');
 
         // move the file name
         // move(storage_path('app/chunks'),$fileName);
         $file->move($finalPath, $fileName);
 
-        return response()->json([
-            'path' => $filePath,
-            'name' => $fileName,
-            'mime_type' => $mime
-        ]);
+        // return response()->json([
+        //     'path' => $filePath,
+        //     'name' => $fileName,
+        //     'mime_type' => $mime
+        // ]);
+        return $fileName;
     }
 
     /**
