@@ -10,7 +10,7 @@ class Biodata extends Model
     use HasFactory;
 
     protected $fillable = [
-        
+        'form_no',
         'code',
         'firstname',
         'lastname',
