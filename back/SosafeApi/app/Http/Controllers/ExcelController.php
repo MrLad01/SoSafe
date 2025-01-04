@@ -103,7 +103,7 @@ class ExcelController extends Controller
         // if(Storage::files('app/chunks')){
         //     return response()->json('true');
         // }
-        $file = public_path()."/app"."/".$fileName;
+        $file = storage_path()."/app"."/".$fileName;
         if($file){
             $users = (new FastExcel)->import($file, function ($line) {
             return Biodata::firstOrCreate([
@@ -147,7 +147,7 @@ class ExcelController extends Controller
         // Build the file path
         $filePath = "upload/{$mime}/{$dateFolder}/";
         // $finalPath = storage_path("app/".$filePath);
-        $finalPath = public_path('app');
+        $finalPath = storage_path('app');
 
         // move the file name
         // move(storage_path('app/chunks'),$fileName);
