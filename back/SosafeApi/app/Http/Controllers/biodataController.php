@@ -3,34 +3,29 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\sobiodata;
+use App\Models\Biodata;
 use App\Exports\UsersExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 // use Excel;
-class biodataController extends Controller
+class BiodataController extends Controller
 {
     public function getdata(){
-        $data = sobiodata::where('sno',"35")->get();
+        $data = Biodata::query()->paginate(100);
         return response()->json($data, 200);
-    }
-
-    public function test(){
-        // $data = sobiodata::where('sno',"61")->get();
-        // $handle = fopen(public_pathh(path:'storage/biodata.xlsx'),mode:'w');
-        // sobiodata::chunk(2000,function ($data) use ($handle){
-        //     foreach($data->toArray() as $dat){
-        //         fputcsv($handle,$dat);
-        //     }
-        // });
-        // return Excel::download(new UsersExport, 'users.xlsx');
-        // // User::chunk(2,function($users){
-        // //     foreach($users as $user) {
-                
-        // //     }
-        // });
-        $data= sobiodata::all();
-        $data = $data->chunk(5000);
-        return response()->json($data);
-        // return view("s.test",compact('data'));
-    }
+    //     DB::table('sobiodata')->orderBy('sno')->chunk(100, function (Collection $users) {
+    //     foreach ($users as $user) {
+    //        return response()->json($user);;
+    //     }
+    // });
+   
+}
+    // public function test(){
+        
+    //     $data= sobiodata::all();
+    //     $data = $data->chunk(5000);
+    //     return response()->json($data);
+    //     // return view("s.test",compact('data'));
+    // }
 }
