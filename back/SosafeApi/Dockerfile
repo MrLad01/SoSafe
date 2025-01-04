@@ -55,7 +55,7 @@ RUN php artisan key:generate --force
 RUN php artisan jwt:secret
 
 #add a miration table
-RUN php artisan migrate:refresh
+# RUN php artisan migrate:refresh
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache

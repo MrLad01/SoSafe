@@ -29,7 +29,6 @@ php artisan migrate --force || {
     exit 1
 }
 
-php artisan migrate:refresh
 
 # Start Nginx in foreground
 echo "Starting Nginx..."
