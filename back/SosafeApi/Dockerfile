@@ -54,9 +54,6 @@ RUN php artisan key:generate --force
 # Generate JWT secret
 RUN php artisan jwt:secret
 
-#add a miration table
-# RUN php artisan migrate:refresh
-
 # Set permissions
 RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
 RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
@@ -64,11 +61,20 @@ RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 # Configure Nginx
 COPY docker/nginx.conf /etc/nginx/sites-available/default
 
+# Create and configure entrypoint script
+RUN echo '#!/bin/sh\n\
+php artisan migrate --force\n\
+php artisan config:cache\n\
+/start.sh' > /usr/local/bin/docker-entrypoint.sh
+
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Expose port 80
 EXPOSE 80
 
-# Start Nginx & PHP-FPM
+# Copy and set up start script
 COPY docker/start.sh /start.sh
 RUN chmod +x /start.sh
 
-CMD ["/start.sh"]
+# Set the entrypoint
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
