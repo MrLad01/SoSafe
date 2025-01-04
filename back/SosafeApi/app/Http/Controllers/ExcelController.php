@@ -108,7 +108,7 @@ class ExcelController extends Controller
             $users = (new FastExcel)->import($file, function ($line) {
             return Biodata::firstOrCreate([
                 
-                'form_no'=>$line['sno'],
+                'sno'=>$line['sno'],
                 'code' => $line['code'],
                 'firstname' => $line['surnama'],
                 'lastname' => $line['fname'],
