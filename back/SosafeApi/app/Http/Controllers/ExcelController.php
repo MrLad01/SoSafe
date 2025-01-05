@@ -106,9 +106,9 @@ class ExcelController extends Controller
         $file = storage_path()."/app"."/".$fileName;
         if($file){
             $users = (new FastExcel)->import($file, function ($line) {
-            return Biodata::firstOrCreate([
+            Biodata::Create([
                 
-                'sno'=>$line['sno'],
+                'form_no'=>$line['sno'],
                 'code' => $line['code'],
                 'firstname' => $line['surnama'],
                 'lastname' => $line['fname'],
@@ -130,6 +130,7 @@ class ExcelController extends Controller
                 'qualification' => $line['qualif'],
             ]);
         });
+        return TRUE;
         }else{
             return response()->json('file not found');
         }
