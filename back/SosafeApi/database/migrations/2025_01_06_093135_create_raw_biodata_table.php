@@ -13,20 +13,20 @@ return new class extends Migration
     {
         Schema::create('biodatas', function (Blueprint $table) {
             $table->id();
-            $table->string('form_no')->nullable()->unique();
-            $table->string('code')->nullable()->unique();
+            $table->string('form_no')->nullable();
+            $table->string('code')->nullable();
             $table->string('firstname')->nullable();
             $table->string('lastname')->nullable();
             $table->string('othername')->nullable();
             $table->string('address')->nullable();
             $table->string('phone_no')->nullable();
-            $table->date('dob')->nullable();
+            $table->string('dob')->nullable();
             $table->string('sex')->nullable();
             $table->string('community')->nullable();
             $table->string('za_command')->nullable();
             $table->string('division_command')->nullable();
-            $table->string('service_code')->unique()->nullable();
-            $table->string('position')->nullable();
+            $table->string('service_code')->nullable();
+            $table->longText('position')->nullable();
             $table->string('date_engage')->nullable();
             $table->string('rank')->nullable();
             $table->string('nok')->nullable();
@@ -43,6 +43,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('raw_biodata');
+        Schema::dropIfExists('biodatas');
     }
 };
