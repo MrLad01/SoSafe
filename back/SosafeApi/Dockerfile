@@ -63,6 +63,7 @@ COPY docker/nginx.conf /etc/nginx/sites-available/default
 
 # Create and configure entrypoint script
 RUN echo '#!/bin/sh\n\
+php artisan queue:table\n\
 php artisan migrate:fresh --force\n\
 php artisan config:cache\n\
 /start.sh' > /usr/local/bin/docker-entrypoint.sh
@@ -72,7 +73,14 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # Configure PHP settings
 RUN echo "upload_max_filesize = 50M" > /usr/local/etc/php/conf.d/uploads.ini && \
     echo "post_max_size = 50M" >> /usr/local/etc/php/conf.d/uploads.ini && \
-    echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/uploads.ini
+    echo "max_execution_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "max_input_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+
+# Add after PHP configuration
+COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+
+RUN php artisan queue:work --timeout=600
 
 # Expose port 80
 EXPOSE 80

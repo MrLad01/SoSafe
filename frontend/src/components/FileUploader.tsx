@@ -20,13 +20,13 @@ const FileUploader: React.FC = () => {
     setProgress(0);
     
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('raw_data', file);
 
     console.log(formData);
     
 
     try {
-      await axios.post('https://sosafe.onrender.com/api/import', {raw_data : file}, {
+      await axios.post('https://sosafe.onrender.com/api/import', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {
           const progress = (progressEvent.loaded / (progressEvent.total || progressEvent.loaded)) * 100;
