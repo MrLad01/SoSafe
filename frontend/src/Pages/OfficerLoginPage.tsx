@@ -1,6 +1,7 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { Shield, Users, ChevronRight, Mail, IdCard, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axios from "axios";
 import logo from '../assets/logo.webp';
 
 type LoginType = 'officer' | 'supervisor';
@@ -13,10 +14,13 @@ const OfficerLoginPage = (): JSX.Element => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  const handleLogin = (e: FormEvent<HTMLFormElement>): void => {
+  const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (loginType === 'officer') {
+      const officerData = await axios.post('https://sosafe.onrender.com/api/get', idNumber);
+      console.log(officerData);
+      
       navigate('/officer/name');
     } else if (loginType === 'supervisor') {
       navigate('/admin');
@@ -109,7 +113,7 @@ const OfficerLoginPage = (): JSX.Element => {
                       type="text"
                       value={idNumber}
                       onChange={(e) => setIdNumber(e.target.value)}
-                      className="pl-10 w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="pl-10 w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
                       placeholder="Enter your Form number"
                       required
                     />
@@ -131,7 +135,7 @@ const OfficerLoginPage = (): JSX.Element => {
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="pl-10 w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
                       placeholder="Enter your email"
                       required
                     />
@@ -147,7 +151,7 @@ const OfficerLoginPage = (): JSX.Element => {
                       type={showPassword ? 'text' : 'password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                      className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none focus:border-green-500"
                       placeholder="Enter your password"
                       required
                     />

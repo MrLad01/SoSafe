@@ -63,7 +63,7 @@ COPY docker/nginx.conf /etc/nginx/sites-available/default
 
 # Create and configure entrypoint script
 RUN echo '#!/bin/sh\n\
-php artisan migrate:migrate --force\n\
+php artisan migrate:refresh --force\n\
 php artisan config:cache\n\
 /start.sh' > /usr/local/bin/docker-entrypoint.sh
 
