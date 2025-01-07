@@ -1,22 +1,10 @@
-import React, { useState, useCallback, ChangeEvent } from "react";
+import React, { useState, ChangeEvent } from "react";
 import { Upload, AlertCircle, CheckCircle } from "lucide-react";
 import axios from "axios";
-
-const CHUNK_SIZE = 1024 * 1024; // 1MB chunks
 
 interface Message {
   type: 'success' | 'error' | 'info';
   text: string;
-}
-
-interface ChunkUploadResponse {
-  success: boolean;
-  error?: string;
-}
-
-interface CompleteUploadResponse {
-  success: boolean;
-  error?: string;
 }
 
 const FileUploader: React.FC = () => {
@@ -25,109 +13,42 @@ const FileUploader: React.FC = () => {
   const [uploading, setUploading] = useState<boolean>(false);
   const [message, setMessage] = useState<Message | null>(null);
 
-  const readChunk = useCallback((file: File, start: number, end: number): Promise<ArrayBuffer> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result instanceof ArrayBuffer) {
-          resolve(e.target.result);
-        }
-      };
-      reader.readAsArrayBuffer(file.slice(start, end));
-    });
-  }, []);
-
-  const uploadChunk = useCallback(async (
-    chunk: ArrayBuffer,
-    chunkIndex: number,
-    totalChunks: number
-  ): Promise<boolean> => {
-    const formData = new FormData();
-    formData.append('chunk', new Blob([chunk]));
-    formData.append('chunkIndex', chunkIndex.toString());
-    formData.append('totalChunks', totalChunks.toString());
-    formData.append('fileName', file?.name || '');
-
-    try {
-      const { data } = await axios.post<ChunkUploadResponse>(
-        'https://sosafe.onrender.com/api/import',
-        {raw_data : file},
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          },
-          onUploadProgress: (progressEvent) => {
-            const chunkProgress = (progressEvent.loaded / (progressEvent.total || progressEvent.loaded)) * 100;
-            // Update progress for this chunk
-            setProgress(prev => prev + (chunkProgress / totalChunks));
-          }
-        }
-      );
-      return data.success;
-    } catch (error) {
-      console.error('Chunk upload failed:', error);
-      return false;
-    }
-  }, [file]);
-
-  const handleUpload = useCallback(async (): Promise<void> => {
+  const handleUpload = async (): Promise<void> => {
     if (!file) return;
 
     setUploading(true);
     setProgress(0);
-    setMessage({ type: 'info', text: 'Starting upload...' });
+    
+    const formData = new FormData();
+    formData.append('file', file);
 
-    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-    let uploadedChunks = 0;
+    console.log(formData);
+    
 
     try {
-      for (let i = 0; i < totalChunks; i++) {
-        const start = i * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, file.size);
-        const chunk = await readChunk(file, start, end);
-        
-        const success = await uploadChunk(chunk, i, totalChunks);
-        if (!success) throw new Error('Chunk upload failed');
-        
-        uploadedChunks++;
-      }
-
-      const { data } = await axios.post<CompleteUploadResponse>(
-        'https://sosafe.onrender.com/api/import',
-        {
-          fileName: file.name,
-          totalChunks
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          }
+      await axios.post('https://sosafe.onrender.com/api/import', {raw_data : file}, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          const progress = (progressEvent.loaded / (progressEvent.total || progressEvent.loaded)) * 100;
+          setProgress(Math.min(progress, 100));
         }
-      );
-
-      if (!data.success) throw new Error(data.error || 'Failed to complete upload');
+      });
 
       setMessage({ type: 'success', text: 'File uploaded successfully!' });
       setFile(null);
-      // Reset input
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        setMessage({ 
-          type: 'error', 
-          text: error.response?.data?.message || 'Upload failed. Please try again.' 
-        });
-      } else {
-        setMessage({ 
-          type: 'error', 
-          text: error instanceof Error ? error.message : 'Upload failed. Please try again.' 
-        });
-      }
+      setMessage({ 
+        type: 'error', 
+        text: axios.isAxiosError(error) 
+          ? error.response?.data?.message || 'Upload failed. Please try again.'
+          : 'Upload failed. Please try again.'
+      });
     } finally {
       setUploading(false);
     }
-  }, [file, readChunk, uploadChunk]);
+  };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
     const selectedFile = event.target.files?.[0];
@@ -142,13 +63,6 @@ const FileUploader: React.FC = () => {
       }
     }
   };
-
-  const handleCheck = async() => {
-    const data = await axios.get('https://sosafe.onrender.com/api/check');
-
-    console.log(data);
-    
-  }
 
   return (
     <div className="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-md">
@@ -203,18 +117,6 @@ const FileUploader: React.FC = () => {
           type="button"
         >
           {uploading ? 'Uploading...' : 'Upload File'}
-        </button>
-
-        <button
-          onClick={handleCheck}
-          className={`w-full py-2 px-4 rounded-md text-white font-medium
-            ${!file || uploading 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-green-600 hover:bg-green-700'
-            } transition-colors duration-200`}
-          type="button"
-        >
-          {uploading ? 'Uploading...' : 'Check File'}
         </button>
 
         {message && (
