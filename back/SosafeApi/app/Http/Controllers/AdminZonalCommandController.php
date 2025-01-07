@@ -3,33 +3,42 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\SoSafeCorpsBiodata;
+use App\Models\NewBiodata;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminZonalCommandController extends Controller{
-    public function getSoSafeCorpsBiodata(){
+    public function getBiodata(){
         $area = JWTAuth::user()->Area;
-        $SoSafeCorpsBiodata = soSafeCorpsBiodata::where('za_command_id',$area)->with('ZonalArea')->get();
+        $SoSafeCorpsBiodata = Biodata::where('za_command_id',$area)->with('ZonalArea')->get();
+        return response()->json($SoSafeCorpsBiodata, 200);
+    }
+
+    public function getNewBiodata(){
+        $area = JWTAuth::user()->Area;
+        $SoSafeCorpsBiodata = NewBiodata::where('za_command_id',$area)->with('ZonalArea')->get();
         return response()->json($SoSafeCorpsBiodata, 200);
     }
 
 public function editBiodata(Request $request, $id){
+    $area = JWTAuth::user()->Area;
+    if($area = 2){
     try{
         $validate = $request->all();
     $rules = [
-        'code' =>['string','required','unique:so_safe_corps_biodatas'],
+        'form_no'=>['string','required','unique:new_biodatas'],
+        'code' =>['string','required','unique:new_biodatas'],
         'firstname'=>['required'],
         'lastname' =>['string','required'],
         'othername' =>['string','required'],
         'address' =>['string','required'],
-        'phone_no' =>['string','required'],
+        'phone_no' =>['string','required','unique:new_biodatas'],
         'dob' =>['date','required'],
         'sex' =>['string','required'],
         'community_id' =>['integer','required'],
         'za_command_id' =>['integer','required'],
         'division_command_id' =>['integer','required'],
-        'service_code' =>['string','required','unique:so_safe_corps_biodatas'],
+        'service_code' =>['string','required','unique:new_biodatas'],
         'position' =>['string','required'],
         'date_engage' =>['string','required'],
         'rank' =>['string','required'],
@@ -45,7 +54,7 @@ public function editBiodata(Request $request, $id){
         $errors = $validator->messages()->all();
         return response()->json(['errors' => $errors]);
     }
-    $data = soSafeCorpsBiodata::findOrFail($id)->where('division_command_id',$area)->with('ZonalArea')->get();
+    $data = NewBiodata::findOrFail($id)->where('division_command_id',$area)->with('ZonalArea')->get();
     $data->code = $request->code;
     $data->firstname = $request->firstname;
     $data->lastname = $request->lastname;
@@ -69,10 +78,13 @@ public function editBiodata(Request $request, $id){
 }catch(ModelNotFoundException $exception){
 return response(["Status"=>"Error",
         "Message"=>" {$id} not found"]);
-}
+};
 
+}else{
+    return response(["Status"=>"Error",
+        "Message"=>" Access Denied"]);
 }
-
     
+}
 }
 
