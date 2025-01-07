@@ -47,8 +47,8 @@ Route::get('news', [NewsController::class, 'getNews']);
 Route::post('/get',[BiodataController::class, 'record']);
 Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     
-    Route::post('/import',[ExcelController::class, 'import'])->withoutMiddleware([JwtMiddleware::class]);
-    Route::post('/new/data',[NewBiodataController::class, 'storeBiodata']);
+    Route::post('/import',[ExcelController::class, 'import'])->withoutMiddleware([JwtMiddleware::class,'role:admin']);
+    Route::post('/new/data',[NewBiodataController::class, 'storeBiodata'])->withoutMiddleware([JwtMiddleware::class,'role:admin']);;
 
     Route::get('/check/{name?}',[ExcelController::class, 'check'])->withoutMiddleware([JwtMiddleware::class]);
 
