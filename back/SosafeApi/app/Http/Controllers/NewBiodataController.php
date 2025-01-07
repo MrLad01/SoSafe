@@ -3,18 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Tymon\JWTAuth\Facades\JWTAuth;
-class AdminDivisionCommandController extends Controller
-{
-    public function getSoSafeCorpsBiodata(){
-        $area = JWTAuth::user()->Area;
-        $SoSafeCorpsBiodata = soSafeCorpsBiodata::where('division_command',$area)->with('divisionArea')->get();
-        return response()->json(['data'=>$SoSafeCorpsBiodata,'area'=>$area], 200);
-    }
+use App\Models\NewBiodata;
+use Illuminate\Support\Facades\Validator;
 
-    public function editNewBiodata(Request $request, $id){
-        try{
-            $validate = $request->all();
+class NewBiodataController extends Controller
+{
+    public function storeBiodata(Request $request){
+        $validate = $request->all();
         $rules = [
             'form_no'=>['string','required','unique:new_biodata'],
             'code' =>['string','required','unique:new_biodata'],
@@ -37,15 +32,15 @@ class AdminDivisionCommandController extends Controller
             'nok_phone' =>['string','required'],
             'qualification' =>['string','required']
         ];
-    
+
         $validator=Validator::make($validate,$rules);
-    
+
         if($validator->fails()){
             $errors = $validator->messages()->all();
             return response()->json(['errors' => $errors]);
         }
-        $data = NewBiodata::findOrFail($id)->where('za_command',$area)->with('ZonalArea')->get();
-        $data->form_no = $request->form_no;
+        $data = new NewBiodata;
+        $data->form_no= $request->form_no; 
         $data->code = $request->code;
         $data->firstname = $request->firstname;
         $data->lastname = $request->lastname;
@@ -65,10 +60,8 @@ class AdminDivisionCommandController extends Controller
         $data->relationship = $request->relationship;
         $data->nok_phone = $request->nok_phone;
         $data->qualification = $request->qualification;
-        $data->update(); 
-}catch(ModelNotFoundException $exception){
-    return response(["Status"=>"Error",
-            "Message"=>" {$id} not found"]);
-}
+        $data->save();
 
-    }}
+        return response()->json(['message'=> 'success']);
+    }
+}

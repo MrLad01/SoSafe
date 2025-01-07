@@ -26,7 +26,7 @@ return new class extends Migration
             $table->string('za_command')->nullable();
             $table->string('division_command')->nullable();
             $table->string('service_code')->nullable();
-            $table->longText('position')->nullable();
+            $table->Text('position')->nullable();
             $table->string('date_engage')->nullable();
             $table->string('rank')->nullable();
             $table->string('nok')->nullable();
