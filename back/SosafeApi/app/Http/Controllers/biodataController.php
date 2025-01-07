@@ -21,11 +21,20 @@ class BiodataController extends Controller
     // });
    
 }
-    // public function test(){
+    public function record(Request $request){
         
-    //     $data= sobiodata::all();
-    //     $data = $data->chunk(5000);
-    //     return response()->json($data);
-    //     // return view("s.test",compact('data'));
-    // }
+        if($request->form_no){
+
+            $data= Biodata::where('form_no',$request->form_no)->firstOrFail();
+
+            return response()->json($data);
+        }
+        if($request->phone_no){
+            $data= Biodata::where('phone_no',$request->phone_no)->firstOrFail();
+            return response()->json($data);
+        }
+        return response()->json(['message'=>'only form number or phone number is required']);
+        
+        // return view("s.test",compact('data'));
+    }
 }
