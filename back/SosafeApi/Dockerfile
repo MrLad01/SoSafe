@@ -39,61 +39,64 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www
 
-# Copy composer files first for better caching
+# Create necessary directories first
+RUN mkdir -p /var/www/storage/app/chunks \
+    && mkdir -p /var/www/storage/app/public \
+    && mkdir -p /var/www/storage/framework/cache \
+    && mkdir -p /var/www/storage/framework/sessions \
+    && mkdir -p /var/www/storage/framework/views \
+    && mkdir -p /var/www/storage/logs \
+    && mkdir -p /var/www/bootstrap/cache \
+    && mkdir -p /var/log/supervisor
+
+# Copy composer files first
 COPY composer.json composer.lock ./
 
-# Install dependencies
-RUN composer install --no-interaction --no-dev --optimize-autoloader
+# Set proper permissions before composer install
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 775 /var/www
+
+# Install composer dependencies
+RUN composer install --no-scripts --no-autoloader --no-dev
 
 # Copy the rest of the application
 COPY . .
 
+# Generate autoloader and run scripts
+RUN composer dump-autoload --optimize \
+    && composer run-script post-autoload-dump
+
 # Set up environment file
 COPY .env.example .env
-RUN chmod 777 storage -R
-
-# Set permissions
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-RUN chmod -R 775 /var/www/storage /var/www/bootstrap/cache
-
-# Configure Nginx
-COPY docker/nginx.conf /etc/nginx/sites-available/default
 
 # Configure PHP settings
-RUN echo "upload_max_filesize = 100M" > /usr/local/etc/php/conf.d/uploads.ini && \
-    echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/uploads.ini && \
-    echo "max_execution_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini && \
-    echo "max_input_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini && \
-    echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+RUN echo "upload_max_filesize = 100M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "max_execution_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "max_input_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
 
-# Configure PHP-FPM
+# Configure Nginx and PHP-FPM
+COPY docker/nginx.conf /etc/nginx/sites-available/default
 COPY docker/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
-
-# Set up supervisor configuration
-RUN mkdir -p /etc/supervisor/conf.d/
 COPY docker/supervisor.conf /etc/supervisor/conf.d/supervisor.conf
+
+# Set final permissions
+RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache \
+    && chmod -R 775 /var/www/storage /var/www/bootstrap/cache
 
 # Create entrypoint script
 RUN echo '#!/bin/sh\n\
 php artisan key:generate --force\n\
 php artisan jwt:secret --force\n\
+php artisan storage:link --force\n\
 php artisan queue:table\n\
 php artisan migrate --force\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
-/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf\n\
-/start.sh' > /usr/local/bin/docker-entrypoint.sh
-
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Copy and set up start script
-COPY docker/start.sh /start.sh
-RUN chmod +x /start.sh
-
-# Create required directories
-RUN mkdir -p /var/www/storage/app/chunks
-RUN mkdir -p /var/log/supervisor
+/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf' > /usr/local/bin/docker-entrypoint.sh \
+    && chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose port 80
 EXPOSE 80
