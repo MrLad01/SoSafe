@@ -22,9 +22,9 @@ return new class extends Migration
             $table->string('phone_no')->unique();
             $table->date('dob');
             $table->string('sex');
-            $table->string('community_id');
-            $table->string('za_command_id');
-            $table->string('division_command_id');
+            $table->bigInteger('community_id')->unsigned()->index();
+            $table->bigInteger('za_command_id')->unsigned()->index();
+            $table->bigInteger('division_command_id')->unsigned()->index();
             $table->string('service_code')->unique();
             $table->string('position');
             $table->string('date_engage');
