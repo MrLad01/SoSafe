@@ -9,5 +9,5 @@ class NewBiodata extends Model
 {
     use HasFactory;
     
-    protected $table = "new_biodata";
+    
 }

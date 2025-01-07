@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('new_biodata', function (Blueprint $table) {
+        Schema::create('new_biodatas', function (Blueprint $table) {
             $table->id();
             $table->string('form_no')->unique();
             $table->string('code')->unique();
@@ -22,9 +22,9 @@ return new class extends Migration
             $table->string('phone_no')->unique();
             $table->date('dob');
             $table->string('sex');
-            $table->string('community');
-            $table->string('za_command');
-            $table->string('division_command');
+            $table->string('community_id');
+            $table->string('za_command_id');
+            $table->string('division_command_id');
             $table->string('service_code')->unique();
             $table->string('position');
             $table->string('date_engage');
@@ -33,6 +33,9 @@ return new class extends Migration
             $table->string('relationship');
             $table->string('nok_phone');
             $table->string('qualification');
+            $table->foreign('community_id')->references('id')->on('communities')->onDelete('cascade');
+            $table->foreign('za_command_id')->references('id')->on('za_commands')->onDelete('cascade');
+            $table->foreign('division_command_id')->references('id')->on('division_commands')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -42,6 +45,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('new_biodata');
+        Schema::dropIfExists('new_biodatas');
     }
 };
