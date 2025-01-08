@@ -140,14 +140,13 @@ const BiodataDisplay: React.FC = () => {
           <h2 className="text-2xl font-bold">Biodata Records</h2>
           <button
             onClick={fetchAllRecords}
-            className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="flex items-center px-4 py-2 bg-[#006838] text-white rounded-lg hover:bg-green-600 transition-colors"
           >
             <Download className="h-4 w-4 mr-2" />
             Download All Records
           </button>
         </div>
         <div className="mb-6">
-          <h2 className="text-2xl font-bold mb-4">Biodata Records</h2>
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <input
@@ -168,22 +167,26 @@ const BiodataDisplay: React.FC = () => {
           <div className="text-red-500 text-center p-4">{error}</div>
         ) : (
           <>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto h-[40vh] overflow-y-auto">
               <table className="w-full border-collapse">
                 <thead>
                   <tr className="bg-gray-50">
                     <th className="p-2 text-left font-semibold">Form No</th>
                     <th className="p-2 text-left font-semibold">Code</th>
                     <th className="p-2 text-left font-semibold">Name</th>
+                    <th className="p-2 text-left font-semibold">Rank</th>
+                    <th className="p-2 text-left font-semibold">Sex</th>
                     <th className="p-2 text-left font-semibold">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {records.map((record) => (
-                    <tr key={record.id} className="border-b hover:bg-gray-50">
+                    <tr key={record.id} className="border-b hover:bg-gray-50 text-[0.82rem]">
                       <td className="p-2">{record.form_no}</td>
                       <td className="p-2">{record.code}</td>
-                      <td className="p-2">{`${record.firstname} ${record.lastname}`}</td>
+                      <td className="p-2">{`${record.firstname} ${record.lastname} ${record.othername}`}</td>
+                      <td className="p-2">{record.rank}</td>
+                      <td className="p-2">{record.sex}</td>
                       <td className="p-2">
                         <button
                           onClick={() => fetchSingleRecord(record.id)}
@@ -228,7 +231,7 @@ const BiodataDisplay: React.FC = () => {
           <div className="mb-4">
             <h2 className="text-xl font-bold">Record Details</h2>
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 text-[0.8rem]">
             {Object.entries(selectedRecord).map(([key, value]) => (
               <div key={key} className="space-y-1">
                 <div className="font-medium capitalize">{key.replace('_', ' ')}</div>

@@ -47,7 +47,7 @@ const AdminDatabase: React.FC = () => {
       <SideBar />
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col h-full overflow-y-auto">
         {/* <header className="bg-[#006838] text-white p-4 text-xl font-bold text-center">
           {currentView === "list" ? "Ogun State Officer Data" : "Edit Officer"}
         </header>
