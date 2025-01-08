@@ -17,6 +17,8 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\NewBiodataController;
 
+use App\Http\Controllers\Biodata2Controller;
+
 
 
 /*
@@ -114,3 +116,7 @@ Route::post('/export', [ExcelController::class, 'export']);
 Route::get('/test',[biodataController::class, 'test']);
 Route::get('/',[ExcelController::class, 'export']);
 Route::get('/d',[ExcelController::class, 'download']);
+
+Route::get('/biodata2', [Biodata2Controller::class, 'index']);
+Route::get('/biodata2/{id}', [Biodata2Controller::class, 'show']);
+Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
