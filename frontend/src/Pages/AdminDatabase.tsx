@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { officers } from "../data/Officers"; 
 import SideBar from "../components/SideBar"; 
+import BiodataDisplay from "../components/BiodataDisplay";
 
 interface Officer {
   id: number;
@@ -47,7 +48,7 @@ const AdminDatabase: React.FC = () => {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
-        <header className="bg-[#006838] text-white p-4 text-xl font-bold text-center">
+        {/* <header className="bg-[#006838] text-white p-4 text-xl font-bold text-center">
           {currentView === "list" ? "Ogun State Officer Data" : "Edit Officer"}
         </header>
         <div className="flex-1 overflow-y-auto p-8">
@@ -97,6 +98,7 @@ const AdminDatabase: React.FC = () => {
                       type="text"
                       name="name"
                       value={selectedOfficer.name}
+                      title="name"
                       readOnly
                       className="border border-gray-300 p-2 rounded w-full"
                     />
@@ -106,6 +108,7 @@ const AdminDatabase: React.FC = () => {
                     <input
                       type="text"
                       name="rank"
+                      title="rank"
                       value={selectedOfficer.rank}
                       onChange={handleInputChange}
                       className="border border-gray-300 p-2 rounded w-full"
@@ -116,6 +119,7 @@ const AdminDatabase: React.FC = () => {
                     <input
                       type="text"
                       name="zone"
+                      title="zone"
                       value={selectedOfficer.zone}
                       onChange={handleInputChange}
                       className="border border-gray-300 p-2 rounded w-full"
@@ -126,6 +130,7 @@ const AdminDatabase: React.FC = () => {
                     <input
                       type="text"
                       name="area"
+                      title="area"
                       value={selectedOfficer.area}
                       readOnly
                       className="border border-gray-300 p-2 rounded w-full"
@@ -151,7 +156,8 @@ const AdminDatabase: React.FC = () => {
               )}
             </div>
           )}
-        </div>
+        </div> */}
+        <BiodataDisplay />
       </div>
     </div>
   );

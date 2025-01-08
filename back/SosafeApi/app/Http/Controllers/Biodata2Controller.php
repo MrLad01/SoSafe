@@ -63,4 +63,24 @@ class Biodata2Controller extends Controller
             'data' => $biodata
         ]);
     }
+
+    public function getAllRecords()
+    {
+        $biodata = Biodata::all();
+        return response()->json([
+            'data' => $biodata,
+            'total' => $biodata->count()
+        ]);
+    }
+
+    public function importStatus()
+    {
+        $totalRecords = Biodata::count();
+        $lastRecord = Biodata::latest()->first();
+        
+        return response()->json([
+            'total_records' => $totalRecords,
+            'last_record_created' => $lastRecord ? $lastRecord->created_at : null
+        ]);
+    }
 }
