@@ -14,11 +14,7 @@ class BiodataController extends Controller
     public function getdata(){
         $data = Biodata::query()->paginate(100);
         return response()->json($data, 200);
-    //     DB::table('sobiodata')->orderBy('sno')->chunk(100, function (Collection $users) {
-    //     foreach ($users as $user) {
-    //        return response()->json($user);;
-    //     }
-    // });
+    
    
 }
     public function record(Request $request){

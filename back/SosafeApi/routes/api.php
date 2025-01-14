@@ -16,8 +16,9 @@ use App\Http\Controllers\SoSafeCorpsBiodataController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\ExcelController;
 use App\Http\Controllers\NewBiodataController;
-
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\Biodata2Controller;
+use App\Http\Controllers\UserAdminController;
 
 
 
@@ -35,8 +36,10 @@ use App\Http\Controllers\Biodata2Controller;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('admin/check', [authenticationController::class, 'check']);
 Route::post('register', [authenticationController::class, 'register']);
 Route::post('login', [authenticationController::class, 'login']);
+Route::middleware(['login_attempt'])->post('user/login', [UserAdminController::class, 'login']);
 // Route::get('user', [authenticationController::class, 'getUser']);
 Route::get('Missing', [MissingWantedController::class, 'getMissing']);
 Route::get('Hero', [HeroController::class, 'getHero']);
@@ -44,19 +47,29 @@ Route::get('division', [DivisionCommandController::class, 'getDivision']);
 Route::get('Zonal_command', [ZonalCommandController::class, 'getZonalCommands']);
 Route::get('community', [CommunityController::class, 'getCommunities']);
 Route::get('news', [NewsController::class, 'getNews']);
+Route::post('logout', [authenticationController::class, 'logout']);
 
 
 Route::post('/get',[BiodataController::class, 'record']);
+
 Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     
-    Route::post('/import',[ExcelController::class, 'import'])->withoutMiddleware([JwtMiddleware::class,'role:admin']);
-    Route::post('/new/data',[NewBiodataController::class, 'storeBiodata'])->withoutMiddleware([JwtMiddleware::class,'role:admin']);;
+    Route::post('user/register', [UserController::class, 'createAdmin']);
+    Route::get('/reset', [UserController::class, 'ResetLoginAttempt']);
+    
+    Route::get('/biodata2', [Biodata2Controller::class, 'index']);
+    Route::get('/biodata2/{id}', [Biodata2Controller::class, 'show']);
+    Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
+    Route::get('/biodata2/all', [Biodata2Controller::class, 'getAllRecords']);
+    Route::get('/biodata2/import-status', [Biodata2Controller::class, 'importStatus']);
+    
+    Route::post('/import',[ExcelController::class, 'import']);
+    Route::post('/new/data',[NewBiodataController::class, 'storeBiodata']);
 
-    Route::get('/check/{name?}',[ExcelController::class, 'check'])->withoutMiddleware([JwtMiddleware::class]);
+    Route::get('/check/{name?}',[ExcelController::class, 'check']);
 
-    Route::get('raw/data',[BiodataController::class, 'getdata'])->withoutMiddleware([JwtMiddleware::class,'role:admin']);
+    Route::get('raw/data',[BiodataController::class, 'getdata']);
     Route::get('user', [authenticationController::class, 'getUser']);
-    Route::post('logout', [authenticationController::class, 'logout']);
     // news controller
     Route::post('news', [NewsController::class, 'storeNews']);
     Route::put('news/{id}', [NewsController::class, 'editNews']);
@@ -98,16 +111,21 @@ Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
 
 });
 //Admin Zonal Area Controller
-Route::middleware([JwtMiddleware::class,'role:zonal_command'])->group(function(){
+Route::middleware([JwtMiddleware::class,'role:zonal_command','login_attempt'])->group(function(){
     Route::get('/z/records',[AdminZonalCommandController::class, 'getSoSafeCorpsBiodata']);
+    Route::get('/z/records',[AdminZonalCommandController::class, 'storeBiodata']);
     Route::get('/z/record', [AdminZonalCommandController::class, 'getNewRecords']);
+    Route::get('/z/download', [AdminZonalCommandController::class, 'download']);
+
 });
 
 // Admin Division Controller
 
-Route::middleware([JwtMiddleware::class,'role:division_command'])->group(function(){
+Route::middleware([JwtMiddleware::class,'role:division_command','login_attempt'])->group(function(){
     Route::get('/d/records',[AdminDivisionCommandController::class, 'getSoSafeCorpsBiodata']);
-    Route::get('/d/record', [AdminDivisionCommandController::class, 'getNewRecords']);
+    Route::get('/d/records',[AdminDivisionCommandController::class, 'storeBiodata']);
+    Route::get('/d/record/edit', [AdminDivisionCommandController::class, 'editBiodata']);
+    Route::get('/d/download', [AdminDivisionCommandController::class, 'download']);
 });
 Route::post('/export', [ExcelController::class, 'export']);
 
@@ -117,8 +135,3 @@ Route::get('/test',[biodataController::class, 'test']);
 Route::get('/',[ExcelController::class, 'export']);
 Route::get('/d',[ExcelController::class, 'download']);
 
-Route::get('/biodata2', [Biodata2Controller::class, 'index']);
-Route::get('/biodata2/{id}', [Biodata2Controller::class, 'show']);
-Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
-Route::get('/biodata2/all', [Biodata2Controller::class, 'getAllRecords']);
-Route::get('/biodata2/import-status', [Biodata2Controller::class, 'importStatus']);
