@@ -141,20 +141,20 @@ const SideBar: React.FC = () => {
 
       {/* Logout Confirmation Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded shadow-lg">
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-20 flex items-center justify-center">
+          <div className="bg-white py-8 px-10 rounded shadow-lg">
             <h3 className="text-xl text-black font-bold mb-4">Confirm Logout</h3>
             <p className="mb-6 text-black">Are you sure you want to log out?</p>
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-2">
               <button
                 onClick={handleLogout}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
                 Yes
               </button>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+                className="px-6 py-2 bg-gray-300 rounded hover:bg-gray-400"
               >
                 No
               </button>
