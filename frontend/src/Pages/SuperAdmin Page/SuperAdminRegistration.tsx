@@ -21,8 +21,8 @@ const SuperAdminRegistration = () => {
 
   const checkAdminExists = async () => {
     try {
-      const response = await axios.get('/admin/check');
-      if (!response.data.canRegister) {
+      const response = await axios.get('https://sosafe.onrender.com/api/admin/check');
+      if (!response.status) {
         navigate('/login');
       }
       setLoading(false);
@@ -40,12 +40,28 @@ const SuperAdminRegistration = () => {
       return;
     }
 
+    console.log(formData);
+    
+
     try {
-      await axios.post('/admin/register', {
-        username: formData.username,
+      await axios.post('https://sosafe.onrender.com/api/register', {
+        name: formData.username,
+        email: formData.email,
         password: formData.password,
-        email: formData.email
+        password_confirmation: formData.confirmPassword,
       });
+
+//       {
+      //     "user": {
+      //         "name": "MrLad",
+      //         "email": "ladindin@gmail.com",
+      //         "updated_at": "2025-01-15T20:34:39.000000Z",
+      //         "created_at": "2025-01-15T20:34:39.000000Z",
+      //         "id": 1
+      //     },
+      //     "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwOi8vc29zYWZlLm9ucmVuZGVyLmNvbS9hcGkvcmVnaXN0ZXIiLCJpYXQiOjE3MzY5NzMyNzksImV4cCI6MTczNjk3Njg3OSwibmJmIjoxNzM2OTczMjc5LCJqdGkiOiJXRzVBSWVmUTFUNk92UUhxIiwic3ViIjoiMSIsInBydiI6IjIzYmQ1Yzg5NDlmNjAwYWRiMzllNzAxYzQwMDg3MmRiN2E1OTc2ZjcifQ.nNTUvbEsymgUDfxTA4uktMooiPO2QlEn-f8vQZfnD2Q"
+      // }
+
       navigate('/admin');
     } catch (error) {
       console.error('Error registering admin:', error);
