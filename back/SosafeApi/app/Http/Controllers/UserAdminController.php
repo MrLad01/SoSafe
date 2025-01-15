@@ -3,43 +3,37 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\UserAdmin;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
-use Illuminate\Support\Facades\Auth;
-
-class authenticationController extends Controller
+class UserAdminController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth.jwt', ['except' => ['login', 'registration','check']]);
-    // }
+   
     // User registration
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
+    // public function register(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'name' => 'required|string|max:255',
+    //         'email' => 'required|string|email|max:255|unique:user_admins',
+    //         'password' => 'required|string|min:6|confirmed',
+    //     ]);
 
-        if($validator->fails()){
-            return response()->json($validator->errors()->toJson(), 400);
-        }
+    //     if($validator->fails()){
+    //         return response()->json($validator->errors()->toJson(), 400);
+    //     }
 
-        $user = User::create([
-            'name' => $request->get('name'),
-            'email' => $request->get('email'),
-            'role'=>'admin',
-            'password' => Hash::make($request->get('password')),
-        ]);
+    //     $user = UserAdmin::create([
+    //         'name' => $request->get('name'),
+    //         'email' => $request->get('email'),
+    //         'password' => Hash::make($request->get('password')),
+    //     ]);
 
-        $token = JWTAuth::fromUser($user);
+    //     $token = JWTAuth::fromUser($user);
 
-        return response()->json(compact('user','token'), 201);
-    }
+    //     return response()->json(compact('user','token'), 201);
+    // }
 
     // User login
     public function login(Request $request)
@@ -47,16 +41,16 @@ class authenticationController extends Controller
         $credentials = $request->only('email', 'password');
 
         try {
-            if (! $token = JWTAuth::attempt($credentials)) {
+            if (! $token = auth()->guard('admin')->attempt($credentials)) {
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
 
             // Get the authenticated user.
-            $user = auth()->user();
-            // $user->login_attempt +=1;
-            // $user->save();
+            $user = auth()->guard('admin')->user();
+            $user->login_attempt +=1;
+            $user->save();
             // (optional) Attach the role to the token.
-            // $token = JWTAuth::claims(['role' => $user->role])->fromUser($user);
+            $token = JWTAuth::claims(['role' => $user->role])->fromUser($user);
 
             return response()->json(compact('token','user'));
         } catch (JWTException $e) {
@@ -87,12 +81,7 @@ class authenticationController extends Controller
 
         return response()->json(['message' => 'Successfully logged out']);
     }
-    public function check(){
-        if(User::count()<1){
-            return response()->json(True);
-        }else{
-            return response()->json(FALSE);
-        }
-    }
 
 }
+
+

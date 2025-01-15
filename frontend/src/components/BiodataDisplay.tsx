@@ -49,7 +49,7 @@ const BiodataDisplay: React.FC = () => {
         params: {
           page: currentPage,
           per_page: perPage,
-          search: search || undefined
+          search: search.toUpperCase() || undefined
         }
       });
       setRecords(response.data.data);
@@ -183,7 +183,7 @@ const BiodataDisplay: React.FC = () => {
                   {records.map((record) => (
                     <tr key={record.id} className="border-b hover:bg-gray-50 text-[0.82rem]">
                       <td className="p-2">{record.form_no}</td>
-                      <td className="p-2">{record.code}</td>
+                      <td className="p-2">{record.service_code}</td>
                       <td className="p-2">{`${record.firstname} ${record.lastname} ${record.othername}`}</td>
                       <td className="p-2">{record.rank}</td>
                       <td className="p-2">{record.sex}</td>
@@ -205,18 +205,18 @@ const BiodataDisplay: React.FC = () => {
               <button
                 onClick={handlePreviousPage}
                 disabled={currentPage === 1}
-                className="px-4 py-2 border border-gray-300 rounded-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                className="px-4 py-1 text-[0.8rem] border border-gray-300 rounded-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
               >
                 <ChevronLeft className="h-4 w-4 mr-2" />
                 Previous
               </button>
-              <span>
+              <span className='text-[0.7rem]'>
                 Page {currentPage} of {totalPages}
               </span>
               <button
                 onClick={handleNextPage}
                 disabled={currentPage === totalPages}
-                className="px-4 py-2 border border-gray-300 rounded-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                className="px-4 py-1 text-[0.8rem] border border-gray-300 rounded-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
               >
                 Next
                 <ChevronRight className="h-4 w-4 ml-2" />
