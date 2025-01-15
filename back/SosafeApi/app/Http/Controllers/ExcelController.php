@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Jobs\ProcessExcelChunk;
 use Illuminate\Support\Facades\Queue;
 use Rap2hpoutre\FastExcel\FastExcel;
+use Tymon\JWTAuth\Facades\JWTAuth;
+use App\Models\NewBiodata;
 
 class ExcelController extends Controller 
 {
@@ -37,5 +39,14 @@ class ExcelController extends Controller
             'total_records' => $collection->count(),
             'chunks' => $chunks->count()
         ]);
+    }
+
+    public function download(){
+        // $url = asset('file.xlsx');
+        // $file = public_path()."/test.xlsx";
+        // $area = JWTAuth::user()->Area;
+        $command= '';
+        $data = NewBiodata::where('','AROKOJE')->get();
+        return (new FastExcel($data))->download('file.xlsx');
     }
 }
