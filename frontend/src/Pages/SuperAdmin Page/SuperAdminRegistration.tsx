@@ -15,8 +15,8 @@ const SuperAdminRegistration = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // checkAdminExists();
-    setLoading(false);
+    checkAdminExists();
+    // setLoading(false);
   }, []);
 
   const checkAdminExists = async () => {
