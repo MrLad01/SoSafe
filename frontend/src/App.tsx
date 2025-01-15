@@ -1,25 +1,26 @@
 // import React from 'react'
 import { Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
-import Home from './Pages/Landing Page/Home';
-import 'rsuite/dist/rsuite-no-reset.min.css';
-import NewsDetail from "./components/NewsDetail";
-import PersonAlertDetail from "./components/PersonAlertDetail";
-import NewsPage from "./Pages/NewsPage";
 import { AgencyPage, ContactPage, ManagementTeamPage } from "./Pages/AboutPage";
-import DepartmentsPage from "./Pages/DepartmentsPage";
-import PersonnelPage from "./Pages/PersonnelPage";
-import UnderConstructionPage from "./Pages/UnderConstructionPage";
-import OfficerLoginPage from "./Pages/OfficerLoginPage";
-import AdminDashboard from "./Pages/AdminDashboard";
-import AdminNews from "./Pages/AdminNews";
 import AdminAgency from "./Pages/AdminAgency";
-import AdminManagement from "./Pages/AdminManagement";
 import AdminContact from "./Pages/AdminContact";
-import AdminDepartments from "./Pages/AdminDepartments";
-import AdminPersonnel from "./Pages/AdminPersonnel";
-import OfficerDashboard from "./Pages/Officer Page/OfficerDashboard";
+import AdminDashboard from "./Pages/AdminDashboard";
 import AdminDatabase from "./Pages/AdminDatabase";
+import AdminDepartments from "./Pages/AdminDepartments";
+import AdminManagement from "./Pages/AdminManagement";
+import AdminNews from "./Pages/AdminNews";
+import AdminPersonnel from "./Pages/AdminPersonnel";
 import AdminTracking from "./Pages/AdminTracking";
+import DepartmentsPage from "./Pages/DepartmentsPage";
+import Home from './Pages/Landing Page/Home';
+import NewsDetail from "./components/NewsDetail";
+import NewsPage from "./Pages/NewsPage";
+import OfficerDashboard from "./Pages/Officer Page/OfficerDashboard";
+import OfficerLoginPage from "./Pages/OfficerLoginPage";
+import PersonAlertDetail from "./components/PersonAlertDetail";
+import PersonnelPage from "./Pages/PersonnelPage";
+import SuperAdminRegistration from "./Pages/SuperAdmin Page/SuperAdminRegistration";
+import UnderConstructionPage from "./Pages/UnderConstructionPage";
+import 'rsuite/dist/rsuite-no-reset.min.css';
 
 
 
@@ -28,28 +29,35 @@ function App() {
         createRoutesFromElements(
             <Route>
                 <Route index element={<Home />} />
+                <Route path="/about/agency" element={<AgencyPage />} />
+                <Route path="/about/contact" element={<ContactPage />} />
+                <Route path="/about/management" element={<ManagementTeamPage />} />
                 <Route path="/announcement/:slug" element={<NewsDetail />} />
+                <Route path="/departments" element={<DepartmentsPage />} />
+                <Route path="/missing/:person" element={<PersonAlertDetail />} />
                 <Route path="/news" element={<NewsPage />} />
                 <Route path="/news/:slug" element={<NewsDetail />} />
-                <Route path="/about/agency" element={<AgencyPage />} />
-                <Route path="/about/management" element={<ManagementTeamPage />} />
-                <Route path="/about/contact" element={<ContactPage />} />
-                <Route path="/missing/:person" element={<PersonAlertDetail />} />
                 <Route path="/wanted/:person" element={<PersonAlertDetail />} />
-                <Route path="/departments" element={<DepartmentsPage />} />
-                <Route path="/personnel" element={<PersonnelPage />} />
+                
                 <Route path="/login" element={<OfficerLoginPage />} />
+                <Route path="/personnel" element={<PersonnelPage />} />
+
                 <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/news" element={<AdminNews />} />
                 <Route path="/admin/agency" element={<AdminAgency />} />
-                <Route path="/admin/management-team" element={<AdminManagement />} />
                 <Route path="/admin/contact" element={<AdminContact />} />
-                <Route path="/admin/departments" element={<AdminDepartments />} />
-                <Route path="/admin/personnel" element={<AdminPersonnel />} />
                 <Route path="/admin/database" element={<AdminDatabase />} />
+                <Route path="/admin/departments" element={<AdminDepartments />} />
+                <Route path="/admin/management-team" element={<AdminManagement />} />
+                <Route path="/admin/news" element={<AdminNews />} />
+                <Route path="/admin/personnel" element={<AdminPersonnel />} />
                 <Route path="/admin/tracking" element={<AdminTracking />} />
-                <Route path="/under-construction" element={<UnderConstructionPage />} />
+
                 <Route path="/officer/name" element={<OfficerDashboard />} />
+                
+                <Route path="/under-construction" element={<UnderConstructionPage />} />
+
+                <Route path="/so-admin" element={<SuperAdminRegistration />} />
+
             </Route>
         )
     );

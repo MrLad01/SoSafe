@@ -18,7 +18,7 @@ const OfficerLoginPage = (): JSX.Element => {
     e.preventDefault();
 
     if (loginType === 'officer') {
-      const officerData = await axios.post('https://sosafe.onrender.com/api/get', idNumber);
+      const officerData = await axios.get(`https://sosafe.onrender.com/biodata2/form/${idNumber}`);
       console.log(officerData);
       
       navigate('/officer/name');
