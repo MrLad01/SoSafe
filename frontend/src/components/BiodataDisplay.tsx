@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ChevronLeft, ChevronRight, Loader2, Download } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 interface BiodataRecord {
   id: number;
@@ -31,6 +32,7 @@ interface AllRecordsResponse {
   }
 
 const BiodataDisplay: React.FC = () => {
+  const { token } = useAuth()
   const [records, setRecords] = useState<BiodataRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,13 +47,19 @@ const BiodataDisplay: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+      console.log(token);
+      
       const response = await axios.get<ApiResponse>(`https://sosafe.onrender.com/api/biodata2`, {
         params: {
           page: currentPage,
           per_page: perPage,
           search: search.toUpperCase() || undefined
+        },
+        headers: {
+          "Authorization": `Bearer ${token}`
         }
-      });
+      }
+    );
       setRecords(response.data.data);
       setTotalPages(response.data.meta.last_page);
     } catch (err) {
