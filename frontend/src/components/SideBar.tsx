@@ -19,6 +19,8 @@ const SideBar: React.FC = () => {
     // Clear any authentication tokens or user data here if necessary
     console.log("User logged out");
     setIsModalOpen(false);
+    localStorage.clear();
+    sessionStorage.clear();
     navigate("/login"); // Redirect to the login page
   };
 
