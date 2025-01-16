@@ -16,7 +16,6 @@ const SuperAdminRegistration = () => {
 
   useEffect(() => {
     checkAdminExists();
-    // setLoading(false);
   }, []);
 
   const checkAdminExists = async () => {
