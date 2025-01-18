@@ -1,32 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Trash2, Edit2, Save, X } from 'lucide-react';
 import SideBar from '../components/SideBar';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 interface User {
   id: string;
   email: string;
   name: string;
   role: string;
+  area: string;
   dateAssigned: string;
   lastLogin: string;
 }
 
 const AssignUser: React.FC = () => {
+  const { token } = useAuth()
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>('');
   const [formData, setFormData] = useState({
     email: '',
     name: '',
-    role: 'user',
+    area:'',
+    role: 'Divisional Command',
     password: '',
     confirmPassword: '',
   });
   const [formErrors, setFormErrors] = useState({
     email: '',
     name: '',
+    area: '',
     password: '',
     confirmPassword: '',
   });
@@ -39,7 +47,8 @@ const AssignUser: React.FC = () => {
       id: `user${i + 1}`,
       email: `user${i + 1}@example.com`,
       name: `User ${i + 1}`,
-      role: i % 3 === 0 ? 'admin' : 'user',
+      role: i % 3 === 0 ? 'Divisional Command' : 'Zonal Command',
+      area: `random area ${i + 1}`,
       dateAssigned: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString(),
       lastLogin: new Date(Date.now() - Math.random() * 1000000000).toLocaleDateString(),
     }));
@@ -50,6 +59,7 @@ const AssignUser: React.FC = () => {
     const errors = {
       email: '',
       name: '',
+      area: '',
       password: '',
       confirmPassword: '',
     };
@@ -58,6 +68,8 @@ const AssignUser: React.FC = () => {
     else if (!/\S+@\S+\.\S+/.test(formData.email)) errors.email = 'Invalid email format';
     
     if (!formData.name) errors.name = 'Name is required';
+
+    if (!formData.area) errors.area = 'Your Area is required';
     
     if (!editingUser) {
       if (!formData.password) errors.password = 'Password is required';
@@ -72,9 +84,12 @@ const AssignUser: React.FC = () => {
     return !Object.values(errors).some(error => error !== '');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+
+    setLoading(true);
+    setError('');
 
     if (editingUser) {
       setUsers(users.map(user => 
@@ -83,19 +98,56 @@ const AssignUser: React.FC = () => {
           : user
       ));
       setEditingUser(null);
+      setLoading(false);
     } else {
-      const newUser: User = {
-        id: `user${users.length + 1}`,
-        email: formData.email,
-        name: formData.name,
-        role: formData.role,
-        dateAssigned: new Date().toLocaleDateString(),
-        lastLogin: '-',
-      };
-      setUsers([...users, newUser]);
+        try {
+            const response = await axios.post('https://sosafe.onrender.com/api/user/register', {
+              email: formData.email,
+              password: formData.password,
+              password_confirmation: formData.confirmPassword,
+              area: formData.area,
+              name: formData.name,
+              role: formData.role,
+            }, {
+                headers: {
+                  "Authorization": `Bearer ${token}`
+                }
+              });
+      
+            // Assuming the API returns the created user
+            const newUser: User = {
+              id: response.data.id,
+              email: formData.email,
+              name: formData.name,
+              area: formData.area,
+              role: formData.role,
+              dateAssigned: new Date().toISOString(),
+              lastLogin: '-'
+            };
+      
+            setUsers([...users, newUser]);
+            setFormData({
+              email: '',
+              name: '',
+              area: '',
+              role: 'Divisional Command',
+              password: '',
+              confirmPassword: ''
+            });
+            setShowForm(false);
+            // You might want to show a success message here
+          } catch (err) {
+            if (axios.isAxiosError(err)) {
+              setError(err.response?.data?.message || 'Failed to create user');
+            } else {
+              setError('An unexpected error occurred');
+            }
+          } finally {
+            setLoading(false);
+          }
     }
     
-    setFormData({ email: '', name: '', role: 'user', password: '', confirmPassword: '' });
+    setFormData({ email: '', name: '', role: 'Divisional Command', area: '', password: '', confirmPassword: '' });
     setShowForm(false);
   };
 
@@ -104,6 +156,7 @@ const AssignUser: React.FC = () => {
     setFormData({
       email: user.email,
       name: user.name,
+      area: user.area,
       role: user.role,
       password: '',
       confirmPassword: '',
@@ -132,12 +185,18 @@ const AssignUser: React.FC = () => {
     <div className="flex h-screen overflow-hidden bg-gray-100">
       <SideBar />
         <div className="w-full p-8 border overflow-auto mx-auto">
+        {/* Error Alert */}
+        {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+            </div>
+        )}
         <div className="mb-6 flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-800">Assign User</h1>
             <button
             onClick={() => {
                 setEditingUser(null);
-                setFormData({ email: '', name: '', role: 'user', password: '', confirmPassword: '' });
+                setFormData({ email: '', name: '', area: '', role: 'user', password: '', confirmPassword: '' });
                 setShowForm(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -162,7 +221,7 @@ const AssignUser: React.FC = () => {
         {/* User Form */}
         {showForm && (
             <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl">
                 <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold">{editingUser ? 'Edit User' : 'Add New User'}</h2>
                 <button onClick={() => setShowForm(false)} title='hide form' className="text-gray-500 hover:text-gray-700">
@@ -193,6 +252,17 @@ const AssignUser: React.FC = () => {
                     {formErrors.name && <p className="text-red-500 text-sm mt-1">{formErrors.name}</p>}
                 </div>
                 <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Area</label>
+                    <input
+                    type="text"
+                    value={formData.area}
+                    title='enter your area'
+                    onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    />
+                    {formErrors.area && <p className="text-red-500 text-sm mt-1">{formErrors.area}</p>}
+                </div>
+                <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select
                     value={formData.role}
@@ -200,8 +270,8 @@ const AssignUser: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                     >
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
+                    <option value="divisional_command">Divisional Commander</option>
+                    <option value="zonal_command">Zonal Commander</option>
                     </select>
                 </div>
                 {!editingUser && (
@@ -235,7 +305,7 @@ const AssignUser: React.FC = () => {
                     className="w-full py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
                 >
                     <Save size={20} />
-                    {editingUser ? 'Update User' : 'Create User'}
+                    {editingUser ? 'Update User' : loading ? 'Creating...' : 'Create User'}
                 </button>
                 </form>
             </div>
@@ -249,6 +319,7 @@ const AssignUser: React.FC = () => {
                 <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Area</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Assigned</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
@@ -265,8 +336,11 @@ const AssignUser: React.FC = () => {
                     <div className="text-sm text-gray-900">{user.email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-sm text-gray-900">{user.area}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
+                        user.role === 'Divisional Command' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
                     }`}>
                         {user.role}
                     </span>
