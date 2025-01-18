@@ -10,6 +10,7 @@ type LoginType = 'officer' | 'supervisor';
 interface FormData {
   email: string;
   password: string;
+  role: string;
 }
 
 const OfficerLoginPage = (): JSX.Element => {
@@ -17,7 +18,8 @@ const OfficerLoginPage = (): JSX.Element => {
   const { login } = useAuth();
   const [formData, setFormData] = useState<FormData>({
     password: '',
-    email: ''
+    email: '',
+    role: 'user | admin'
   });
   const [idNumber, setIdNumber] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -48,27 +50,46 @@ const OfficerLoginPage = (): JSX.Element => {
           throw new Error('Invalid form number');
         }
       } else {
-        const response = await axios.post(
-          'https://sosafe.onrender.com/api/login',
-          {
-            email: formData.email,
-            password: formData.password,
-          },
-          {
-            timeout: 120000,
-            headers: {
-              'Content-Type': 'application/json'
+        if(formData.role === 'user'){
+          const response = await axios.post(
+            'https://sosafe.onrender.com/api/user/login',
+            {
+              email: formData.email,
+              password: formData.password,
+            },
+            {
+              timeout: 120000,
+              headers: {
+                'Content-Type': 'application/json'
+              }
             }
+          );
+          if (response.data) {
+            login(response.data.token, response.data.user);
+            navigate('/admin');
+          } else {
+            throw new Error('Invalid credentials');
           }
-        );
-
-        if (response.data) {
-          //  sessionStorage.setItem('authToken', response.data.token);
-          //  sessionStorage.setItem('user', JSON.stringify(response.data.user));
-          login(response.data.token, response.data.user);
-          navigate('/admin');
         } else {
-          throw new Error('Invalid credentials');
+          const response = await axios.post(
+            'https://sosafe.onrender.com/api/login',
+            {
+              email: formData.email,
+              password: formData.password,
+            },
+            {
+              timeout: 120000,
+              headers: {
+                'Content-Type': 'application/json'
+              }
+            }
+          );
+          if (response.data) {
+            login(response.data.token, response.data.user);
+            navigate('/admin');
+          } else {
+            throw new Error('Invalid credentials');
+          }
         }
       }
     } catch (err) {
@@ -83,7 +104,7 @@ const OfficerLoginPage = (): JSX.Element => {
 
   useEffect(() => {
     setError('');
-    setFormData({ email: '', password: '' });
+    setFormData({ email: '', password: '', role: 'user' });
     setIdNumber('');
 
     const updateVH = () => {
@@ -193,6 +214,18 @@ const OfficerLoginPage = (): JSX.Element => {
               </div>
             ) : (
               <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <select
+                    value={formData.role}
+                    title='pick role'
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                     Email Address

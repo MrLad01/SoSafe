@@ -9,7 +9,7 @@ interface BiodataRecord {
   code: string;
   firstname: string;
   lastname: string;
-  [key: string]: string | number; // For other dynamic fields in the record
+  [key: string]: string | number; 
 }
 
 interface ApiResponse {
@@ -76,7 +76,11 @@ const BiodataDisplay: React.FC = () => {
   const fetchSingleRecord = async (id: number): Promise<void> => {
     try {
       setLoading(true);
-      const response = await axios.get<SingleRecordResponse>(`https://sosafe.onrender.com/api/biodata2/${id}`);
+      const response = await axios.get<SingleRecordResponse>(`https://sosafe.onrender.com/api/biodata2/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       setSelectedRecord(response.data.data);
     } catch (err) {
       setError('Failed to fetch record details. Please try again.');
