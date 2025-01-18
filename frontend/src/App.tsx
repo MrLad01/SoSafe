@@ -23,6 +23,7 @@ import SuperAdminRegistration from "./Pages/SuperAdmin Page/SuperAdminRegistrati
 import UnderConstructionPage from "./Pages/UnderConstructionPage";
 import { Navigate } from "react-router-dom";
 import 'rsuite/dist/rsuite-no-reset.min.css';
+import AssignUser from "./Pages/AssignUser";
 
 interface ProtectedRouteProps {
     children: ReactNode;
@@ -70,6 +71,7 @@ function App() {
                 <Route path="/admin/management-team" element={<ProtectedRoute><AdminManagement /></ProtectedRoute>} />
                 <Route path="/admin/news" element={<ProtectedRoute><AdminNews /></ProtectedRoute>} />
                 <Route path="/admin/personnel" element={<ProtectedRoute><AdminPersonnel /></ProtectedRoute>} />
+                <Route path="/admin/assign-user" element={<ProtectedRoute><AssignUser /></ProtectedRoute>} />
                 <Route path="/admin/tracking" element={<ProtectedRoute><AdminTracking /></ProtectedRoute>} />
 
                 {/* Protected officer routes */}

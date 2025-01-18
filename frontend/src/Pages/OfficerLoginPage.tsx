@@ -55,7 +55,7 @@ const OfficerLoginPage = (): JSX.Element => {
             password: formData.password,
           },
           {
-            timeout: 10000,
+            timeout: 120000,
             headers: {
               'Content-Type': 'application/json'
             }
