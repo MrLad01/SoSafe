@@ -9,7 +9,7 @@ interface BiodataRecord {
   code: string;
   firstname: string;
   lastname: string;
-  [key: string]: string | number; // For other dynamic fields in the record
+  [key: string]: string | number; 
 }
 
 interface ApiResponse {
