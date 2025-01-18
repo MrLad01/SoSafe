@@ -88,6 +88,7 @@ const AdminManagement: React.FC = () => {
                 <input
                   type="file"
                   className="w-full p-3 border border-gray-300 rounded-lg"
+                  title="upload image"
                   onChange={(e) =>
                     handleExecutiveChange(index, "image", e.target.files ? e.target.files[0] : null)
                   }

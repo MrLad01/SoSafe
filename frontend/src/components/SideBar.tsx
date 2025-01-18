@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { NavLink, useNavigate  } from "react-router-dom";
 import logo from "../assets/logo.webp";
-import { Newspaper } from 'lucide-react';
+import { Newspaper, UserPlus } from 'lucide-react';
 import { Database } from 'lucide-react';
 import { Group } from 'lucide-react';
 import { Info } from 'lucide-react';
@@ -104,6 +104,18 @@ const SideBar: React.FC = () => {
           >
             <Users />
             Personnel
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to="/admin/assign-user"
+            end
+            className={({ isActive }) =>
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
+            }
+          >
+            <UserPlus />
+            Assign User
           </NavLink>
         </li>
         <li>
