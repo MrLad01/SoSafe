@@ -1,28 +1,28 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
 import { useNavigate } from 'react-router-dom';
+import Autoplay from 'embla-carousel-autoplay';
+import useEmblaCarousel from 'embla-carousel-react';
 
 export interface Person {
-  name: string;
-  image: string;
-  description: string;
-  date: string;
-  location: string;
   age: string;
-  height: string;
-  weight: string;
-  complexion: string;
-  distinguishingFeatures: string;
-  status: string;
   caseNumber: string;
+  complexion: string;
   contactInfo: Contact;
+  date: string;
+  description: string;
+  distinguishingFeatures: string;
+  height: string;
+  image: string;
+  location: string;
+  name: string;
+  status: string;
+  weight: string;
 }
 
 interface Contact {
-  phone: string;
-  email: string;
   department: string;
+  email: string;
+  phone: string;
 }
 
 interface AlertsDisplayProps {
@@ -31,12 +31,12 @@ interface AlertsDisplayProps {
 }
 
 const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeople }) => {
-  const navigate = useNavigate(); // Move inside component
+  const navigate = useNavigate();
 
   const handlePersonDetails = (content: Person, type: 'missing' | 'wanted') => {
     const personSlug = content.name.toLowerCase().replace(/\s+/g, '-');
     navigate(`/${type}/${personSlug}`, { 
-      state: { ...content } // Simplified state passing
+      state: { ...content }
     });
   };
 
@@ -181,15 +181,15 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center">
           <CarouselSection 
-            title="Wanted People" 
-            items={wantedPeople} 
             delay={4000} 
+            items={wantedPeople} 
+            title="Wanted People" 
             type="wanted" 
           />
           <CarouselSection 
-            title="Missing Persons" 
-            items={missingPersons} 
             delay={4800} 
+            items={missingPersons} 
+            title="Missing Persons" 
             type="missing" 
           />
         </div>
