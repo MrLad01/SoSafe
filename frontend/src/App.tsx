@@ -78,7 +78,7 @@ function App() {
                 <Route path="/officer/name" element={<ProtectedRoute><OfficerDashboard /></ProtectedRoute>} />
 
                 {/* Protected super admin route */}
-                <Route path="/so-admin" element={<ProtectedRoute><SuperAdminRegistration /></ProtectedRoute>} />
+                <Route path="/so-admin" element={<SuperAdminRegistration />} />
             </Route>
         )
     );
