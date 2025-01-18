@@ -47,7 +47,6 @@ const BiodataDisplay: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      console.log(token);
       
       const response = await axios.get<ApiResponse>(`https://sosafe.onrender.com/api/biodata2`, {
         params: {
