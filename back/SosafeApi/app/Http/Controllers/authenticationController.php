@@ -32,7 +32,7 @@ class authenticationController extends Controller
         $user = User::create([
             'name' => $request->get('name'),
             'email' => $request->get('email'),
-            'role'=>'admin',
+            'Role'=>'admin',
             'password' => Hash::make($request->get('password')),
         ]);
 
