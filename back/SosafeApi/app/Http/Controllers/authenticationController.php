@@ -53,8 +53,8 @@ class authenticationController extends Controller
 
             // Get the authenticated user.
             $user = auth()->user();
-            $user->Role = 'admin';
-            $user->save();
+            // $user->Role = 'admin';
+            // $user->save();
             // (optional) Attach the role to the token.
             // $token = JWTAuth::claims(['role' => $user->role])->fromUser($user);
 
