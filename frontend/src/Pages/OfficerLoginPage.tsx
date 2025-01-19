@@ -224,7 +224,7 @@ const OfficerLoginPage = (): JSX.Element => {
             {loginType === 'officer' ? (
               <div>
                 <label htmlFor="idNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                  Officer Form Number
+                  Officer Form Number / Phone Number
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -236,8 +236,8 @@ const OfficerLoginPage = (): JSX.Element => {
                     type="text"
                     value={idNumber}
                     onChange={(e) => setIdNumber(e.target.value)}
-                    className="pl-10 w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                    placeholder="Enter your Form number"
+                    className="pl-10 w-full py-3 px-4 border border-gray-300 text-[0.8rem] rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                    placeholder="Enter your Form number or phone number"
                     required
                     disabled={loading}
                   />

@@ -52,7 +52,7 @@ Route::post('logout', [authenticationController::class, 'logout']);
 
 Route::post('/get',[BiodataController::class, 'record']);
 Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
-Route::get('/biodata2/form/{phoneNo}', [Biodata2Controller::class, 'findByPhoneNo']);
+Route::get('/biodata2/form/phone/{phoneNo}', [Biodata2Controller::class, 'findByPhoneNo']);
 
 Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     
