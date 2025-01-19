@@ -37,11 +37,38 @@ const OfficerLoginPage = (): JSX.Element => {
         if (!idNumber.trim()) {
           throw new Error('Please enter a valid form number');
         }
+
+        const fetchOfficerData = async (idNumber: string) => {
+          // Clean the input by removing spaces and any special characters
+          const cleanId = idNumber.trim().replace(/[^a-zA-Z0-9]/g, '');
+          
+          // Check if it's a form number (starts with letter and is 6 characters)
+          const isFormNumber = /^[A-Za-z]\d{5}$/.test(cleanId) || /^[A-Za-z]\d{6}$/.test(cleanId);
+          
+          // Check if it's a phone number (contains only numbers and is 10-11 digits)
+          const isPhoneNumber = /^\d{10,11}$/.test(cleanId);
+          
+          let endpoint;
+          
+          if (isFormNumber) {
+            endpoint = `https://sosafe.onrender.com/api/biodata2/form/${cleanId.toUpperCase()}`;
+          } else if (isPhoneNumber) {
+            const phoneNumber = cleanId.startsWith('0') ? cleanId.substring(1) : cleanId;
+            endpoint = `https://sosafe.onrender.com/api/biodata2/form/phone/${phoneNumber}`;
+          } else {
+            throw new Error('Invalid input: Must be either a form number or phone number');
+          }
         
-        const officerData = await axios.get(
-          `https://sosafe.onrender.com/api/biodata2/form/${idNumber.toUpperCase()}`,
-          { timeout: 100000 }
-        );
+          try {
+            const response = await axios.get(endpoint, { timeout: 100000 });
+            return response;
+          } catch (error) {
+            console.error('Error fetching officer data:', error);
+            throw error;
+          }
+        };
+        
+        const officerData = await fetchOfficerData(idNumber);
         
         if (officerData.data.data) {
           sessionStorage.setItem('officerData', JSON.stringify(officerData.data.data));
