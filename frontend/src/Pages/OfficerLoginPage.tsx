@@ -39,7 +39,7 @@ const OfficerLoginPage = (): JSX.Element => {
         }
         
         const officerData = await axios.get(
-          `https://sosafe.onrender.com/biodata2/form/${idNumber}`,
+          `https://sosafe.onrender.com/api/biodata2/form/${idNumber}`,
           { timeout: 100000 }
         );
         
