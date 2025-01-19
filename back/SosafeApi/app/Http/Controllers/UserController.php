@@ -44,4 +44,9 @@ class UserController extends Controller
         return response()->json('Record created successfully', 201);
 
     }
+
+    public function getAdmins(){
+        $admins = UserAdmin::all();
+        return response()->json($admins, 200,);
+    }
 }
