@@ -64,6 +64,15 @@ class Biodata2Controller extends Controller
         ]);
     }
 
+    public function findByPhoneNo($phoneNo)
+    {
+        $biodata = Biodata::where('phone_no', $phoneNo)->firstOrFail();
+        
+        return response()->json([
+            'data' => $biodata
+        ]);
+    }
+
     public function getAllRecords()
     {
         $biodata = Biodata::all();
