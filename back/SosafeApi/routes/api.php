@@ -57,9 +57,13 @@ Route::get('/biodata2/form/phone/{phoneNo}', [Biodata2Controller::class, 'findBy
 Route::get('/biodata2', [Biodata2Controller::class, 'index']);
 Route::get('/biodata2/{id}', [Biodata2Controller::class, 'show']);
 Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
+
 Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     
-    Route::post('user/register', [UserController::class, 'createAdmin']);
+    // Route::post('user/register', [UserController::class, 'createAdmin']);
+    
+    Route::post('/edit/admin', [UserController::class, 'editAdmin']);
+    Route::post('/create/admin', [UserController::class, 'addAdmin']);
     Route::get('/reset', [UserController::class, 'ResetLoginAttempt']);
     Route::get('/admins', [UserController::class, 'getAdmins']);
     Route::get('/biodata2', [Biodata2Controller::class, 'index']);
