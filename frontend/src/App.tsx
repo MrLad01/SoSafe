@@ -75,7 +75,7 @@ function App() {
                 <Route path="/admin/tracking" element={<ProtectedRoute><AdminTracking /></ProtectedRoute>} />
 
                 {/* Protected officer routes */}
-                <Route path="/officer/name" element={<ProtectedRoute><OfficerDashboard /></ProtectedRoute>} />
+                <Route path="/officer/:name" element={<OfficerDashboard />} />
 
                 {/* Protected super admin route */}
                 <Route path="/so-admin" element={<SuperAdminRegistration />} />

@@ -39,15 +39,46 @@ const OfficerLoginPage = (): JSX.Element => {
         }
         
         const officerData = await axios.get(
-          `https://sosafe.onrender.com/api/biodata2/form/${idNumber}`,
+          `https://sosafe.onrender.com/api/biodata2/form/${idNumber.toUpperCase()}`,
           { timeout: 100000 }
         );
         
-        if (officerData.data) {
-          sessionStorage.setItem('officerId', officerData.data.id);
-          navigate('/officer/name');
-        } else {
-          throw new Error('Invalid form number');
+        if (officerData.data.data) {
+          sessionStorage.setItem('officerData', JSON.stringify(officerData.data.data));
+          
+          // Default values in case of undefined or null
+          const firstName = officerData.data.data.firstname || '';
+          const lastName = officerData.data.data.lastname || '';
+          
+          // Safety checks and string processing
+          const formatName = (name: string) => {
+            if (!name) return '';
+            return name.toLowerCase()
+          };
+          
+          const officerFirstName = formatName(firstName);
+          const officerLastName = formatName(lastName);
+          
+          // Only navigate if we have at least one name component
+          if (officerFirstName || officerLastName) {
+            const urlPath = [officerFirstName, officerLastName]
+                            .filter(Boolean)
+                            .join('-')
+                            .replace(/-+/g, '-');
+            
+            navigate(`/officer/${urlPath}`, { 
+              state: { officerData: officerData.data.data }
+            });
+          } else {
+            console.error('Unable to create URL: both first name and last name are empty or invalid');
+            // You might want to navigate to a fallback route or show an error message
+            navigate('/error', {
+              state: { 
+                message: 'Invalid officer name data',
+                officerId: officerData.data.data.id 
+              }
+            });
+          }
         }
       } else {
         if(formData.role === 'user'){
