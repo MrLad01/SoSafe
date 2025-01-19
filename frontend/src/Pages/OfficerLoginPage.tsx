@@ -37,17 +37,75 @@ const OfficerLoginPage = (): JSX.Element => {
         if (!idNumber.trim()) {
           throw new Error('Please enter a valid form number');
         }
+
+        const fetchOfficerData = async (idNumber: string) => {
+          // Clean the input by removing spaces and any special characters
+          const cleanId = idNumber.trim().replace(/[^a-zA-Z0-9]/g, '');
+          
+          // Check if it's a form number (starts with letter and is 6 characters)
+          const isFormNumber = /^[A-Za-z]\d{5}$/.test(cleanId) || /^[A-Za-z]\d{6}$/.test(cleanId);
+          
+          // Check if it's a phone number (contains only numbers and is 10-11 digits)
+          const isPhoneNumber = /^\d{10,11}$/.test(cleanId);
+          
+          let endpoint;
+          
+          if (isFormNumber) {
+            endpoint = `https://sosafe.onrender.com/api/biodata2/form/${cleanId.toUpperCase()}`;
+          } else if (isPhoneNumber) {
+            const phoneNumber = cleanId.startsWith('0') ? cleanId.substring(1) : cleanId;
+            endpoint = `https://sosafe.onrender.com/api/biodata2/form/phone/${phoneNumber}`;
+          } else {
+            throw new Error('Invalid input: Must be either a form number or phone number');
+          }
         
-        const officerData = await axios.get(
-          `https://sosafe.onrender.com/biodata2/form/${idNumber}`,
-          { timeout: 100000 }
-        );
+          try {
+            const response = await axios.get(endpoint, { timeout: 100000 });
+            return response;
+          } catch (error) {
+            console.error('Error fetching officer data:', error);
+            throw error;
+          }
+        };
         
-        if (officerData.data) {
-          sessionStorage.setItem('officerId', officerData.data.id);
-          navigate('/officer/name');
-        } else {
-          throw new Error('Invalid form number');
+        const officerData = await fetchOfficerData(idNumber);
+        
+        if (officerData.data.data) {
+          sessionStorage.setItem('officerData', JSON.stringify(officerData.data.data));
+          
+          // Default values in case of undefined or null
+          const firstName = officerData.data.data.firstname || '';
+          const lastName = officerData.data.data.lastname || '';
+          
+          // Safety checks and string processing
+          const formatName = (name: string) => {
+            if (!name) return '';
+            return name.toLowerCase()
+          };
+          
+          const officerFirstName = formatName(firstName);
+          const officerLastName = formatName(lastName);
+          
+          // Only navigate if we have at least one name component
+          if (officerFirstName || officerLastName) {
+            const urlPath = [officerFirstName, officerLastName]
+                            .filter(Boolean)
+                            .join('-')
+                            .replace(/-+/g, '-');
+            
+            navigate(`/officer/${urlPath}`, { 
+              state: { officerData: officerData.data.data }
+            });
+          } else {
+            console.error('Unable to create URL: both first name and last name are empty or invalid');
+            // You might want to navigate to a fallback route or show an error message
+            navigate('/error', {
+              state: { 
+                message: 'Invalid officer name data',
+                officerId: officerData.data.data.id 
+              }
+            });
+          }
         }
       } else {
         if(formData.role === 'user'){
@@ -193,7 +251,7 @@ const OfficerLoginPage = (): JSX.Element => {
             {loginType === 'officer' ? (
               <div>
                 <label htmlFor="idNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                  Officer Form Number
+                  Officer Form Number / Phone Number
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -205,8 +263,8 @@ const OfficerLoginPage = (): JSX.Element => {
                     type="text"
                     value={idNumber}
                     onChange={(e) => setIdNumber(e.target.value)}
-                    className="pl-10 w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                    placeholder="Enter your Form number"
+                    className="pl-10 w-full py-3 px-4 border border-gray-300 text-[0.8rem] rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                    placeholder="Enter your Form number or phone number"
                     required
                     disabled={loading}
                   />
