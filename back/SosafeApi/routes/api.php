@@ -54,16 +54,6 @@ Route::post('/get',[BiodataController::class, 'record']);
 Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
 Route::get('/biodata2/form/phone/{phoneNo}', [Biodata2Controller::class, 'findByPhoneNo']);
 
-<<<<<<< HEAD
-Route::get('/biodata2', [Biodata2Controller::class, 'index']);
-Route::get('/biodata2/{id}', [Biodata2Controller::class, 'show']);
-Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
-
-=======
-// Route::get('/biodata2', [Biodata2Controller::class, 'index']);
-// Route::get('/biodata2/{id}', [Biodata2Controller::class, 'show']);
-// Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
->>>>>>> 21a6aba58e94fe320381de08f1f0de5e62231431
 Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     
     // Route::post('user/register', [UserController::class, 'createAdmin']);
