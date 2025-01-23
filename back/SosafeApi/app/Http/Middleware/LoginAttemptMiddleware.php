@@ -22,7 +22,7 @@ class LoginAttemptMiddleware
         $email = $request->email;
         $user = UserAdmin::where('email',$email)->firstOrFail();
         if($user->login_attempt >=2  ){
-            
+            auditTrail('login attempt exceeded','success');
             return response()->json('Access Denied, Maximum Number of login reached');
         }
         if ($user->role =='division_command' || $user->role =='zonal_command') {

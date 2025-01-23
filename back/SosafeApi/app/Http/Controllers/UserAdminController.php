@@ -42,6 +42,7 @@ class UserAdminController extends Controller
 
         try {
             if (! $token = auth()->guard('admin')->attempt($credentials)) {
+                auditTrail('login','invalid credential');
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
 
@@ -51,7 +52,7 @@ class UserAdminController extends Controller
             $user->save();
             // (optional) Attach the role to the token.
             $token = JWTAuth::claims(['role' => $user->role])->fromUser($user);
-
+            auditTrail('login','success');
             return response()->json(compact('token','user'));
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
@@ -78,7 +79,7 @@ class UserAdminController extends Controller
     public function logout()
     {
         JWTAuth::invalidate(JWTAuth::getToken());
-
+        auditTrail('logout','success');
         return response()->json(['message' => 'Successfully logged out']);
     }
 
