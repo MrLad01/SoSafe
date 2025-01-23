@@ -78,7 +78,7 @@ class UserController extends Controller
 
     }
 
-    public function AuditTrail(){
+    public function auditTrail(){
         $trails = AuditTrail::all();
         // $status= $admins->UserOnline();
         return response()->json($trails, 200,);

@@ -56,5 +56,5 @@ function auditTrail($action,$status)
     $audit->status = $status;
     $audit->save();
 
-    return $audit;
+    
 }
