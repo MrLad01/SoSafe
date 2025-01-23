@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserAdmin;
+use App\Models\AuditTrail;
 use Illuminate\Support\Facades\Cache;
 class UserController extends Controller
 {
@@ -76,4 +77,12 @@ class UserController extends Controller
         return response()->json('Record created successfully', 201);
 
     }
+
+    public function AuditTrail(){
+        $trails = AuditTrail::all();
+        // $status= $admins->UserOnline();
+        return response()->json($trails, 200,);
+
+    }
+
     }

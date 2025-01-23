@@ -67,6 +67,14 @@
             "time": "2023-11-29T23:19:16+00:00"
         },
         {
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "lib"
+                ]
+            }
+        },
+        {
             "name": "carbonphp/carbon-doctrine-types",
             "version": "2.1.0",
             "source": {
