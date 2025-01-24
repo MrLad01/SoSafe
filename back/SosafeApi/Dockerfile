@@ -58,11 +58,8 @@ RUN chown -R www-data:www-data /var/www \
 
 # Install composer dependencies
 # RUN composer install --no-scripts --no-autoloader --no-dev
-RUN composer install \
-    --no-scripts \
-    --no-autoloader \
-    --no-interaction \
-    --no-dev
+RUN composer install --no-scripts --no-autoloader --no-interaction --no-dev -v
+
 
 # Copy the rest of the application
 COPY . .
