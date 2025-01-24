@@ -69,7 +69,7 @@ RUN composer dump-autoload --optimize \
 # Set up environment file
 COPY .env.example .env
 
-RUN composer dump-autoload 
+# RUN composer dump-autoload 
 # Configure PHP settings
 RUN echo "upload_max_filesize = 100M" > /usr/local/etc/php/conf.d/uploads.ini \
     && echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/uploads.ini \
