@@ -57,13 +57,11 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 775 /var/www
 
 # Install composer dependencies
-# RUN composer install --no-scripts --no-autoloader --no-dev
-RUN composer install --no-scripts --no-autoloader --no-interaction --no-dev -vvv
-
+RUN composer install --no-scripts --no-autoloader --no-dev
 
 # Copy the rest of the application
 COPY . .
-RUN composer dump-autoload 
+
 # Generate autoloader and run scripts
 RUN composer dump-autoload --optimize \
     && composer run-script post-autoload-dump
@@ -71,6 +69,7 @@ RUN composer dump-autoload --optimize \
 # Set up environment file
 COPY .env.example .env
 
+RUN composer dump-autoload 
 # Configure PHP settings
 RUN echo "upload_max_filesize = 100M" > /usr/local/etc/php/conf.d/uploads.ini \
     && echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/uploads.ini \
