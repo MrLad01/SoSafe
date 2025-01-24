@@ -48,7 +48,7 @@ function auditTrail($action,$status)
 {
     
     $audit = new auditTrail();
-    $audit->user = auth()->user()->name;
+    $audit->user = auth()->user()->name ?? 'test';
     $audit->action = $action;
     $audit->ip_address = getRealIP();
     $audit->ip_info = json_encode(getIpInfo());

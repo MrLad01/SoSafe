@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class HeroController extends Controller
 {
     public function getHero(){
-        // $hero = Hero::where('status',1)->get();
-        $hero = auditTrail('get heroes page','success');
+        $hero = Hero::where('status',1)->get();
+        auditTrail('get heroes page','success');
         return response()->json($hero, 200);
     }
 
