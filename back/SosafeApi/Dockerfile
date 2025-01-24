@@ -63,7 +63,7 @@ RUN composer install --no-scripts --no-autoloader --no-interaction --no-dev -vvv
 
 # Copy the rest of the application
 COPY . .
-
+RUN composer dump-autoload 
 # Generate autoloader and run scripts
 RUN composer dump-autoload --optimize \
     && composer run-script post-autoload-dump
