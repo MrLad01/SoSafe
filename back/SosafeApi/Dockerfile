@@ -57,7 +57,12 @@ RUN chown -R www-data:www-data /var/www \
     && chmod -R 775 /var/www
 
 # Install composer dependencies
-RUN composer install --no-scripts --no-autoloader --no-dev
+# RUN composer install --no-scripts --no-autoloader --no-dev
+RUN php -d memory_limit=-1 /usr/bin/composer install \
+    --no-scripts \
+    --no-autoloader \
+    --no-interaction \
+    --no-dev
 
 # Copy the rest of the application
 COPY . .
