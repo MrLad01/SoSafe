@@ -58,7 +58,7 @@ RUN chown -R www-data:www-data /var/www \
 
 # Install composer dependencies
 # RUN composer install --no-scripts --no-autoloader --no-dev
-RUN php -d memory_limit=-1 /usr/bin/composer install \
+RUN composer install \
     --no-scripts \
     --no-autoloader \
     --no-interaction \
