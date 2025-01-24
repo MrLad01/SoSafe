@@ -1,7 +1,7 @@
 <?php
 use App\Lib\ClientInfo;
 use Carbon\Carbon;
-use App\Models\auditTrail;
+use App\Models\AuditTrail;
 function getRealIP()
 {
     $ip = $_SERVER["REMOTE_ADDR"];
