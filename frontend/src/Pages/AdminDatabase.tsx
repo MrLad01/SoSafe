@@ -1,19 +1,9 @@
 import React from "react";
-// import { officers } from "../data/Officers"; 
 import SideBar from "../components/SideBar"; 
 import BiodataDisplay from "../components/BiodataDisplay";
 
-// interface Officer {
-//   id: number;
-//   name: string;
-//   rank: string;
-//   zone: string;
-//   area: string;
-// }
 
 const AdminDatabase: React.FC = () => {
-  // const [currentView, setCurrentView] = useState<"list" | "edit">("list");
-  // const [selectedOfficer, setSelectedOfficer] = useState<Officer | null>(null);
 
 
   return (
