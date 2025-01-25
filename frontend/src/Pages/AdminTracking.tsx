@@ -47,6 +47,13 @@ const AdminTracking: React.FC = () => {
     };
 
     fetchLogs();
+
+      // Set up interval to fetch logs every 10 seconds
+      const intervalId = setInterval(fetchLogs, 10000);
+
+      // Clean up interval on component unmount
+      return () => clearInterval(intervalId);
+
   }, []);
 
   const formatDate = (dateString: string) => {
@@ -174,7 +181,7 @@ const AdminTracking: React.FC = () => {
                   <option value="">All Actions</option>
                   <option value="login">login</option>
                   <option value="admin login">admin login</option>
-                  <option value="logout">ogout</option>
+                  <option value="logout">logout</option>
                   <option value="Update Profile">Update Profile</option>
                   <option value="View Dashboard">View Dashboard</option>
                   <option value="Export Data">Export Data</option>
