@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\UserAdmin;
 use App\Models\AuditTrail;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
 class UserController extends Controller
 {
     public function ResetLoginAttempt(){
@@ -61,7 +62,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'role' => 'required|string|max:255',
             'area' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:user_admins',
+            'email' => 'required|string|email|max:255'|Rule::unique('user_admins')->ignore($request->id),
         ]);
 
         if($validator->fails()){
