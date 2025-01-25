@@ -28,7 +28,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'role' => 'required|string|max:255',
-            'area' => 'required|integer|max:255',
+            'area' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:user_admins',
             'password' => 'required|string|min:6|confirmed',
         ]);
@@ -56,13 +56,14 @@ class UserController extends Controller
     }
 
     public function editAdmin(Request $request){
-        $data = $this->validate($request);
+        // $data = $this->validate($request);
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer',
             'name' => 'required|string|max:255',
             'role' => 'required|string|max:255',
             'area' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255'|Rule::unique('user_admins')->ignore($request->id),
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('user_admins')->ignore($request->id)],
+            // 'email' => 'required|string|email|max:255'|Rule::unique('user_admins')->ignore($request->id),
         ]);
 
         if($validator->fails()){
