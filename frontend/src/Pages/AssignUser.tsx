@@ -30,7 +30,7 @@ const AssignUser: React.FC = () => {
     email: '',
     name: '',
     area:'',
-    role: 'Divisional Command',
+    role: 'divisional_command',
     password: '',
     confirmPassword: '',
   });
@@ -125,7 +125,7 @@ const AssignUser: React.FC = () => {
             "Authorization": `Bearer ${token}`
           }
         });
-        console.log(formData.role);
+        console.log(editingUser.id);
 
         setUsers(users.map(user => 
           user.id === editingUser.id 
@@ -171,7 +171,7 @@ const AssignUser: React.FC = () => {
         setResponseType('success');
       }
 
-      setFormData({ email: '', name: '', role: 'Divisional Command', area: '', password: '', confirmPassword: '' });
+      setFormData({ email: '', name: '', role: 'divisional_command', area: '', password: '', confirmPassword: '' });
       setShowForm(false);
       setShowResponseModal(true);
     } catch (err) {
@@ -268,7 +268,7 @@ const AssignUser: React.FC = () => {
             <button
             onClick={() => {
                 setEditingUser(null);
-                setFormData({ email: '', name: '', area: '', role: 'Divisional Command', password: '', confirmPassword: '' });
+                setFormData({ email: '', name: '', area: '', role: 'divisional_command', password: '', confirmPassword: '' });
                 setShowForm(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
