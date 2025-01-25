@@ -44,11 +44,11 @@ function osBrowser()
     return $osBrowser;
 }
 
-function auditTrail($action,$status)
+function auditTrail($action,$status,$user=null)
 {
-    
+     
     $audit = new auditTrail();
-    $audit->user = auth()->user()->name ?? auth()->guard('admin')->user()->name;
+    $audit->user = auth()->user()->name ?? auth()->guard('admin')->user()->name ?? $user;
     $audit->action = $action;
     $audit->ip_address = getRealIP();
     $audit->ip_info = json_encode(getIpInfo());
