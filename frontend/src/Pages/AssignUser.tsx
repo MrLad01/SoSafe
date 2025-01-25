@@ -125,6 +125,7 @@ const AssignUser: React.FC = () => {
             "Authorization": `Bearer ${token}`
           }
         });
+        console.log(formData.role);
 
         setUsers(users.map(user => 
           user.id === editingUser.id 
@@ -154,7 +155,7 @@ const AssignUser: React.FC = () => {
             "Authorization": `Bearer ${token}`
           }
         });
-
+        
         const newUser: User = {
           id: response.data.id,
           email: formData.email,
@@ -267,7 +268,7 @@ const AssignUser: React.FC = () => {
             <button
             onClick={() => {
                 setEditingUser(null);
-                setFormData({ email: '', name: '', area: '', role: 'user', password: '', confirmPassword: '' });
+                setFormData({ email: '', name: '', area: '', role: 'Divisional Command', password: '', confirmPassword: '' });
                 setShowForm(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -411,7 +412,7 @@ const AssignUser: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.role === 'Divisional Command' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
+                        user.role === 'divisional_command' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
                     }`}>
                         {user.role}
                     </span>
