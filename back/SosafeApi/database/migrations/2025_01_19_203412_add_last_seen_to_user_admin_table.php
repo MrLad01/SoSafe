@@ -11,10 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->string('role')->nullable()->after('Area');
-            // $table->string('')->nullable()->after('password');
-
+        Schema::table('user_admins', function (Blueprint $table) {
+            //
+            $table->string('last_seen')->nullable()->after('login_attempt');
         });
     }
 
@@ -23,8 +22,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
+        Schema::table('user_admins', function (Blueprint $table) {
         });
     }
 };

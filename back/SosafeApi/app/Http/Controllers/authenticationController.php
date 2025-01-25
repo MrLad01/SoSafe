@@ -53,11 +53,10 @@ class authenticationController extends Controller
 
             // Get the authenticated user.
             $user = auth()->user();
-            // $user->Role = 'admin';
-            // $user->save();
+            
             // (optional) Attach the role to the token.
             // $token = JWTAuth::claims(['role' => $user->role])->fromUser($user);
-
+            auditTrail('admin login','success');
             return response()->json(compact('token','user'));
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
