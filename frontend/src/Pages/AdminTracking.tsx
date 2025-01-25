@@ -1,62 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import axios from "axios";
 import SideBar from "../components/SideBar";
-import { Search, Download, User } from 'lucide-react';
+import { Search, Download, User } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 interface ActivityLog {
-  id: string;
-  userId: string;
-  userName: string;
+  id: number;
+  user: string;
   action: string;
-  timestamp: string;
-  ipAddress: string;
-  userAgent: string;
-  status: 'success' | 'failed';
+  ip_address: string;
+  ip_info: string;
+  os_browser: string; 
+  status: string; 
+  created_at: string;
+  updated_at: string
 }
 
 const AdminTracking: React.FC = () => {
+  const { token } = useAuth();
   const [logs, setLogs] = useState<ActivityLog[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [filterDate, setFilterDate] = useState('');
-  const [filterAction, setFilterAction] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
+  const [filterDate, setFilterDate] = useState("");
+  const [filterAction, setFilterAction] = useState("");
+  const [filterStatus, setFilterStatus] = useState("");
 
   const logsPerPage = 10;
 
-  // Simulated activity logs - replace with actual API calls
   useEffect(() => {
-    const mockLogs: ActivityLog[] = Array.from({ length: 50 }, (_, i) => ({
-      id: `log${i + 1}`,
-      userId: `user${Math.floor(Math.random() * 10) + 1}`,
-      userName: `User ${Math.floor(Math.random() * 10) + 1}`,
-      action: ['Login', 'Logout', 'Update Profile', 'View Dashboard', 'Export Data'][Math.floor(Math.random() * 5)],
-      timestamp: new Date(Date.now() - Math.random() * 86400000 * 7).toISOString(),
-      ipAddress: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-      userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-      status: Math.random() > 0.1 ? 'success' : 'failed',
-    }));
-    setLogs(mockLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+    const fetchLogs = async () => {
+      try {
+        const response = await axios.get<ActivityLog[]>(
+          "https://sosafe.onrender.com/api/audit", {
+            headers: {
+              "Authorization": `Bearer ${token}`
+            }
+          }
+        );
+        const sortedLogs = response.data.sort(
+          (a, b) => new Date(b.updated_at ).getTime() - new Date(a.updated_at  ).getTime()
+        );
+        setLogs(sortedLogs);
+      } catch (error) {
+        console.error("Error fetching activity logs:", error);
+      }
+    };
+
+    fetchLogs();
   }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit'
+    return new Intl.DateTimeFormat("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     }).format(date);
   };
 
-  const filteredLogs = logs.filter(log => {
-    const matchesSearch = 
-      log.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredLogs = logs.filter((log) => {
+    const matchesSearch =
+      log.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.action.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.ipAddress.includes(searchTerm);
-    
-    const matchesDate = !filterDate || log.timestamp.includes(filterDate);
+      log.ip_address.includes(searchTerm);
+
+    const matchesDate = !filterDate || log.updated_at .includes(filterDate);
     const matchesAction = !filterAction || log.action === filterAction;
     const matchesStatus = !filterStatus || log.status === filterStatus;
 
@@ -71,32 +82,51 @@ const AdminTracking: React.FC = () => {
 
   const handleExport = () => {
     const csvContent = [
-      ['ID', 'User', 'Action', 'Timestamp', 'IP Address', 'Status'],
-      ...filteredLogs.map(log => [
-        log.id,
-        log.userName,
-        log.action,
-        formatDate(log.timestamp),
-        log.ipAddress,
-        log.status
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+      ["ID", "User", "Action", "Updated At", "IP Address", "OS Platform", "Browser", "Status"], // Updated headers
+      ...filteredLogs.map((log) => {
+        let osPlatform = "Unknown";
+        let browser = "Unknown";
+  
+        try {
+          const osBrowser = JSON.parse(log.os_browser); // Parse os_browser JSON
+          osPlatform = osBrowser.os_platform || "Unknown"; // Extract OS Platform
+          browser = osBrowser.browser || "Unknown"; // Extract Browser
+        } catch {
+          // Handle invalid or missing os_browser JSON
+          console.error("check JSON again!");
+          
+        }
+  
+        return [
+          log.id,
+          log.user,
+          log.action,
+          `"${formatDate(log.updated_at)}"`, // Assuming formatDate is a utility function for formatting the date
+          log.ip_address,
+          osPlatform, // Add OS Platform
+          browser, // Add Browser
+          log.status,
+        ];
+      }),
+    ]
+      .map((row) => row.join(",")) // Join each row with commas
+      .join("\n"); // Join all rows with newline
+  
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `activity-logs-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `activity-logs-${new Date().toISOString().split("T")[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
   };
+  
 
   return (
     <div className="flex h-screen bg-gray-100">
       <SideBar />
-
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="bg-[#006838] text-white p-4">
           <div className="max-w-7xl mx-auto flex justify-between items-center">
@@ -171,7 +201,7 @@ const AdminTracking: React.FC = () => {
                     <tr>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timestamp</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">updated_at </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP Address</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     </tr>
@@ -185,8 +215,17 @@ const AdminTracking: React.FC = () => {
                               <User size={16} className="text-gray-500" />
                             </div>
                             <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">{log.userName}</div>
-                              <div className="text-sm text-gray-500">{log.userId}</div>
+                              <div className="text-sm font-medium text-gray-900">{log.user}</div>
+                              <div className="text-sm text-gray-500">
+                                {(() => {
+                                  try {
+                                    const osBrowser = JSON.parse(log.os_browser);
+                                    return `${osBrowser.os_platform} - ${osBrowser.browser}`;
+                                  } catch {
+                                    return "Unknown OS/Browser";
+                                  }
+                                })()}
+                              </div>
                             </div>
                           </div>
                         </td>
@@ -194,10 +233,10 @@ const AdminTracking: React.FC = () => {
                           <div className="text-sm text-gray-900">{log.action}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{formatDate(log.timestamp)}</div>
+                          <div className="text-sm text-gray-900">{formatDate(log.updated_at )}</div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {log.ipAddress}
+                          {log.ip_address}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

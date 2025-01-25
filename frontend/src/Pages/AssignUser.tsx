@@ -10,8 +10,8 @@ interface User {
   name: string;
   role: string;
   area: string;
-  dateAssigned: string;
-  lastLogin: string;
+  created_at: string;
+  last_seen: string;
 }
 
 const AssignUser: React.FC = () => {
@@ -41,19 +41,37 @@ const AssignUser: React.FC = () => {
 
   const usersPerPage = 10;
 
-  // Simulated user data - replace with actual API calls
+  const formatDate = (date :string ) => {
+    return new Date(date).toLocaleDateString();
+  }
+
   useEffect(() => {
-    const mockUsers: User[] = Array.from({ length: 15 }, (_, i) => ({
-      id: `user${i + 1}`,
-      email: `user${i + 1}@example.com`,
-      name: `User ${i + 1}`,
-      role: i % 3 === 0 ? 'Divisional Command' : 'Zonal Command',
-      area: `random area ${i + 1}`,
-      dateAssigned: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString(),
-      lastLogin: new Date(Date.now() - Math.random() * 1000000000).toLocaleDateString(),
-    }));
-    setUsers(mockUsers);
-  }, []);
+    const fetchUsers = async () => {
+      setLoading(true);
+      setError('');
+  
+      try {
+        const response = await axios.get('https://sosafe.onrender.com/api/admins', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        setUsers(response.data || []);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.message || 'Failed to fetch users');
+        } else {
+          setError('An unexpected error occurred');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchUsers();
+  }, [token]);
+  
 
   const validateForm = () => {
     const errors = {
@@ -101,7 +119,7 @@ const AssignUser: React.FC = () => {
       setLoading(false);
     } else {
         try {
-            const response = await axios.post('https://sosafe.onrender.com/api/user/register', {
+            const response = await axios.post('https://sosafe.onrender.com/api/create/admin', {
               email: formData.email,
               password: formData.password,
               password_confirmation: formData.confirmPassword,
@@ -121,8 +139,8 @@ const AssignUser: React.FC = () => {
               name: formData.name,
               area: formData.area,
               role: formData.role,
-              dateAssigned: new Date().toISOString(),
-              lastLogin: '-'
+              created_at: new Date().toISOString(),
+              last_seen: '-'
             };
       
             setUsers([...users, newUser]);
@@ -346,10 +364,10 @@ const AssignUser: React.FC = () => {
                     </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.dateAssigned}
+                    {formatDate(user.created_at)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.lastLogin}
+                    {user.last_seen == null ? '--' : formatDate(user.last_seen)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                     <button

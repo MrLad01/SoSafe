@@ -134,17 +134,6 @@ const BiodataDisplay: React.FC = () => {
     }
   };
 
-  // const fetchSingleRecordByFormNo = async (formNo: string): Promise<void> => {
-  //   try {
-  //     setLoading(true);
-  //     const response = await axios.get<SingleRecordResponse>(`https://sosafe.onrender.com/api/biodata2/form/${formNo}`);
-  //     setSelectedRecord(response.data.data);
-  //   } catch (err) {
-  //     setError('Failed to fetch record details. Please try again.');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   return (
     <div className="w-full max-w-7xl mx-auto p-4 space-y-4">
