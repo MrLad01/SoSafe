@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Trash2, Edit2, Save, X } from 'lucide-react';
+import { Search, Plus, Trash2, Edit2, Save, X, CheckCircle, AlertCircle } from 'lucide-react';
 import SideBar from '../components/SideBar';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -18,6 +18,9 @@ const AssignUser: React.FC = () => {
   const { token } = useAuth()
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [showResponseModal, setShowResponseModal] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [responseType, setResponseType] = useState<'success' | 'error'>('success');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -27,7 +30,7 @@ const AssignUser: React.FC = () => {
     email: '',
     name: '',
     area:'',
-    role: 'Divisional Command',
+    role: 'divisional_command',
     password: '',
     confirmPassword: '',
   });
@@ -70,7 +73,14 @@ const AssignUser: React.FC = () => {
     };
   
     fetchUsers();
-  }, [token]);
+
+    // Set up interval to fetch logs every 10 seconds
+    const intervalId = setInterval(fetchUsers, 10000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+
+  }, []);
   
 
   const validateForm = () => {
@@ -109,65 +119,116 @@ const AssignUser: React.FC = () => {
     setLoading(true);
     setError('');
 
-    if (editingUser) {
-      setUsers(users.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, email: formData.email, name: formData.name, role: formData.role }
-          : user
-      ));
-      setEditingUser(null);
-      setLoading(false);
-    } else {
-        try {
-            const response = await axios.post('https://sosafe.onrender.com/api/create/admin', {
-              email: formData.email,
-              password: formData.password,
-              password_confirmation: formData.confirmPassword,
-              area: formData.area,
-              name: formData.name,
-              role: formData.role,
-            }, {
-                headers: {
-                  "Authorization": `Bearer ${token}`
-                }
-              });
-      
-            // Assuming the API returns the created user
-            const newUser: User = {
-              id: response.data.id,
-              email: formData.email,
-              name: formData.name,
-              area: formData.area,
-              role: formData.role,
-              created_at: new Date().toISOString(),
-              last_seen: '-'
-            };
-      
-            setUsers([...users, newUser]);
-            setFormData({
-              email: '',
-              name: '',
-              area: '',
-              role: 'Divisional Command',
-              password: '',
-              confirmPassword: ''
-            });
-            setShowForm(false);
-            // You might want to show a success message here
-          } catch (err) {
-            if (axios.isAxiosError(err)) {
-              setError(err.response?.data?.message || 'Failed to create user');
-            } else {
-              setError('An unexpected error occurred');
-            }
-          } finally {
-            setLoading(false);
+    try {
+      if (editingUser) {
+        const response = await axios.post('https://sosafe.onrender.com/api/edit/admin', {
+          id: editingUser.id,
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          area: formData.area
+        }, {
+          headers: {
+            "Authorization": `Bearer ${token}`
           }
+        });
+        console.log(editingUser.id);
+
+        setUsers(users.map(user => 
+          user.id === editingUser.id 
+            ? { 
+                ...user, 
+                email: formData.email, 
+                name: formData.name, 
+                role: formData.role,
+                area: formData.area 
+              }
+            : user
+        ));
+
+        setResponseMessage(response.data.message || 'User updated successfully');
+        setResponseType('success');
+        setEditingUser(null);
+      } else {
+        const response = await axios.post('https://sosafe.onrender.com/api/create/admin', {
+          email: formData.email,
+          password: formData.password,
+          password_confirmation: formData.confirmPassword,
+          area: formData.area,
+          name: formData.name,
+          role: formData.role,
+        }, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        
+        const newUser: User = {
+          id: response.data.id,
+          email: formData.email,
+          name: formData.name,
+          area: formData.area,
+          role: formData.role,
+          created_at: new Date().toISOString(),
+          last_seen: '-'
+        };
+
+        setUsers([...users, newUser]);
+        setResponseMessage(response.data.message || 'User created successfully');
+        setResponseType('success');
+      }
+
+      setFormData({ email: '', name: '', role: 'divisional_command', area: '', password: '', confirmPassword: '' });
+      setShowForm(false);
+      setShowResponseModal(true);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const errorMsg = err.response?.data?.message || 'Failed to update/create user';
+        setError(errorMsg);
+        setResponseMessage(errorMsg);
+        setResponseType('error');
+        setShowResponseModal(true);
+      } else {
+        setError('An unexpected error occurred');
+        setResponseMessage('An unexpected error occurred');
+        setResponseType('error');
+        setShowResponseModal(true);
+      }
+    } finally {
+      setLoading(false);
     }
-    
-    setFormData({ email: '', name: '', role: 'Divisional Command', area: '', password: '', confirmPassword: '' });
-    setShowForm(false);
   };
+
+    // Response Modal Component
+    const ResponseModal = () => {
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-center mb-4">
+              {responseType === 'success' ? (
+                <CheckCircle size={64} className="text-green-500" />
+              ) : (
+                <AlertCircle size={64} className="text-red-500" />
+              )}
+            </div>
+            <h2 className={`text-xl font-bold text-center mb-4 ${responseType === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+              {responseType === 'success' ? 'Success' : 'Error'}
+            </h2>
+            <p className="text-center mb-6">{responseMessage}</p>
+            <button 
+              onClick={() => setShowResponseModal(false)}
+              className={`w-full py-2 rounded-lg ${
+                responseType === 'success' 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-red-600 hover:bg-red-700 text-white'
+              }`}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    };
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
@@ -214,7 +275,7 @@ const AssignUser: React.FC = () => {
             <button
             onClick={() => {
                 setEditingUser(null);
-                setFormData({ email: '', name: '', area: '', role: 'user', password: '', confirmPassword: '' });
+                setFormData({ email: '', name: '', area: '', role: 'divisional_command', password: '', confirmPassword: '' });
                 setShowForm(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -358,7 +419,7 @@ const AssignUser: React.FC = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.role === 'Divisional Command' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
+                        user.role === 'divisional_command' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
                     }`}>
                         {user.role}
                     </span>
@@ -477,6 +538,7 @@ const AssignUser: React.FC = () => {
             )}
         </div>
         </div>
+        {showResponseModal && <ResponseModal />}
     </div>
   );
 };
