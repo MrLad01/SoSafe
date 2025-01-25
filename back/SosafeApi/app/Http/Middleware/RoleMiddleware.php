@@ -5,6 +5,10 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Illuminate\Support\Facades\Auth;
+// use Illuminate\Support\Facades\Cache;
+// use Carbon\Carbon;
+use App\Models\UserAdmin;
 
 class RoleMiddleware
 {
@@ -15,9 +19,10 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next,$role): Response
     {
-        if($request->user()->Role !==$role  ){
-            $role = $request->user()->Role;
-            return response()->json($role.' not allowed');
+        $user = auth()->guard('admin')->user() ? auth()->guard('admin')->user() : Auth::user() ;
+        if($user->role !==$role  ){
+            $role = $user->role;
+            return response()->json($role."  Not Allowed");
         }
        
         return $next($request);

@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Support\Facades\Cache;
 
 class UserAdmin  extends Authenticatable implements JWTSubject
 {
@@ -28,6 +29,7 @@ class UserAdmin  extends Authenticatable implements JWTSubject
         'password',
         'role',
         'area',
+        'last_seen',
     ];
     public function getJWTIdentifier()
     {
@@ -48,5 +50,12 @@ class UserAdmin  extends Authenticatable implements JWTSubject
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+
+    public function UserOnline(){
+        if(Cache::has('user-is-online' . $this->id)){
+            return TRUE;
+        }
+        return false ;
+    }
 
 }
