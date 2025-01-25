@@ -62,7 +62,8 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'role' => 'required|string|max:255',
             'area' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255'|Rule::unique('user_admins')->ignore($request->id),
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('user_admins')->ignore($request->id)],
+            // 'email' => 'required|string|email|max:255'|Rule::unique('user_admins')->ignore($request->id),
         ]);
 
         if($validator->fails()){
