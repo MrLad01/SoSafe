@@ -73,7 +73,14 @@ const AssignUser: React.FC = () => {
     };
   
     fetchUsers();
-  }, [token]);
+
+    // Set up interval to fetch logs every 10 seconds
+    const intervalId = setInterval(fetchUsers, 10000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+
+  }, []);
   
 
   const validateForm = () => {
