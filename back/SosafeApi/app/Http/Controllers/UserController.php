@@ -55,7 +55,7 @@ class UserController extends Controller
     }
 
     public function editAdmin(Request $request){
-        $data = $this->validate($request);
+        // $data = $this->validate($request);
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer',
             'name' => 'required|string|max:255',
