@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Trash2, Edit2, Save, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Search, Plus, Trash2, Edit2, Save, X, CheckCircle, AlertCircle, RotateCcw } from 'lucide-react';
 import SideBar from '../components/SideBar';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -10,6 +10,7 @@ interface User {
   name: string;
   role: string;
   area: string;
+  login_attempt: number;
   created_at: string;
   last_seen: string;
 }
@@ -169,6 +170,7 @@ const AssignUser: React.FC = () => {
           name: formData.name,
           area: formData.area,
           role: formData.role,
+          login_attempt: 0,
           created_at: new Date().toISOString(),
           last_seen: '-'
         };
@@ -243,6 +245,15 @@ const AssignUser: React.FC = () => {
     setShowForm(true);
   };
 
+  const handleReset = async (userId: string) => {
+    if (window.confirm('Are you sure you want to reset this user login attempts?')) {
+      await axios.get(`https://sosafe.onrender.com/api/reset`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+    }
+  };
   const handleDelete = (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       setUsers(users.filter(user => user.id !== userId));
@@ -402,41 +413,52 @@ const AssignUser: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Assigned</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Login Attempts</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody className="bg-white overflow-auto divide-y divide-gray-200">
                 {currentUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{user.name}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{user.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{user.area}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         user.role === 'divisional_command' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
                     }`}>
                         {user.role}
                     </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                     {formatDate(user.created_at)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.last_seen == null ? '--' : formatDate(user.last_seen)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.login_attempt == 0 ? '--' : user.login_attempt}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                     <button
                         onClick={() => handleEdit(user)}
                         className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1"
                     >
                         <Edit2 size={16} />
                         Edit
+                    </button>
+                    <button
+                        onClick={() => handleReset(user.id)}
+                        className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1"
+                    >
+                        <RotateCcw size={16}/>
+                        Reset login
                     </button>
                     <button
                         onClick={() => handleDelete(user.id)}
