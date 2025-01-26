@@ -88,9 +88,9 @@ class authenticationController extends Controller
     }
     public function check(){
         if(User::count()<1){
-            return response()->json(True);
+            return response()->json(True,200);
         }else{
-            return response()->json(FALSE);
+            return response()->json(FALSE,403);
         }
     }
 

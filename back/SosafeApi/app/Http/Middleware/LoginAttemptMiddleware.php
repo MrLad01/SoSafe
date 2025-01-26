@@ -22,10 +22,10 @@ class LoginAttemptMiddleware
         $email = $request->email;
         $user = UserAdmin::where('email',$email)->firstOrFail();
         if($user->login_attempt >=2  ){
-            auditTrail('login attempt exceeded','success');
-            return response()->json('Access Denied, Maximum Number of login reached');
+            auditTrail('login attempt exceeded','failed',$user->name);
+            return response()->json('Access Denied, Maximum Number of login reached',403);
         }
-        if ($user->role =='division_command' || $user->role =='zonal_command') {
+        if ($user->role =='divisional_command' || $user->role =='zonal_command') {
             $expireTime = Carbon::now()->addSeconds(30);
             Cache::put('user-is-online' . $user->id, true,$expireTime);
             UserAdmin::where('id',$user->id)->update(['last_seen' => Carbon::now()]);
