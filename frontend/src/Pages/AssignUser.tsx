@@ -256,6 +256,15 @@ const AssignUser: React.FC = () => {
       })
     }
   };
+  const handleAllReset = async () => {
+    if (window.confirm('Are you sure you want to reset all users login attempts?')) {
+      await axios.get(`https://sosafe.onrender.com/api/reset-all`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+    }
+  };
   const handleDelete = (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       setUsers(users.filter(user => user.id !== userId));
@@ -567,6 +576,17 @@ const AssignUser: React.FC = () => {
             </div>
             )}
         </div>
+          <div className='w-full p-2 flex items-center justify-center mt-6'>
+           <button
+              onClick={() => handleAllReset()}
+              className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm text-[0.92rem] rounded-md inline-flex items-center gap-1 group"
+            >
+              <RotateCcw size={16} className="group-hover:mr-2 transition-all  duration-500"/>
+              <span className="group-hover:inline-block transition-all  duration-500">
+                  Reset all login attempts
+              </span>
+            </button>
+          </div>
         </div>
         {showResponseModal && <ResponseModal />}
     </div>
