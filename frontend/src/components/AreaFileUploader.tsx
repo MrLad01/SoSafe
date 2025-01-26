@@ -7,7 +7,7 @@ interface Message {
   text: string;
 }
 
-const FileUploader: React.FC = () => {
+const AreaFileUploader: React.FC = () => {
   const [file, setFile] = useState<File | null>(null);
   const [progress, setProgress] = useState<number>(0);
   const [uploading, setUploading] = useState<boolean>(false);
@@ -65,9 +65,9 @@ const FileUploader: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl bg-white rounded-lg shadow-md">
+    <div className="w-full max-w-2xl hover:scale-90 bg-white rounded-lg shadow-md">
       <div className="p-6 border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800">Upload Excel File for Biodata</h2>
+        <h2 className="text-xl font-semibold text-gray-800">Upload Excel File for Area</h2>
       </div>
 
       <div className="p-6 space-y-6">
@@ -75,7 +75,7 @@ const FileUploader: React.FC = () => {
           <label className="w-full flex flex-col items-center px-4 py-6 bg-white rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50">
             <Upload className="w-8 h-8 mb-4 text-gray-500" />
             <div className="flex flex-col items-center">
-              <span className="font-medium text-gray-600">Drop files to upload</span>
+              <span className="font-medium text-gray-600">Drop files to upload Area</span>
               <span className="text-sm text-gray-500">or click to select</span>
             </div>
             <input
@@ -116,7 +116,7 @@ const FileUploader: React.FC = () => {
             } transition-colors duration-200`}
           type="button"
         >
-          {uploading ? 'Uploading...' : 'Upload File'}
+          {uploading ? 'Uploading area...' : 'Upload Area'}
         </button>
 
         {message && (
@@ -140,4 +140,4 @@ const FileUploader: React.FC = () => {
   );
 };
 
-export default FileUploader;
+export default AreaFileUploader;
