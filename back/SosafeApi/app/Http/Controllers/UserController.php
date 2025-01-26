@@ -12,14 +12,27 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 class UserController extends Controller
 {
-    public function ResetLoginAttempt(){
-        $users = UserAdmin::query();
+    // public function ResetLoginAttempt(){
+    //     $users = UserAdmin::query();
         
-        $users->update([
+    //     $users->update([
+    //         'login_attempt' => 0
+    //     ]);
+
+    //     return response()->json('Login Attempt reset successful');
+    // }
+    public function ResetLoginAttempt(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+        $user = UserAdmin::whereId($request->id)->update([
             'login_attempt' => 0
         ]);
 
-        return response()->json('Login Attempt reset successful');
+        return response()->json('Login Attempt reset successful for this user');
     }
 
     public function addAdmin(Request $request){
