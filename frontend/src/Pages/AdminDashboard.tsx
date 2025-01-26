@@ -19,8 +19,10 @@ const AdminDashboard: React.FC = () => {
           <div className="text-lg font-semibold mb-6">
             <h4>Welcome, <span className="text-yellow-500 shadow-sm p-2">{user?.name}</span></h4>
           </div>
-
-          <FileUploader />
+          <div className="flex space-x-4">
+            <FileUploader />
+            <div className="flex flex-col space-y-4"></div>
+          </div>
         </div>
       </div>
     </div>

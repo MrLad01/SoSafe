@@ -247,7 +247,9 @@ const AssignUser: React.FC = () => {
 
   const handleReset = async (userId: string) => {
     if (window.confirm('Are you sure you want to reset this user login attempts?')) {
-      await axios.get(`https://sosafe.onrender.com/api/reset`, {
+      await axios.post(`https://sosafe.onrender.com/api/reset`,{
+          id: userId
+      } , {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -448,24 +450,30 @@ const AssignUser: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                     <button
                         onClick={() => handleEdit(user)}
-                        className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1"
+                        className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
                     >
-                        <Edit2 size={16} />
-                        Edit
-                    </button>
-                    <button
-                        onClick={() => handleReset(user.id)}
-                        className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1"
-                    >
-                        <RotateCcw size={16}/>
-                        Reset login
+                        <Edit2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                        <span className="hidden group-hover:inline-block transition-all  duration-300">
+                          Edit
+                        </span>
                     </button>
                     <button
                         onClick={() => handleDelete(user.id)}
-                        className="text-red-600 hover:text-white hover:bg-red-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1"
+                        className="text-red-600 hover:text-white hover:bg-red-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
                     >
-                        <Trash2 size={16} />
-                        Delete
+                        <Trash2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                        <span className="hidden group-hover:inline-block transition-all  duration-300">
+                          Delete
+                        </span>
+                    </button>
+                    <button
+                      onClick={() => handleReset(user.id)}
+                      className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                    >
+                      <RotateCcw size={16} className="group-hover:mr-2 transition-all  duration-500"/>
+                      <span className="hidden group-hover:inline-block transition-all  duration-500">
+                          Reset login
+                      </span>
                     </button>
                     </td>
                 </tr>
