@@ -61,7 +61,7 @@ Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     Route::post('/edit/admin', [UserController::class, 'editAdmin']);
     Route::post('/create/admin', [UserController::class, 'addAdmin']);
     Route::post('/reset', [UserController::class, 'ResetLoginAttempt']);
-    Route::get('/reset-all', [UserController::class, 'ResetLoginAttempt']);
+    Route::get('/reset-all', [UserController::class, 'ResetAllLoginAttempt']);
     Route::get('/admins', [UserController::class, 'getAdmins']);
     Route::get('/audit', [UserController::class, 'auditTrail']);
     Route::get('/biodata2', [Biodata2Controller::class, 'index']);
