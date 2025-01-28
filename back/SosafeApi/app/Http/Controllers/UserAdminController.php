@@ -82,7 +82,29 @@ class UserAdminController extends Controller
         auditTrail('logout','success');
         return response()->json(['message' => 'Successfully logged out']);
     }
+    public function imageUpload(Request $request){
+        $file = $request->file('image');
+        // Validate file
+        $validator = Validator::make($request->all(), [
+            
+            'image' => 'required|file|mimes:jpg,png'
+        ]);
+        if($validator->fails()){
+            return response()->json($validator->errors(), 400);
+        }
+        // return 'hi';
+        $extension = $file->getClientOriginalExtension();
+        $fileName = str_replace('.'.$extension, '', $file->getClientOriginalName()); //file name without extenstion
+        $fileName .= '_' . md5(time()) . '.' . $extension; // a unique file name
 
+        $path = $file->store('images');
+        // $path = $disk->putFileAs('videos', $file, $fileName);
+            return [
+            'path' => asset('storage/' . $path),
+            'filename' => $fileName
+        ];
+    
+    }
 }
 
 
