@@ -9,13 +9,14 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminZonalCommandController extends Controller{
     public function getBiodata(){
-        $area = auth()->guard('admin')->user()->Area;
-        $SoSafeCorpsBiodata = Biodata::where('za_command_id',$area)->with('ZonalArea')->get();
+        $area = auth()->guard('admin')->user()->area;
+        $SoSafeCorpsBiodata = Biodata::where('za_command','LIKE','%'.$area.'%')->get();
         return response()->json($SoSafeCorpsBiodata, 200);
     }
 
     public function getNewBiodata(){
         $area = auth()->guard('admin')->user()->area;
+        $results = User::where('name', 'LIKE', '%' . $searchTerm . '%')->get();
         $SoSafeCorpsBiodata = NewBiodata::where('za_command_id',$area)->with('ZonalArea')->get();
 
         auditTrail('fetch new biodata','success');

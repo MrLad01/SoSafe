@@ -18,7 +18,12 @@ class ZA_command extends Model
     protected $table = 'za_commands';
     public function user(): BelongsTo
     {
-        return $this->belongsTo(soSafeCorpsBiodata::class,'za_command_id');
+        return $this->belongsTo(NewBiodata::class,'za_command_id');
+    }
+
+    public function biodata(): BelongsTo
+    {
+        return $this->belongsTo(NewBiodata::class,'za_command_id');
     }
     protected $fillable =['name'];
 }
