@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\ZA_command;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
@@ -32,7 +33,7 @@ class authenticationController extends Controller
         $user = User::create([
             'name' => $request->get('name'),
             'email' => $request->get('email'),
-            'Role'=>'admin',
+            'role'=>'admin',
             'password' => Hash::make($request->get('password')),
         ]);
 
@@ -92,6 +93,19 @@ class authenticationController extends Controller
         }else{
             return response()->json(FALSE,403);
         }
+    }
+    public function upload(Request $request){
+        $file = $request->file('data');
+			$fileContents = file_get_contents($file->path());
+			$lines = explode("\n", $fileContents);
+			$lines = array_filter($lines);
+	
+			foreach($lines as $line){
+				$details = new ZA_command();
+				$details->name = $line;
+				$details->save();
+			}
+            return response()->json($request->path(), 200);
     }
 
 }
