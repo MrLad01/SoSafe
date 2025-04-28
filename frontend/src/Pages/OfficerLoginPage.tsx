@@ -124,11 +124,6 @@ const OfficerLoginPage = (): JSX.Element => {
           );
           if (response.data) {
             login(response.data.token, response.data.user);
-            await axios.get('https://sosafe.onrender.com/api/reset', {
-              headers: {
-                'Authorization': `Bearer ${response.data.token}`
-              }
-            })
             navigate('/admin');
           } else {
             throw new Error('Invalid credentials');
@@ -149,11 +144,6 @@ const OfficerLoginPage = (): JSX.Element => {
           );
           if (response.data) {
             login(response.data.token, response.data.user);
-            await axios.get('https://sosafe.onrender.com/api/reset', {
-              headers: {
-                'Authorization': `Bearer ${response.data.token}`
-              }
-            })
             navigate('/admin');
           } else {
             throw new Error('Invalid credentials');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Trash2, Edit2, Save, X } from 'lucide-react';
+import { Search, Plus, Trash2, Edit2, Save, X, CheckCircle, AlertCircle, RotateCcw } from 'lucide-react';
 import SideBar from '../components/SideBar';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -10,14 +10,18 @@ interface User {
   name: string;
   role: string;
   area: string;
-  dateAssigned: string;
-  lastLogin: string;
+  login_attempt: number;
+  created_at: string;
+  last_seen: string;
 }
 
 const AssignUser: React.FC = () => {
   const { token } = useAuth()
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const [showResponseModal, setShowResponseModal] = useState(false);
+  const [responseMessage, setResponseMessage] = useState('');
+  const [responseType, setResponseType] = useState<'success' | 'error'>('success');
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -27,7 +31,7 @@ const AssignUser: React.FC = () => {
     email: '',
     name: '',
     area:'',
-    role: 'Divisional Command',
+    role: 'divisional_command',
     password: '',
     confirmPassword: '',
   });
@@ -41,19 +45,44 @@ const AssignUser: React.FC = () => {
 
   const usersPerPage = 10;
 
-  // Simulated user data - replace with actual API calls
+  const formatDate = (date :string ) => {
+    return new Date(date).toLocaleDateString();
+  }
+
   useEffect(() => {
-    const mockUsers: User[] = Array.from({ length: 15 }, (_, i) => ({
-      id: `user${i + 1}`,
-      email: `user${i + 1}@example.com`,
-      name: `User ${i + 1}`,
-      role: i % 3 === 0 ? 'Divisional Command' : 'Zonal Command',
-      area: `random area ${i + 1}`,
-      dateAssigned: new Date(Date.now() - Math.random() * 10000000000).toLocaleDateString(),
-      lastLogin: new Date(Date.now() - Math.random() * 1000000000).toLocaleDateString(),
-    }));
-    setUsers(mockUsers);
+    const fetchUsers = async () => {
+      setLoading(true);
+      setError('');
+  
+      try {
+        const response = await axios.get('https://sosafe.onrender.com/api/admins', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        
+        setUsers(response.data || []);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          setError(err.response?.data?.message || 'Failed to fetch users');
+        } else {
+          setError('An unexpected error occurred');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    fetchUsers();
+
+    // Set up interval to fetch logs every 10 seconds
+    const intervalId = setInterval(fetchUsers, 10000);
+
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
+
   }, []);
+  
 
   const validateForm = () => {
     const errors = {
@@ -91,65 +120,117 @@ const AssignUser: React.FC = () => {
     setLoading(true);
     setError('');
 
-    if (editingUser) {
-      setUsers(users.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, email: formData.email, name: formData.name, role: formData.role }
-          : user
-      ));
-      setEditingUser(null);
-      setLoading(false);
-    } else {
-        try {
-            const response = await axios.post('https://sosafe.onrender.com/api/user/register', {
-              email: formData.email,
-              password: formData.password,
-              password_confirmation: formData.confirmPassword,
-              area: formData.area,
-              name: formData.name,
-              role: formData.role,
-            }, {
-                headers: {
-                  "Authorization": `Bearer ${token}`
-                }
-              });
-      
-            // Assuming the API returns the created user
-            const newUser: User = {
-              id: response.data.id,
-              email: formData.email,
-              name: formData.name,
-              area: formData.area,
-              role: formData.role,
-              dateAssigned: new Date().toISOString(),
-              lastLogin: '-'
-            };
-      
-            setUsers([...users, newUser]);
-            setFormData({
-              email: '',
-              name: '',
-              area: '',
-              role: 'Divisional Command',
-              password: '',
-              confirmPassword: ''
-            });
-            setShowForm(false);
-            // You might want to show a success message here
-          } catch (err) {
-            if (axios.isAxiosError(err)) {
-              setError(err.response?.data?.message || 'Failed to create user');
-            } else {
-              setError('An unexpected error occurred');
-            }
-          } finally {
-            setLoading(false);
+    try {
+      if (editingUser) {
+        const response = await axios.post('https://sosafe.onrender.com/api/edit/admin', {
+          id: editingUser.id,
+          name: formData.name,
+          email: formData.email,
+          role: formData.role,
+          area: formData.area
+        }, {
+          headers: {
+            "Authorization": `Bearer ${token}`
           }
+        });
+        console.log(editingUser.id);
+
+        setUsers(users.map(user => 
+          user.id === editingUser.id 
+            ? { 
+                ...user, 
+                email: formData.email, 
+                name: formData.name, 
+                role: formData.role,
+                area: formData.area 
+              }
+            : user
+        ));
+
+        setResponseMessage(response.data.message || 'User updated successfully');
+        setResponseType('success');
+        setEditingUser(null);
+      } else {
+        const response = await axios.post('https://sosafe.onrender.com/api/create/admin', {
+          email: formData.email,
+          password: formData.password,
+          password_confirmation: formData.confirmPassword,
+          area: formData.area,
+          name: formData.name,
+          role: formData.role,
+        }, {
+          headers: {
+            "Authorization": `Bearer ${token}`
+          }
+        });
+        
+        const newUser: User = {
+          id: response.data.id,
+          email: formData.email,
+          name: formData.name,
+          area: formData.area,
+          role: formData.role,
+          login_attempt: 0,
+          created_at: new Date().toISOString(),
+          last_seen: '-'
+        };
+
+        setUsers([...users, newUser]);
+        setResponseMessage(response.data.message || 'User created successfully');
+        setResponseType('success');
+      }
+
+      setFormData({ email: '', name: '', role: 'divisional_command', area: '', password: '', confirmPassword: '' });
+      setShowForm(false);
+      setShowResponseModal(true);
+    } catch (err) {
+      if (axios.isAxiosError(err)) {
+        const errorMsg = err.response?.data?.message || 'Failed to update/create user';
+        setError(errorMsg);
+        setResponseMessage(errorMsg);
+        setResponseType('error');
+        setShowResponseModal(true);
+      } else {
+        setError('An unexpected error occurred');
+        setResponseMessage('An unexpected error occurred');
+        setResponseType('error');
+        setShowResponseModal(true);
+      }
+    } finally {
+      setLoading(false);
     }
-    
-    setFormData({ email: '', name: '', role: 'Divisional Command', area: '', password: '', confirmPassword: '' });
-    setShowForm(false);
   };
+
+    // Response Modal Component
+    const ResponseModal = () => {
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex justify-center mb-4">
+              {responseType === 'success' ? (
+                <CheckCircle size={64} className="text-green-500" />
+              ) : (
+                <AlertCircle size={64} className="text-red-500" />
+              )}
+            </div>
+            <h2 className={`text-xl font-bold text-center mb-4 ${responseType === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+              {responseType === 'success' ? 'Success' : 'Error'}
+            </h2>
+            <p className="text-center mb-6">{responseMessage}</p>
+            <button 
+              onClick={() => setShowResponseModal(false)}
+              className={`w-full py-2 rounded-lg ${
+                responseType === 'success' 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-red-600 hover:bg-red-700 text-white'
+              }`}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    };
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
@@ -164,6 +245,26 @@ const AssignUser: React.FC = () => {
     setShowForm(true);
   };
 
+  const handleReset = async (userId: string) => {
+    if (window.confirm('Are you sure you want to reset this user login attempts?')) {
+      await axios.post(`https://sosafe.onrender.com/api/reset`,{
+          id: userId
+      } , {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+    }
+  };
+  const handleAllReset = async () => {
+    if (window.confirm('Are you sure you want to reset all users login attempts?')) {
+      await axios.get(`https://sosafe.onrender.com/api/reset-all`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+    }
+  };
   const handleDelete = (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       setUsers(users.filter(user => user.id !== userId));
@@ -196,7 +297,7 @@ const AssignUser: React.FC = () => {
             <button
             onClick={() => {
                 setEditingUser(null);
-                setFormData({ email: '', name: '', area: '', role: 'user', password: '', confirmPassword: '' });
+                setFormData({ email: '', name: '', area: '', role: 'divisional_command', password: '', confirmPassword: '' });
                 setShowForm(true);
             }}
             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
@@ -323,48 +424,65 @@ const AssignUser: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Assigned</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Login Attempts</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
             </thead>
             <tbody className="bg-white overflow-auto divide-y divide-gray-200">
                 {currentUsers.map((user) => (
                 <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm font-medium text-gray-900">{user.name}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{user.email}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">{user.area}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 py-4 whitespace-nowrap">
                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        user.role === 'Divisional Command' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
+                        user.role === 'divisional_command' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'
                     }`}>
                         {user.role}
                     </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.dateAssigned}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {formatDate(user.created_at)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {user.lastLogin}
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.last_seen == null ? '--' : formatDate(user.last_seen)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.login_attempt == 0 ? '--' : user.login_attempt}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                     <button
                         onClick={() => handleEdit(user)}
-                        className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1"
+                        className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
                     >
-                        <Edit2 size={16} />
-                        Edit
+                        <Edit2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                        <span className="hidden group-hover:inline-block transition-all  duration-300">
+                          Edit
+                        </span>
                     </button>
                     <button
                         onClick={() => handleDelete(user.id)}
-                        className="text-red-600 hover:text-white hover:bg-red-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1"
+                        className="text-red-600 hover:text-white hover:bg-red-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
                     >
-                        <Trash2 size={16} />
-                        Delete
+                        <Trash2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                        <span className="hidden group-hover:inline-block transition-all  duration-300">
+                          Delete
+                        </span>
+                    </button>
+                    <button
+                      onClick={() => handleReset(user.id)}
+                      className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                    >
+                      <RotateCcw size={16} className="group-hover:mr-2 transition-all  duration-500"/>
+                      <span className="hidden group-hover:inline-block transition-all  duration-500">
+                          Reset login
+                      </span>
                     </button>
                     </td>
                 </tr>
@@ -458,7 +576,19 @@ const AssignUser: React.FC = () => {
             </div>
             )}
         </div>
+          <div className='w-full p-2 flex items-center justify-center mt-6'>
+           <button
+              onClick={() => handleAllReset()}
+              className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm text-[0.92rem] rounded-md inline-flex items-center gap-1 group"
+            >
+              <RotateCcw size={16} className="group-hover:mr-2 transition-all  duration-500"/>
+              <span className="group-hover:inline-block transition-all  duration-500">
+                  Reset all login attempts
+              </span>
+            </button>
+          </div>
         </div>
+        {showResponseModal && <ResponseModal />}
     </div>
   );
 };

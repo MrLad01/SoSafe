@@ -7,10 +7,12 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use App\Models\UserAdmin;
+use App\Models\AuditTrail;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\Rule;
 class UserController extends Controller
 {
-    public function ResetLoginAttempt(){
+    public function ResetAllLoginAttempt(){
         $users = UserAdmin::query();
         
         $users->update([
@@ -19,6 +21,20 @@ class UserController extends Controller
 
         return response()->json('Login Attempt reset successful');
     }
+    
+    public function ResetLoginAttempt(Request $request){
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer',
+        ]);
+        if($validator->fails()){
+            return response()->json($validator->errors()->toJson(), 400);
+        }
+        $user = UserAdmin::whereId($request->id)->update([
+            'login_attempt' => 0
+        ]);
+
+        return response()->json('Login Attempt reset successful for this user');
+    }
 
     public function addAdmin(Request $request){
         
@@ -26,7 +42,7 @@ class UserController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'role' => 'required|string|max:255',
-            'area' => 'required|integer|max:255',
+            'area' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:user_admins',
             'password' => 'required|string|min:6|confirmed',
         ]);
@@ -54,13 +70,14 @@ class UserController extends Controller
     }
 
     public function editAdmin(Request $request){
-        $data = $this->validate($request);
+        // $data = $this->validate($request);
         $validator = Validator::make($request->all(), [
             'id' => 'required|integer',
             'name' => 'required|string|max:255',
             'role' => 'required|string|max:255',
             'area' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:user_admins',
+            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('user_admins')->ignore($request->id)],
+            // 'email' => 'required|string|email|max:255'|Rule::unique('user_admins')->ignore($request->id),
         ]);
 
         if($validator->fails()){
@@ -76,4 +93,12 @@ class UserController extends Controller
         return response()->json('Record created successfully', 201);
 
     }
+
+    public function auditTrail(){
+        $trails = AuditTrail::all();
+        // $status= $admins->UserOnline();
+        return response()->json($trails, 200,);
+
+    }
+
     }

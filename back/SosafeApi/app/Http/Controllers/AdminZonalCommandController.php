@@ -9,18 +9,22 @@ use Tymon\JWTAuth\Facades\JWTAuth;
 
 class AdminZonalCommandController extends Controller{
     public function getBiodata(){
-        $area = auth()->guard('admin')->user()->Area;
-        $SoSafeCorpsBiodata = Biodata::where('za_command_id',$area)->with('ZonalArea')->get();
+        $area = auth()->guard('admin')->user()->area;
+        $SoSafeCorpsBiodata = Biodata::where('za_command','LIKE','%'.$area.'%')->get();
         return response()->json($SoSafeCorpsBiodata, 200);
     }
 
     public function getNewBiodata(){
-        $area = auth()->guard('admin')->user()->Area;
+        $area = auth()->guard('admin')->user()->area;
+        $results = User::where('name', 'LIKE', '%' . $searchTerm . '%')->get();
         $SoSafeCorpsBiodata = NewBiodata::where('za_command_id',$area)->with('ZonalArea')->get();
+
+        auditTrail('fetch new biodata','success');
         return response()->json($SoSafeCorpsBiodata, 200);
     }
 
     public function storeBiodata(Request $request){
+        $area = auth()->guard('admin')->user()->area;
         $validate = $request->all();
         $rules = [
             'form_no'=>['string','required','unique:new_biodatas'],
@@ -51,6 +55,11 @@ class AdminZonalCommandController extends Controller{
             $errors = $validator->messages()->all();
             return response()->json(['errors' => $errors]);
         }
+        if($area != $request->division_command_id ){
+            auditTrail('edit new biodata','access denied');
+            return response()->json(['message'=> 'Access denied'],401);
+    
+        }
         $data = new NewBiodata;
         $data->code = $request->code;
         $data->firstname = $request->firstname;
@@ -71,14 +80,18 @@ class AdminZonalCommandController extends Controller{
         $data->relationship = $request->relationship;
         $data->nok_phone = $request->nok_phone;
         $data->qualification = $request->qualification;
-        $data->save();
+        if($data->save()){
+            auditTrail('stored new biodata','success');
+        }else{
+            auditTrail('stored new biodata','failed');
+        }
 
         return response()->json(['message'=> 'success']);
     }
 
     public function editBiodata(Request $request, $id){
         $area = auth()->guard('admin')->user()->Area;
-        if($area = 2){
+        
         try{
             $validate = $request->all();
         $rules = [
@@ -110,6 +123,11 @@ class AdminZonalCommandController extends Controller{
             $errors = $validator->messages()->all();
             return response()->json(['errors' => $errors]);
         }
+        if($area != $request->division_command_id ){
+            auditTrail('edit new biodata','access denied');
+            return response()->json(['message'=> 'Access denied'],401);
+    
+        }
         $data = NewBiodata::findOrFail($id)->where('division_command_id',$area)->with('ZonalArea')->get();
         $data->code = $request->code;
         $data->firstname = $request->firstname;
@@ -132,14 +150,12 @@ class AdminZonalCommandController extends Controller{
         $data->qualification = $request->qualification;
         $data->update(); 
     }catch(ModelNotFoundException $exception){
+        auditTrail('edit new biodata','fail');
     return response(["Status"=>"Error",
             "Message"=>" {$id} not found"]);
     };
 
-    }else{
-        return response(["Status"=>"Error",
-            "Message"=>" Access Denied"]);
-    }
+    
         
     }
 }

@@ -42,6 +42,7 @@ class UserAdminController extends Controller
 
         try {
             if (! $token = auth()->guard('admin')->attempt($credentials)) {
+                // auditTrail('login','invalid credential');
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
 
@@ -51,7 +52,7 @@ class UserAdminController extends Controller
             $user->save();
             // (optional) Attach the role to the token.
             $token = JWTAuth::claims(['role' => $user->role])->fromUser($user);
-
+            auditTrail('login','success');
             return response()->json(compact('token','user'));
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
@@ -78,10 +79,32 @@ class UserAdminController extends Controller
     public function logout()
     {
         JWTAuth::invalidate(JWTAuth::getToken());
-
+        auditTrail('logout','success');
         return response()->json(['message' => 'Successfully logged out']);
     }
+    public function imageUpload(Request $request){
+        $file = $request->file('image');
+        // Validate file
+        $validator = Validator::make($request->all(), [
+            
+            'image' => 'required|file|mimes:jpg,png'
+        ]);
+        if($validator->fails()){
+            return response()->json($validator->errors(), 400);
+        }
+        // return 'hi';
+        $extension = $file->getClientOriginalExtension();
+        $fileName = str_replace('.'.$extension, '', $file->getClientOriginalName()); //file name without extenstion
+        $fileName .= '_' . md5(time()) . '.' . $extension; // a unique file name
 
+        $path = $file->store('images');
+        // $path = $disk->putFileAs('videos', $file, $fileName);
+            return [
+            'path' => asset('storage/' . $path),
+            'filename' => $fileName
+        ];
+    
+    }
 }
 
 
