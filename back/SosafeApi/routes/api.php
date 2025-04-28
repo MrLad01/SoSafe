@@ -41,10 +41,10 @@ Route::post('register', [authenticationController::class, 'register']);
 Route::post('login', [authenticationController::class, 'login']);
 Route::middleware(['login_attempt'])->post('user/login', [UserAdminController::class, 'login']);
 // Route::get('user', [authenticationController::class, 'getUser']);
-Route::get('Missing', [MissingWantedController::class, 'getMissing']);
-Route::get('Hero', [HeroController::class, 'getHero']);
+Route::get('missing', [MissingWantedController::class, 'getMissing']);
+Route::get('hero', [HeroController::class, 'getHero']);
 Route::get('division', [DivisionCommandController::class, 'getDivision']);
-Route::get('Zonal_command', [ZonalCommandController::class, 'getZonalCommands']);
+Route::get('zonal_command', [ZonalCommandController::class, 'getZonalCommands']);
 Route::get('community', [CommunityController::class, 'getCommunities']);
 Route::get('news', [NewsController::class, 'getNews']);
 Route::post('logout', [authenticationController::class, 'logout']);
@@ -52,6 +52,7 @@ Route::post('logout', [authenticationController::class, 'logout']);
 
 Route::post('/get',[BiodataController::class, 'record']);
 Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
+Route::post('/upload/image', [UserAdminController::class, 'imageUpload']);
 Route::get('/biodata2/form/phone/{phoneNo}', [Biodata2Controller::class, 'findByPhoneNo']);
 
 Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
@@ -60,8 +61,10 @@ Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     
     Route::post('/edit/admin', [UserController::class, 'editAdmin']);
     Route::post('/create/admin', [UserController::class, 'addAdmin']);
-    Route::get('/reset', [UserController::class, 'ResetLoginAttempt']);
+    Route::post('/reset', [UserController::class, 'ResetLoginAttempt']);
+    Route::get('/reset-all', [UserController::class, 'ResetAllLoginAttempt']);
     Route::get('/admins', [UserController::class, 'getAdmins']);
+    Route::get('/audit', [UserController::class, 'auditTrail']);
     Route::get('/biodata2', [Biodata2Controller::class, 'index']);
     Route::get('/biodata2/{id}', [Biodata2Controller::class, 'show']);
     Route::get('/biodata2/all', [Biodata2Controller::class, 'getAllRecords']);

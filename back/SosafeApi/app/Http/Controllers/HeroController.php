@@ -12,6 +12,7 @@ class HeroController extends Controller
 {
     public function getHero(){
         $hero = Hero::where('status',1)->get();
+        auditTrail('get heroes page','success');
         return response()->json($hero, 200);
     }
 

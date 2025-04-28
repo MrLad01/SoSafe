@@ -56,7 +56,7 @@ class authenticationController extends Controller
             
             // (optional) Attach the role to the token.
             // $token = JWTAuth::claims(['role' => $user->role])->fromUser($user);
-
+            auditTrail('admin login','success');
             return response()->json(compact('token','user'));
         } catch (JWTException $e) {
             return response()->json(['error' => 'Could not create token'], 500);
@@ -88,9 +88,9 @@ class authenticationController extends Controller
     }
     public function check(){
         if(User::count()<1){
-            return response()->json(True);
+            return response()->json(True,200);
         }else{
-            return response()->json(FALSE);
+            return response()->json(FALSE,403);
         }
     }
 

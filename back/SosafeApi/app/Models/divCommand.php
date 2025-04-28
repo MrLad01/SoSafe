@@ -18,6 +18,10 @@ class divCommand extends Model
     {
         return $this->belongsTo(User::class, 'division_command_id', 'id');
     }
+    public function biodata(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'division_command_id', 'id');
+    }
 
     protected $table = 'division_commands';
 }
