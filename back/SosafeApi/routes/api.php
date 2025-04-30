@@ -37,6 +37,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 Route::get('admin/check', [authenticationController::class, 'check']);
+Route::post('upload', [authenticationController::class, 'upload']);
 Route::post('register', [authenticationController::class, 'register']);
 Route::post('login', [authenticationController::class, 'login']);
 Route::middleware(['login_attempt'])->post('user/login', [UserAdminController::class, 'login']);
