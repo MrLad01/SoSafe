@@ -13,6 +13,8 @@ const FileUploader: React.FC = () => {
   const [uploading, setUploading] = useState<boolean>(false);
   const [message, setMessage] = useState<Message | null>(null);
 
+  const token = sessionStorage.getItem('authToken');
+
   const handleUpload = async (): Promise<void> => {
     if (!file) return;
 
@@ -23,11 +25,14 @@ const FileUploader: React.FC = () => {
     formData.append('raw_data', file);
 
     console.log(formData);
-    
 
+     
     try {
       await axios.post('https://sosafe.onrender.com/api/import', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`
+        },
         onUploadProgress: (progressEvent) => {
           const progress = (progressEvent.loaded / (progressEvent.total || progressEvent.loaded)) * 100;
           setProgress(Math.min(progress, 100));
