@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\divCommand;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class DivisionCommandController extends Controller
 {
@@ -56,7 +57,7 @@ class DivisionCommandController extends Controller
             return response()->json(['message'=> 'edit success']);
         } catch (ModelNotFoundException $exception) {
             return response(["Status"=>"Error",
-            "Message"=>"Hero with id {$id} not found"]);
+            "Message"=>"Division with id {$id} not found"]);
         }    
 
     }
@@ -68,7 +69,7 @@ class DivisionCommandController extends Controller
         $divCommand->update();
     } catch (ModelNotFoundException $exception) {
         return response(["Status"=>"Error",
-        "Message"=>"News with id {$id} not found"]);
+        "Message"=>"Division with id {$id} not found"]);
     }
 }
 }
