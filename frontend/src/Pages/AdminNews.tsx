@@ -7,6 +7,9 @@ const AdminNews: React.FC = () => {
   const [editType, setEditType] = useState<'news' | 'announcement' | null>(null);
   const [editId, setEditId] = useState<number | null>(null);
   const [editTitle, setEditTitle] = useState<string>('');
+  const [editExcerpt, setEditExcerpt] = useState<string>('');
+  const [editCategory, setEditCategory] = useState<string>('');
+  // const [editAuthor, setEditAuthor] = useState<string>('');
   const [showAllNews, setShowAllNews] = useState(false); // Toggle for showing all news
   const [showAllAnnouncements, setShowAllAnnouncements] = useState(false); // Toggle for showing all announcements
 
@@ -70,7 +73,7 @@ const AdminNews: React.FC = () => {
                 onClick={() => handleWriteNew('news')}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg mb-4"
               >
-                Write New News
+                Write News
               </button>
               <div className="space-y-2">
                 {(showAllNews ? newsData : newsData.slice(0, 4)).map((news) => (
@@ -112,7 +115,7 @@ const AdminNews: React.FC = () => {
                 onClick={() => handleWriteNew('announcement')}
                 className="bg-green-600 text-white px-4 py-2 rounded-lg mb-4"
               >
-                Write New Announcement
+                New Announcement
               </button>
               <div className="space-y-2">
                 {(showAllAnnouncements ? announcementsData : announcementsData.slice(0, 4)).map(
@@ -158,7 +161,7 @@ const AdminNews: React.FC = () => {
             <h1 className="text-xl font-bold mb-4">
               {editId
                 ? `Edit ${editType === 'news' ? 'News' : 'Announcement'}`
-                : `Write New ${editType === 'news' ? 'News' : 'Announcement'}`}
+                : `Write ${editType === 'news' ? 'News' : 'Announcement'}`}
             </h1>
             <form className="space-y-6">
               <div>
@@ -171,6 +174,36 @@ const AdminNews: React.FC = () => {
                   placeholder="Enter title"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Excerpt</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  value={editExcerpt}
+                  onChange={(e) => setEditExcerpt(e.target.value)}
+                  placeholder="Excerpt..."
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">Category</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  value={editCategory}
+                  onChange={(e) => setEditCategory(e.target.value)}
+                  placeholder="Category..."
+                />
+              </div>
+              {/* <div>
+                <label className="block text-sm font-medium mb-2">Author</label>
+                <input
+                  type="text"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  value={editAuthor}
+                  onChange={(e) => setEditAuthor(e.target.value)}
+                  placeholder="Excerpt..."
+                />
+              </div> */}
               <div>
                 <label className="block text-sm font-medium mb-2">Image</label>
                 <input type="file" className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
