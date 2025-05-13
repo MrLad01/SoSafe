@@ -68,11 +68,13 @@ Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     Route::get('/audit', [UserController::class, 'auditTrail']);
     Route::get('/biodata2', [Biodata2Controller::class, 'index']);
     Route::get('/biodata2/{id}', [Biodata2Controller::class, 'show']);
-    Route::get('/biodata2/all', [Biodata2Controller::class, 'getAllRecords']);
+    Route::get('/old/records/all', [Biodata2Controller::class, 'getAllRecords']);
     Route::get('/biodata2/import-status', [Biodata2Controller::class, 'importStatus']);
     
     Route::post('/import',[ExcelController::class, 'import']);
+    Route::get('/export',[ExcelController::class, 'download']);
     Route::post('/new/data',[NewBiodataController::class, 'storeBiodata']);
+    Route::get('/new/records/all', [NewBiodataController::class, 'getAllRecords']);
 
     Route::get('/check/{name?}',[ExcelController::class, 'check']);
 
@@ -140,6 +142,5 @@ Route::post('/export', [ExcelController::class, 'export']);
 
 
 Route::get('/test',[biodataController::class, 'test']);
-Route::get('/',[ExcelController::class, 'export']);
 Route::get('/d',[ExcelController::class, 'download']);
 

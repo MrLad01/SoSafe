@@ -10,6 +10,7 @@ use App\Models\UserAdmin;
 use App\Models\AuditTrail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
+use App\Models\NewBiodata;
 class UserController extends Controller
 {
     public function ResetAllLoginAttempt(){
@@ -101,4 +102,12 @@ class UserController extends Controller
 
     }
 
+    public function getAllRecords()
+    {
+        $biodata = NewBiodata::all();
+        return response()->json([
+            'data' => $biodata,
+            'total' => $biodata->count()
+        ]);
+    }
     }
