@@ -56,7 +56,7 @@ class ZonalCommandController extends Controller
             return response()->json(['message'=> 'edit success']);
         } catch (ModelNotFoundException $exception) {
             return response(["Status"=>"Error",
-            "Message"=>"Hero with id {$id} not found"]);
+            "Message"=>"Zonal Command with id {$id} not found"]);
         }    
 
     }
@@ -68,7 +68,7 @@ class ZonalCommandController extends Controller
         $zonalCommand->update();
     } catch (ModelNotFoundException $exception) {
         return response(["Status"=>"Error",
-        "Message"=>"News with id {$id} not found"]);
+        "Message"=>"Zonal Command with id {$id} not found"]);
     }
 }
 }

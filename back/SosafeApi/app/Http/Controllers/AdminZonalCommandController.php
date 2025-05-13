@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\NewBiodata;
 use Illuminate\Support\Facades\Validator;
 use Tymon\JWTAuth\Facades\JWTAuth;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class AdminZonalCommandController extends Controller{
     public function getBiodata(){
