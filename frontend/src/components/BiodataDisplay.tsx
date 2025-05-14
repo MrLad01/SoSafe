@@ -111,7 +111,11 @@ const BiodataDisplay: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get<AllRecordsResponse>('https://sosafe.onrender.com/api/biodata2/all');
+      const response = await axios.get<AllRecordsResponse>('https://sosafe.onrender.com/api/biodata2/all', {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       console.log(response.data.data);
       setAllRecords(response.data.data);
       
