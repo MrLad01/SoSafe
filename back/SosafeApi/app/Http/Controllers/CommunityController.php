@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Community;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class CommunityController extends Controller
 {
@@ -60,7 +61,7 @@ class CommunityController extends Controller
             return response()->json(['message'=> 'edit success']);
         } catch (ModelNotFoundException $exception) {
             return response(["Status"=>"Error",
-            "Message"=>"Hero with id {$id} not found"]);
+            "Message"=>"Community with id {$id} not found"]);
         }    
 
     }
@@ -72,7 +73,7 @@ class CommunityController extends Controller
         $Community->update();
     } catch (ModelNotFoundException $exception) {
         return response(["Status"=>"Error",
-        "Message"=>"News with id {$id} not found"]);
+        "Message"=>"Community with id {$id} not found"]);
     }
 }
 }
