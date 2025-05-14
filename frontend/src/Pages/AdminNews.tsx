@@ -9,7 +9,7 @@ const AdminNews: React.FC = () => {
   const [editTitle, setEditTitle] = useState<string>('');
   const [editExcerpt, setEditExcerpt] = useState<string>('');
   const [editCategory, setEditCategory] = useState<string>('');
-  // const [editAuthor, setEditAuthor] = useState<string>('');
+  const [editAuthor, setEditAuthor] = useState<string>('');
   const [showAllNews, setShowAllNews] = useState(false); // Toggle for showing all news
   const [showAllAnnouncements, setShowAllAnnouncements] = useState(false); // Toggle for showing all announcements
 
@@ -157,7 +157,7 @@ const AdminNews: React.FC = () => {
             </div>
           </div>
         ) : (
-          <div className="p-8">
+          <div className="p-8 overflow-y-auto">
             <h1 className="text-xl font-bold mb-4">
               {editId
                 ? `Edit ${editType === 'news' ? 'News' : 'Announcement'}`
@@ -194,7 +194,7 @@ const AdminNews: React.FC = () => {
                   placeholder="Category..."
                 />
               </div>
-              {/* <div>
+              <div>
                 <label className="block text-sm font-medium mb-2">Author</label>
                 <input
                   type="text"
@@ -203,7 +203,7 @@ const AdminNews: React.FC = () => {
                   onChange={(e) => setEditAuthor(e.target.value)}
                   placeholder="Excerpt..."
                 />
-              </div> */}
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Image</label>
                 <input type="file" className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
