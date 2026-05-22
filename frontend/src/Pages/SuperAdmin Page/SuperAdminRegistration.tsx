@@ -37,10 +37,7 @@ const SuperAdminRegistration = () => {
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match!');
       return;
-    }
-
-    console.log(formData);
-    
+    }    
 
     try {
       await axios.post('https://sosafe.onrender.com/api/register', {
