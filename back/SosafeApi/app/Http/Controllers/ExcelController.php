@@ -7,6 +7,7 @@ use App\Jobs\ProcessExcelChunk;
 use Illuminate\Support\Facades\Queue;
 use Rap2hpoutre\FastExcel\FastExcel;
 use App\Models\NewBiodata;
+use App\Models\Biodata;  
 use Illuminate\Support\Facades\DB;
 
 class ExcelController extends Controller 
@@ -25,6 +26,7 @@ class ExcelController extends Controller
 
             // Clear existing data FIRST (in transaction)
             NewBiodata::truncate();
+            Biodata::truncate();
 
             $collection = (new FastExcel)->import(storage_path("app/{$path}"));
             
