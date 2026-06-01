@@ -69,7 +69,9 @@ run_laravel_command "migrate --force" || {
 
 # Run seeders
 echo "Running seeders..."
-run_laravel_command "db:seed --force" || exit 1
+php artisan db:seed --force --class=Database\\Seeders\\ZoneSeeder
+php artisan db:seed --force --class=Database\\Seeders\\AreaSeeder
+php artisan db:seed --force --class=Database\\Seeders\\DivisionSeeder
 
 # Clear old temp files
 echo "Cleaning temporary upload files..."
