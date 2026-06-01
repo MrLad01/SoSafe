@@ -6,50 +6,62 @@ use Illuminate\Http\Request;
 use App\Jobs\ProcessExcelChunk;
 use Illuminate\Support\Facades\Queue;
 use Rap2hpoutre\FastExcel\FastExcel;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Models\NewBiodata;
+use Illuminate\Support\Facades\DB;
 
 class ExcelController extends Controller 
 {
     public function import(Request $request)
     {
-        $file = $request->file('raw_data');
-        
-        // Validate file
         $request->validate([
-            'raw_data' => 'required|file|mimes:xlsx,xls'
+            'raw_data' => 'required|file|mimes:xlsx,xls|max:10240' // 10MB max
         ]);
 
-        // Store the file temporarily
+        $file = $request->file('raw_data');
         $path = $file->store('temp');
 
-        // Clear existing records before importing
-        NewBiodata::truncate();
-        
-        // Process in chunks of 1000 records
-        $collection = (new FastExcel)->import(storage_path("app/{$path}"));
-        $chunks = $collection->chunk(1000);
-        
-        foreach ($chunks as $index => $chunk) {
-            Queue::later(
-                $index * 30, // Delay each job by 30 seconds * chunk index
-                new ProcessExcelChunk($chunk->toArray())
-            );
-        }
-        
-        return response()->json([
-            'message' => 'File upload successful. Processing has begun.',
-            'total_records' => $collection->count(),
-            'chunks' => $chunks->count()
-        ]);
-    }
+        try {
+            DB::beginTransaction();
 
-    public function download(){
-        // $url = asset('file.xlsx');
-        // $file = public_path()."/test.xlsx";
-        // $area = JWTAuth::user()->Area;
-        $command= '';
-        $data = NewBiodata::where('','AROKOJE')->get();
-        return (new FastExcel($data))->download('file.xlsx');
+            // Clear existing data FIRST (in transaction)
+            NewBiodata::truncate();
+
+            $collection = (new FastExcel)->import(storage_path("app/{$path}"));
+            
+            if ($collection->isEmpty()) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => 'The uploaded file is empty.'
+                ], 422);
+            }
+
+            $chunks = $collection->chunk(1000);
+            $totalRecords = $collection->count();
+
+            foreach ($chunks as $index => $chunk) {
+                // Dispatch job with delay to prevent overwhelming the queue
+                Queue::later(
+                    $index * 10, // Reduced delay (10 seconds)
+                    new ProcessExcelChunk($chunk->toArray())
+                );
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => 'File uploaded successfully. Data replacement has started.',
+                'total_records' => $totalRecords,
+                'chunks' => $chunks->count()
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Excel Import Error: ' . $e->getMessage());
+            
+            return response()->json([
+                'message' => 'Failed to process file.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }
