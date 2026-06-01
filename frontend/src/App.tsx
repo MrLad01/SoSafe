@@ -11,6 +11,7 @@ import AdminManagement from "./Pages/AdminManagement";
 import AdminNews from "./Pages/AdminNews";
 import AdminPersonnel from "./Pages/AdminPersonnel";
 import AdminTracking from "./Pages/AdminTracking";
+import ZoneAreaDivisionTable from "./Pages/ZonesPage";
 import DepartmentsPage from "./Pages/DepartmentsPage";
 import Home from './Pages/Landing Page/Home';
 import NewsDetail from "./components/NewsDetail";
@@ -67,6 +68,7 @@ function App() {
                 <Route path="/admin/agency" element={<ProtectedRoute><AdminAgency /></ProtectedRoute>} />
                 <Route path="/admin/contact" element={<ProtectedRoute><AdminContact /></ProtectedRoute>} />
                 <Route path="/admin/database" element={<ProtectedRoute><AdminDatabase /></ProtectedRoute>} />
+                <Route path="/admin/zones" element={<ProtectedRoute><ZoneAreaDivisionTable /></ProtectedRoute>} />
                 <Route path="/admin/departments" element={<ProtectedRoute><AdminDepartments /></ProtectedRoute>} />
                 <Route path="/admin/management-team" element={<ProtectedRoute><AdminManagement /></ProtectedRoute>} />
                 <Route path="/admin/news" element={<ProtectedRoute><AdminNews /></ProtectedRoute>} />
