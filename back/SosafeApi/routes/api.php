@@ -20,6 +20,10 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\Biodata2Controller;
 use App\Http\Controllers\UserAdminController;
 
+use App\Http\Controllers\ZoneController;
+use App\Http\Controllers\AreaController;
+use App\Http\Controllers\DivisionController;
+
 
 
 /*
@@ -114,10 +118,24 @@ Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     Route::delete('Zonal_command/{id}',[ZonalCommandController::class,'deleteZonalCommand']);
 
     // biodata controller
-
     Route::post('biodata', [SoSafeCorpsBiodataController::class, 'storeBiodata']);
     Route::put('biodata/{id}', [SosafeCorpsBiodataController::class, 'editSosafe']);
     Route::get('biodata', [SosafeCorpsBiodataController::class, 'getBiodatas']);
+
+    // Zone Area Division Controller
+    Route::get('zones', [ ZoneController::class, 'index' ]);
+
+    Route::post('zones', [ ZoneController::class, 'storeZone' ]);
+    Route::put('zones/{zone}', [ ZoneController::class, 'updateZone' ]);
+    Route::delete('zones/{zone}', [ ZoneController::class, 'destroyZone' ]);
+
+    Route::post('areas', [ AreaController::class, 'storeArea' ]);
+    Route::put('areas/{area}', [ AreaController::class, 'updateArea' ]);
+    Route::delete('areas/{area}', [ AreaController::class, 'destroyArea' ]);
+
+    Route::post('zone-divisions', [ DivisionController::class, 'storeDivision' ]);
+    Route::put('zone-divisions/{division}', [ DivisionController::class, 'updateDivision' ]);
+    Route::delete('zone-divisions/{division}', [ DivisionController::class, 'destroyDivision' ]);
 
 });
 //Admin Zonal Area Controller

@@ -67,6 +67,10 @@ run_laravel_command "migrate --force" || {
     exit 1
 }
 
+# Run seeders
+echo "Running seeders..."
+run_laravel_command "db:seed --force" || exit 1
+
 # Clear old temp files
 echo "Cleaning temporary upload files..."
 find /tmp -type f -name "php*" -mtime +1 -delete
