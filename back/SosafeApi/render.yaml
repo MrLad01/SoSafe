@@ -8,7 +8,6 @@ services:
     healthCheckPath: /
     buildCommand: docker build -t SosafeApi .
     startCommand: docker run -p $PORT:80 SosafeApi
-    preDeployCommand: "php artisan migrate --force; php artisan db:seed --force --class=Database\\Seeders\\ZoneSeeder; php artisan db:seed --force --class=Database\\Seeders\\AreaSeeder; php artisan db:seed --force --class=Database\\Seeders\\DivisionSeeder" 
     envVars:
       - key: APP_KEY
         generateValue: true

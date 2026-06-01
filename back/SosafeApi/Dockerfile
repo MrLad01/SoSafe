@@ -92,6 +92,9 @@ php artisan jwt:secret --force\n\
 php artisan storage:link --force\n\
 php artisan queue:table\n\
 php artisan migrate --force\n\
+php artisan db:seed --force --class=Database\\\\Seeders\\\\ZoneSeeder\n\
+php artisan db:seed --force --class=Database\\\\Seeders\\\\AreaSeeder\n\
+php artisan db:seed --force --class=Database\\\\Seeders\\\\DivisionSeeder\n\
 php artisan config:cache\n\
 php artisan route:cache\n\
 php artisan view:cache\n\
