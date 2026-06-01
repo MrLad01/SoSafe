@@ -18,7 +18,6 @@ class DivisionController extends Controller
             'name'    => 'required|string',
             'area_id' => 'required|exists:areas,id',
         ]);
-
         return response()->json(
             Division::create([
                 'name'    => strtoupper($request->name),
@@ -39,8 +38,7 @@ class DivisionController extends Controller
 
         $request->validate([
             'name'    => 'required|string',
-            // area_id is optional on update — keeps the existing value if not supplied
-            'area_id' => 'sometimes|exists:areas,id',
+            'area_id' => 'sometimes|exists:areas,id', // optional — keep existing if not sent
         ]);
 
         $division->update([
