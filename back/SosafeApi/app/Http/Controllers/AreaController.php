@@ -12,7 +12,7 @@ class AreaController extends Controller
         return Area::with('zone', 'divisions')->get();
     }
 
-    public function store(Request $request)
+    public function storeArea(Request $request)
     {
         $request->validate([
             'name'    => 'required|string',
@@ -27,12 +27,12 @@ class AreaController extends Controller
         );
     }
 
-    public function show(string $id)
+    public function showArea(string $id)
     {
         return Area::with('zone', 'divisions')->findOrFail($id);
     }
 
-    public function update(Request $request, string $id)
+    public function updateArea(Request $request, string $id)
     {
         $area = Area::findOrFail($id);
 
@@ -49,7 +49,7 @@ class AreaController extends Controller
         return response()->json($area);
     }
 
-    public function destroy(string $id)
+    public function destroyArea(string $id)
     {
         $area = Area::findOrFail($id);
         $area->delete();

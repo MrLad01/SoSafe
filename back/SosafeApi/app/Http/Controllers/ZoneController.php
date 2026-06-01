@@ -13,18 +13,18 @@ class ZoneController extends Controller
         return response()->json(Zone::with('areas.divisions')->get());
     }
 
-    public function store(Request $request)
+    public function storeZone(Request $request)
     {
         $request->validate(['name' => 'required|string|unique:zones']);
         return response()->json(Zone::create(['name' => strtoupper($request->name)]), 201);
     }
 
-    public function show(string $id)
+    public function showZone(string $id)
     {
         return Zone::with('areas.divisions')->findOrFail($id);
     }
 
-    public function update(Request $request, string $id)
+    public function updateZone(Request $request, string $id)
     {
         $zone = Zone::findOrFail($id);
         // Exclude current record from unique check so saving the same name doesn't fail
@@ -33,7 +33,7 @@ class ZoneController extends Controller
         return response()->json($zone);
     }
 
-    public function destroy(string $id)
+    public function destroyZone(string $id)
     {
         $zone = Zone::findOrFail($id);
         $zone->delete();

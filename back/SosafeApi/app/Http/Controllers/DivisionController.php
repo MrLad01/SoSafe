@@ -12,7 +12,7 @@ class DivisionController extends Controller
         return Division::with('area.zone')->get();
     }
 
-    public function store(Request $request)
+    public function storeDivision(Request $request)
     {
         $request->validate([
             'name'    => 'required|string',
@@ -27,12 +27,12 @@ class DivisionController extends Controller
         );
     }
 
-    public function show(string $id)
+    public function showDivision(string $id)
     {
         return Division::with('area.zone')->findOrFail($id);
     }
 
-    public function update(Request $request, string $id)
+    public function updateDivision(Request $request, string $id)
     {
         $division = Division::findOrFail($id);
 
@@ -49,7 +49,7 @@ class DivisionController extends Controller
         return response()->json($division);
     }
 
-    public function destroy(string $id)
+    public function destroyDivision(string $id)
     {
         $division = Division::findOrFail($id);
         $division->delete();
