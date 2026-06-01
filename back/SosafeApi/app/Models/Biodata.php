@@ -10,8 +10,8 @@ class Biodata extends Model
     use HasFactory;
 
     protected $fillable = [
-        'form_no',
         'code',
+        'form_no',
         'firstname',
         'lastname',
         'othername',
@@ -30,6 +30,15 @@ class Biodata extends Model
         'relationship',
         'nok_phone',
         'photo',
-        'qualification' ,
+        'qualification',
+    ];
+
+    // Optional: If you want to control timestamps
+    // public $timestamps = true;
+
+    // Cast dates properly
+    protected $casts = [
+        'dob'         => 'date',
+        'date_engage' => 'date',
     ];
 }
