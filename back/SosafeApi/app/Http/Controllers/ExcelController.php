@@ -22,6 +22,9 @@ class ExcelController extends Controller
 
         // Store the file temporarily
         $path = $file->store('temp');
+
+        // Clear existing records before importing
+        NewBiodata::truncate();
         
         // Process in chunks of 1000 records
         $collection = (new FastExcel)->import(storage_path("app/{$path}"));
