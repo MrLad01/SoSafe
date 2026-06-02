@@ -99,7 +99,6 @@ php artisan config:clear\n\
 php artisan cache:clear\n\
 php artisan route:clear\n\
 php artisan config:cache\n\
-php artisan route:cache\n\
 php artisan view:cache\n\
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf' > /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh
