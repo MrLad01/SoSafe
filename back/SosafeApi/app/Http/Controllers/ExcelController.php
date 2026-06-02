@@ -38,7 +38,7 @@ class ExcelController extends Controller
             });
         }
 
-        $chunks = $collection->chunk(3000);
+        $chunks = $collection->chunk(1000);
         $now    = now();
 
         foreach ($chunks as $chunk) {
