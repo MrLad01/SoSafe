@@ -88,50 +88,77 @@ class ProcessExcelChunk implements ShouldQueue
         }
     }
 
-    private function markChunkDone(int $count): void
-    {
-        $key = "import:{$this->importId}";
-        $data = Cache::get($key, []);
-
-        $data['done']      = ($data['done'] ?? 0) + 1;
-        $data['processed'] = ($data['processed'] ?? 0) + $count;
-
-        $totalChunks = $data['chunks'] ?? 0;
-
-        // Calculate percentage
-        $data['percentage'] = $totalChunks > 0 
-            ? round(($data['processed'] / max($data['total'], 1)) * 100, 2)
-            : 0;
-
-        if ($totalChunks > 0 && $data['done'] >= $totalChunks) {
-            $data['status']      = 'completed';
-            $data['percentage']  = 100;
-            $data['finished_at'] = now()->toDateTimeString();
-        }
-
-        Cache::put($key, $data, now()->addHours(2));
-    }
-
-    private function recordError(string $message): void
-    {
-        $key  = "import:{$this->importId}";
-        $data = Cache::get($key, []);
-
-        $data['status']      = 'failed';
-        $data['finished_at'] = now()->toDateTimeString();
-        $data['errors'][]    = $message;
-
-        Cache::put($key, $data, now()->addHours(2));
-    }
-
     private function updateProgressIncremental(int $count): void
     {
         $key = "import:{$this->importId}";
-        $data = Cache::get($key, []);
 
-        $data['processed'] = ($data['processed'] ?? 0) + $count;
-        $data['percentage'] = round(($data['processed'] / max($data['total'], 1)) * 100, 2);
+        // Use a lock to safely increment the processed row count across multiple queue workers
+        $lock = Cache::lock("lock:progress:{$this->importId}", 10);
 
-        Cache::put($key, $data, now()->addHours(2));
+        if ($lock->get()) {
+            try {
+                $data = Cache::get($key, []);
+                $data['processed'] = ($data['processed'] ?? 0) + $count;
+                Cache::put($key, $data, now()->addHours(2));
+            } finally {
+                $lock->release();
+            }
+        }
+    }
+
+    private function markChunkDone(int $count): void
+    {
+        $key = "import:{$this->importId}";
+
+        // Use a lock to safely increment the chunk completion count
+        $lock = Cache::lock("lock:chunk:{$this->importId}", 10);
+
+        if ($lock->get()) {
+            try {
+                $data = Cache::get($key, []);
+                
+                // Increment chunks done
+                $data['done'] = ($data['done'] ?? 0) + 1;
+                
+                // If updateProgressIncremental wasn't triggered (chunk < 50), capture the remainder
+                if ($count < 50 && $count > 0) {
+                    $data['processed'] = ($data['processed'] ?? 0) + $count;
+                }
+
+                // Check if this was the very last chunk to finish
+                if (($data['done'] >= ($data['chunks'] ?? 1)) && in_array($data['status'], ['dispatched', 'processing'])) {
+                    $data['status']      = 'completed';
+                    $data['finished_at'] = now()->toDateTimeString();
+                }
+
+                Cache::put($key, $data, now()->addHours(2));
+            } finally {
+                $lock->release();
+            }
+        }
+    }
+
+    private function recordError(string $errorMsg): void
+    {
+        $key = "import:{$this->importId}";
+
+        $lock = Cache::lock("lock:error:{$this->importId}", 10);
+
+        if ($lock->get()) {
+            try {
+                $data = Cache::get($key, []);
+                $data['status']      = 'failed';
+                $data['finished_at'] = now()->toDateTimeString();
+                
+                // Append the specific worker error to the errors array for the UI to display
+                $errors = $data['errors'] ?? [];
+                $errors[] = "Worker error: " . $errorMsg;
+                $data['errors'] = $errors;
+
+                Cache::put($key, $data, now()->addHours(2));
+            } finally {
+                $lock->release();
+            }
+        }
     }
 }
