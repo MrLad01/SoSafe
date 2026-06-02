@@ -49,8 +49,6 @@ interface AllRecordsResponse {
   total: number;
 }
 
-const BASE = 'https://sosafe.onrender.com/api';
-
 const BiodataDisplay: React.FC = () => {
   const { token } = useAuth();
   const [records, setRecords]               = useState<BiodataRecord[]>([]);
@@ -62,19 +60,20 @@ const BiodataDisplay: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<BiodataRecord | null>(null);
   const [perPage]                           = useState<number>(100);
 
-  const headers = { Authorization: `Bearer ${token}` };
 
   const fetchRecords = async (): Promise<void> => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get<ApiResponse>(`${BASE}/biodata2`, {
+      const response = await axios.get<ApiResponse>(`https://sosafe.onrender.com/api/biodata2`, {
         params: {
           page: currentPage,
           per_page: perPage,
-          search: search.toUpperCase() || undefined,
+          search: search.toUpperCase() || undefined
         },
-        headers,
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
       });
       setRecords(response.data.data);
       setTotalPages(response.data.meta.last_page);
@@ -90,7 +89,11 @@ const BiodataDisplay: React.FC = () => {
   const fetchSingleRecord = async (id: number): Promise<void> => {
     try {
       setLoading(true);
-      const response = await axios.get<SingleRecordResponse>(`${BASE}/biodata2/${id}`, { headers });
+      const response = await axios.get<SingleRecordResponse>(`https://sosafe.onrender.com/api/biodata2/${id}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       setSelectedRecord(response.data.data);
     } catch {
       setError('Failed to fetch record details. Please try again.');
@@ -103,7 +106,11 @@ const BiodataDisplay: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get<AllRecordsResponse>(`${BASE}/old/records/all`, { headers });
+      const response = await axios.get<AllRecordsResponse>(`https://sosafe.onrender.com/api/old/records/all`, {
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
       const jsonStr  = JSON.stringify(response.data.data, null, 2);
       const blob     = new Blob([jsonStr], { type: 'application/json' });
       const url      = window.URL.createObjectURL(blob);
