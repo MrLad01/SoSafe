@@ -22,16 +22,7 @@ const AdminDashboard: React.FC = () => {
           <div className="text-lg font-semibold mb-6">
             <h4>Welcome, <span className="text-yellow-500 shadow-sm p-2">{user?.name}</span></h4>
           </div>
-          <div className="flex space-x-4 px-10">
-            <div className="flex flex-col w-full space-y-3">
-              <FileUploader />
-              <DivisionFileUploader />
-            </div>
-            <div className="flex flex-col w-full space-y-3">
-              <ZoneFileUploader />
-              <AreaFileUploader />
-            </div>
-          </div>
+            <FileUploader />
         </div>
       </div>
     </div>

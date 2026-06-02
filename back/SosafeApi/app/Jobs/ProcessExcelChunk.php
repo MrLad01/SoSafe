@@ -38,29 +38,30 @@ class ProcessExcelChunk implements ShouldQueue
                 $areaId     = $areas[strtoupper(trim((string)($line['AREA'] ?? '')))]     ?? null;
                 $divisionId = $divisions[strtoupper(trim((string)($line['CITY'] ?? '')))] ?? null;
 
+                // Array keys changed to lowercase to match PostgreSQL column names
                 $dataToInsert[] = [
-                    'SNO'           => $line['SNO']           ?? null,
-                    'FNO'           => $line['FNO']           ?? null,
-                    'SNAME'         => $line['SNAME']         ?? null,
-                    'FNAME'         => $line['FNAME']         ?? null,
-                    'ONAME'         => $line['ONAME']         ?? null,
-                    'ADDRESS'       => $line['ADDRESS']       ?? null,
-                    'PHONE'         => $line['PHONE']         ?? null,
-                    'NIN'           => $line['NIN']           ?? null,
-                    'DOB'           => $line['DOB']           ?? null,
-                    'SEX'           => $line['SEX']           ?? null,
-                    'CITY'          => $divisionId,
-                    'ZONE'          => $zoneId,
-                    'AREA'          => $areaId,
-                    'SERVNO'        => $line['SERVNO']        ?? null,
-                    'POSITION'      => $line['POSITION']      ?? null,
-                    'ENLISTED'      => $line['ENLISTED']      ?? null,
-                    'RANK'          => $line['RANK']          ?? null,
-                    'NOK'           => $line['NOK']           ?? null,
-                    'RELATION'      => $line['RELATION']      ?? null,
-                    'NOKNO'         => $line['NOKNO']         ?? null,
-                    'CAPTURED'      => $line['CAPTURED']      ?? null,
-                    'QUALIFICATION' => $line['QUALIFICATION'] ?? null,
+                    'sno'           => $line['SNO']           ?? null,
+                    'fno'           => $line['FNO']           ?? null,
+                    'sname'         => $line['SNAME']         ?? null,
+                    'fname'         => $line['FNAME']         ?? null,
+                    'oname'         => $line['ONAME']         ?? null,
+                    'address'       => $line['ADDRESS']       ?? null,
+                    'phone'         => $line['PHONE']         ?? null,
+                    'nin'           => $line['NIN']           ?? null,
+                    'dob'           => $line['DOB']           ?? null,
+                    'sex'           => $line['SEX']           ?? null,
+                    'city'          => $divisionId,
+                    'zone'          => $zoneId,
+                    'area'          => $areaId,
+                    'servno'        => $line['SERVNO']        ?? null,
+                    'position'      => $line['POSITION']      ?? null,
+                    'enlisted'      => $line['ENLISTED']      ?? null,
+                    'rank'          => $line['RANK']          ?? null,
+                    'nok'           => $line['NOK']           ?? null,
+                    'relation'      => $line['RELATION']      ?? null,
+                    'nokno'         => $line['NOKNO']         ?? null,
+                    'captured'      => $line['CAPTURED']      ?? null,
+                    'qualification' => $line['QUALIFICATION'] ?? null,
                     'created_at'    => $this->now,
                     'updated_at'    => $this->now,
                 ];
@@ -91,8 +92,6 @@ class ProcessExcelChunk implements ShouldQueue
     private function updateProgressIncremental(int $count): void
     {
         $key = "import:{$this->importId}";
-
-        // Use a lock to safely increment the processed row count across multiple queue workers
         $lock = Cache::lock("lock:progress:{$this->importId}", 10);
 
         if ($lock->get()) {
@@ -109,23 +108,17 @@ class ProcessExcelChunk implements ShouldQueue
     private function markChunkDone(int $count): void
     {
         $key = "import:{$this->importId}";
-
-        // Use a lock to safely increment the chunk completion count
         $lock = Cache::lock("lock:chunk:{$this->importId}", 10);
 
         if ($lock->get()) {
             try {
                 $data = Cache::get($key, []);
-                
-                // Increment chunks done
                 $data['done'] = ($data['done'] ?? 0) + 1;
                 
-                // If updateProgressIncremental wasn't triggered (chunk < 50), capture the remainder
                 if ($count < 50 && $count > 0) {
                     $data['processed'] = ($data['processed'] ?? 0) + $count;
                 }
 
-                // Check if this was the very last chunk to finish
                 if (($data['done'] >= ($data['chunks'] ?? 1)) && in_array($data['status'], ['dispatched', 'processing'])) {
                     $data['status']      = 'completed';
                     $data['finished_at'] = now()->toDateTimeString();
@@ -141,7 +134,6 @@ class ProcessExcelChunk implements ShouldQueue
     private function recordError(string $errorMsg): void
     {
         $key = "import:{$this->importId}";
-
         $lock = Cache::lock("lock:error:{$this->importId}", 10);
 
         if ($lock->get()) {
@@ -150,7 +142,6 @@ class ProcessExcelChunk implements ShouldQueue
                 $data['status']      = 'failed';
                 $data['finished_at'] = now()->toDateTimeString();
                 
-                // Append the specific worker error to the errors array for the UI to display
                 $errors = $data['errors'] ?? [];
                 $errors[] = "Worker error: " . $errorMsg;
                 $data['errors'] = $errors;

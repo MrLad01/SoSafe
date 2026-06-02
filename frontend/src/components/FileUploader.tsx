@@ -47,8 +47,7 @@ const STATUS_META: Record<ImportStatus, { label: string; accent: string; bg: str
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const fmt  = (n: number) => n.toLocaleString();
-const ts   = () => new Date().toLocaleTimeString("en-GB", { hour12: false });
+const fmt = (n?: number | null) => (typeof n === "number" ? n.toLocaleString() : "0");const ts   = () => new Date().toLocaleTimeString("en-GB", { hour12: false });
 const bpct = (done: number, total: number) =>
   total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
 
@@ -230,7 +229,11 @@ const FileUploader: React.FC = () => {
   // ── Derived ─────────────────────────────────────────────────────────────────
 
   const isActive      = !TERMINAL.has(status) && status !== "idle";
-  const meta          = STATUS_META[status];
+  const meta = STATUS_META[status] || { 
+    label: String(status || "Unknown"), 
+    accent: "#6b7280", 
+    bg: "#f3f4f6" 
+  };
   const indeterminate = ["queued", "processing"].includes(status) && (!progress || progress.chunks === 0);
 
   const barWidth = status === "uploading"
