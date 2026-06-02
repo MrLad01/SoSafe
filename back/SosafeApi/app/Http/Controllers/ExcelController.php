@@ -55,38 +55,40 @@ class ExcelController extends Controller
      */
     public function progress(string $importId)
     {
-        // Validate the import ID exists before opening the stream
         if (!Cache::has("import:{$importId}")) {
-            return response()->json(['error' => 'Import not found.'], 404);
+            return response()->json(['error' => 'Import not found'], 404);
         }
 
         return response()->stream(function () use ($importId) {
-            // Keep sending while the client is connected and the job is running
+            $lastProcessed = -1;
+
             while (true) {
                 $data = Cache::get("import:{$importId}");
 
                 if (!$data) {
-                    $this->sendSseEvent('error', ['message' => 'Import record expired or not found.']);
+                    $this->sendSseEvent('error', ['message' => 'Import data expired']);
                     break;
                 }
 
-                $this->sendSseEvent('progress', $data);
+                // Only send if there's actual progress change
+                if ($data['processed'] !== $lastProcessed || in_array($data['status'], ['completed', 'failed'])) {
+                    $this->sendSseEvent('progress', $data);
+                    $lastProcessed = $data['processed'];
+                }
 
-                // Stop streaming once the job has finished (success or failed)
                 if (in_array($data['status'], ['completed', 'failed'])) {
                     break;
                 }
 
-                // Flush the output buffer so the client receives the event now
                 ob_flush();
                 flush();
 
-                sleep(2); // Poll cache every 2 seconds
+                usleep(400_000); // 400ms — much more responsive than 2 seconds
             }
         }, 200, [
             'Content-Type'      => 'text/event-stream',
             'Cache-Control'     => 'no-cache',
-            'X-Accel-Buffering' => 'no', // Disable nginx output buffering
+            'X-Accel-Buffering' => 'no',
             'Connection'        => 'keep-alive',
         ]);
     }

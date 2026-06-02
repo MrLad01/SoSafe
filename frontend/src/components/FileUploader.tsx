@@ -3,7 +3,14 @@ import axios from "axios";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ImportStatus = "idle" | "uploading" | "queued" | "processing" | "dispatched" | "completed" | "failed";
+type ImportStatus =
+  | "idle"
+  | "uploading"
+  | "queued"
+  | "processing"
+  | "dispatched"
+  | "completed"
+  | "failed";
 
 interface ProgressData {
   status: ImportStatus;
@@ -24,65 +31,81 @@ interface LogEntry {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const API_BASE = "https://sosafe.onrender.com/api";
+const API_BASE    = "https://sosafe.onrender.com/api";
+const POLL_MS     = 3000; // poll every 3 seconds
+const TERMINAL    = new Set<ImportStatus>(["completed", "failed"]);
 
-const STATUS_META: Record<ImportStatus, { label: string; color: string }> = {
-  idle:        { label: "Ready",       color: "#52525b" },
-  uploading:   { label: "Uploading",   color: "#38bdf8" },
-  queued:      { label: "Queued",      color: "#a78bfa" },
-  processing:  { label: "Processing",  color: "#38bdf8" },
-  dispatched:  { label: "Inserting",   color: "#fb923c" },
-  completed:   { label: "Complete",    color: "#4ade80" },
-  failed:      { label: "Failed",      color: "#f87171" },
+const STATUS_META: Record<ImportStatus, { label: string; accent: string; bg: string }> = {
+  idle:        { label: "Ready",      accent: "#6b7280", bg: "#f3f4f6" },
+  uploading:   { label: "Uploading",  accent: "#3b82f6", bg: "#eff6ff" },
+  queued:      { label: "Queued",     accent: "#8b5cf6", bg: "#f5f3ff" },
+  processing:  { label: "Processing", accent: "#0ea5e9", bg: "#f0f9ff" },
+  dispatched:  { label: "Inserting",  accent: "#f59e0b", bg: "#fffbeb" },
+  completed:   { label: "Complete",   accent: "#22c55e", bg: "#f0fdf4" },
+  failed:      { label: "Failed",     accent: "#ef4444", bg: "#fef2f2" },
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const fmt = (n: number) => n.toLocaleString();
-const pct = (done: number, total: number) =>
+const fmt  = (n: number) => n.toLocaleString();
+const ts   = () => new Date().toLocaleTimeString("en-GB", { hour12: false });
+const bpct = (done: number, total: number) =>
   total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
-const ts  = () =>
-  new Date().toLocaleTimeString("en-GB", { hour12: false });
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const FileUploader: React.FC = () => {
-  const [file,       setFile]       = useState<File | null>(null);
-  const [uploadPct,  setUploadPct]  = useState(0);
-  const [status,     setStatus]     = useState<ImportStatus>("idle");
-  const [progress,   setProgress]   = useState<ProgressData | null>(null);
-  const [importId,   setImportId]   = useState<string | null>(null);
-  const [log,        setLog]        = useState<LogEntry[]>([]);
-  const [dragOver,   setDragOver]   = useState(false);
+  const [file,      setFile]      = useState<File | null>(null);
+  const [uploadPct, setUploadPct] = useState(0);
+  const [status,    setStatus]    = useState<ImportStatus>("idle");
+  const [progress,  setProgress]  = useState<ProgressData | null>(null);
+  const [importId,  setImportId]  = useState<string | null>(null);
+  const [log,       setLog]       = useState<LogEntry[]>([]);
+  const [dragOver,  setDragOver]  = useState(false);
+  const [lastPoll,  setLastPoll]  = useState<string>("");
+  const [countdown, setCountdown] = useState(POLL_MS / 1000);
 
-  const esRef     = useRef<EventSource | null>(null);
-  const logEndRef = useRef<HTMLDivElement>(null);
-  const token     = sessionStorage.getItem("authToken");
+  const pollRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countRef   = useRef<ReturnType<typeof setInterval> | null>(null);
+  const logEndRef  = useRef<HTMLDivElement>(null);
+  const token      = sessionStorage.getItem("authToken");
 
   // Auto-scroll log
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [log]);
 
-  // Cleanup SSE on unmount
-  useEffect(() => () => { esRef.current?.close(); }, []);
+  // Cleanup on unmount
+  useEffect(() => () => {
+    clearPoll();
+  }, []);
 
   const addLog = useCallback((text: string, isError = false) => {
     setLog(prev => [...prev, { time: ts(), text, isError }]);
   }, []);
 
+  const clearPoll = () => {
+    if (pollRef.current)  clearInterval(pollRef.current);
+    if (countRef.current) clearInterval(countRef.current);
+    pollRef.current  = null;
+    countRef.current = null;
+  };
+
   // ── File selection ──────────────────────────────────────────────────────────
 
   const applyFile = (f: File) => {
-    const ok = /\.(xlsx|xls|csv)$/i.test(f.name);
-    if (!ok) { addLog("Only .xlsx, .xls, or .csv files are accepted.", true); return; }
+    const valid = /\.(xlsx|xls|csv)$/i.test(f.name);
+    if (!valid) {
+      addLog("Only .xlsx, .xls, or .csv files are accepted.", true);
+      return;
+    }
     setFile(f);
     setStatus("idle");
     setProgress(null);
     setLog([]);
     setUploadPct(0);
     setImportId(null);
-    addLog(`File selected: ${f.name} (${(f.size / 1024).toFixed(1)} KB)`);
+    setLastPoll("");
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -95,47 +118,47 @@ const FileUploader: React.FC = () => {
     if (e.dataTransfer.files?.[0]) applyFile(e.dataTransfer.files[0]);
   };
 
-  // ── SSE stream ──────────────────────────────────────────────────────────────
+  // ── Polling ─────────────────────────────────────────────────────────────────
 
-  const openStream = useCallback((id: string) => {
-    esRef.current?.close();
+  const startPolling = useCallback((id: string) => {
+    clearPoll();
+    setCountdown(POLL_MS / 1000);
 
-    // EventSource can't send headers — pass JWT as query param.
-    // JwtMiddleware must fall back to ?token=... when the Authorization header is absent.
-    const url = `${API_BASE}/import/progress/${id}?token=${token ?? ""}`;
-    const es  = new EventSource(url);
-    esRef.current = es;
-
-    es.addEventListener("progress", (e: MessageEvent) => {
-      const d: ProgressData = JSON.parse(e.data);
-      setProgress(d);
-      setStatus(d.status);
-
-      if (d.status === "completed") {
-        addLog(`Import finished — ${fmt(d.processed)} rows inserted across ${fmt(d.chunks)} chunks.`);
-        es.close();
-      } else if (d.status === "failed") {
-        d.errors.forEach(err => addLog(err, true));
-        es.close();
-      }
-    });
-
-    es.addEventListener("error", (e: MessageEvent) => {
+    const poll = async () => {
       try {
-        const d = JSON.parse((e as any).data ?? "{}");
-        addLog(`Stream error: ${d.message ?? "connection lost"}`, true);
-      } catch {
-        addLog("Progress stream connection lost.", true);
-      }
-      es.close();
-    });
+        const { data } = await axios.get<ProgressData>(
+          `${API_BASE}/import/progress/${id}`,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-    es.onerror = () => {
-      // Browser-level drop (not a server event) — only fire if still open
-      if (es.readyState === EventSource.CLOSED) return;
-      addLog("Lost connection to progress stream.", true);
-      es.close();
+        setProgress(data);
+        setStatus(data.status);
+        setLastPoll(ts());
+
+        if (data.status === "completed") {
+          addLog(`Import complete — ${fmt(data.processed)} rows inserted across ${fmt(data.chunks)} chunks.`);
+          clearPoll();
+        } else if (data.status === "failed") {
+          data.errors.forEach(e => addLog(e, true));
+          clearPoll();
+        }
+      } catch (err) {
+        const msg = axios.isAxiosError(err)
+          ? err.response?.data?.error ?? err.message
+          : "Polling error";
+        addLog(`Poll failed: ${msg}`, true);
+        // Don't stop — keep polling; transient network blips happen
+      }
     };
+
+    // Fire immediately, then every POLL_MS
+    poll();
+    pollRef.current = setInterval(poll, POLL_MS);
+
+    // Countdown ticker
+    countRef.current = setInterval(() => {
+      setCountdown(prev => (prev <= 1 ? POLL_MS / 1000 : prev - 1));
+    }, 1000);
   }, [token, addLog]);
 
   // ── Upload ──────────────────────────────────────────────────────────────────
@@ -143,6 +166,7 @@ const FileUploader: React.FC = () => {
   const handleUpload = async () => {
     if (!file) return;
 
+    clearPoll();
     setStatus("uploading");
     setUploadPct(0);
     setLog([]);
@@ -167,10 +191,11 @@ const FileUploader: React.FC = () => {
         }
       );
 
-      addLog(`File accepted by server. Import ID: ${data.import_id}`);
+      addLog(`File accepted — import ID: ${data.import_id}`);
       setImportId(data.import_id);
       setStatus("queued");
-      openStream(data.import_id);
+      startPolling(data.import_id);
+
     } catch (err) {
       const msg = axios.isAxiosError(err)
         ? err.response?.data?.message ?? err.message
@@ -180,285 +205,366 @@ const FileUploader: React.FC = () => {
     }
   };
 
+  // ── Manual refresh ──────────────────────────────────────────────────────────
+
+  const manualRefresh = () => {
+    if (!importId || TERMINAL.has(status)) return;
+    clearPoll();
+    startPolling(importId);
+    addLog("Refreshed manually.");
+  };
+
   // ── Reset ───────────────────────────────────────────────────────────────────
 
   const reset = () => {
-    esRef.current?.close();
+    clearPoll();
     setFile(null);
     setStatus("idle");
     setProgress(null);
     setLog([]);
     setUploadPct(0);
     setImportId(null);
+    setLastPoll("");
   };
 
-  // ── Derived values ──────────────────────────────────────────────────────────
+  // ── Derived ─────────────────────────────────────────────────────────────────
 
-  const isActive  = !["idle", "completed", "failed"].includes(status);
-  const barWidth  = status === "uploading"
-    ? uploadPct
-    : progress
-      ? pct(progress.done, progress.chunks || 1)
-      : status === "queued" ? 5 : 0;
-
-  const { label: statusLabel, color: statusColor } = STATUS_META[status];
-
+  const isActive      = !TERMINAL.has(status) && status !== "idle";
+  const meta          = STATUS_META[status];
   const indeterminate = ["queued", "processing"].includes(status) && (!progress || progress.chunks === 0);
+
+  const barWidth = status === "uploading"
+    ? uploadPct
+    : progress?.chunks
+      ? bpct(progress.done, progress.chunks)
+      : status === "queued" ? 8 : 0;
 
   // ─────────────────────────────────────────────────────────────────────────────
 
   return (
     <div style={{
       fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
-      background: "#fafaf9",
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "2rem",
+      width: "100%",
+      maxWidth: 520,
     }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
 
-        * { box-sizing: border-box; }
+        .fu * { box-sizing: border-box; }
 
-        .su-card {
-          width: 100%;
-          max-width: 520px;
-          background: #ffffff;
+        .fu-card {
+          background: #fff;
           border: 1px solid #e5e7eb;
           border-radius: 16px;
           overflow: hidden;
         }
 
-        .su-header {
-          padding: 1.5rem 1.75rem 1.25rem;
+        .fu-head {
+          padding: 1.25rem 1.5rem;
           border-bottom: 1px solid #f3f4f6;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
         }
-        .su-eyebrow {
+        .fu-head-left {}
+        .fu-eyebrow {
           font-family: 'DM Mono', monospace;
-          font-size: 11px;
+          font-size: 10px;
           letter-spacing: .1em;
           text-transform: uppercase;
           color: #9ca3af;
-          margin-bottom: 4px;
+          margin-bottom: 2px;
         }
-        .su-title {
-          font-size: 1.15rem;
+        .fu-title {
+          font-size: 1rem;
           font-weight: 600;
           color: #111827;
           margin: 0;
         }
 
-        .su-body { padding: 1.5rem 1.75rem; display: flex; flex-direction: column; gap: 1.25rem; }
-
-        /* Drop zone */
-        .su-drop {
-          border: 1.5px dashed #d1d5db;
-          border-radius: 12px;
-          padding: 2rem 1.5rem;
-          text-align: center;
-          cursor: pointer;
-          transition: border-color .2s, background .2s;
-          position: relative;
-          background: #fafaf9;
-        }
-        .su-drop.drag { border-color: #6366f1; background: #eef2ff; }
-        .su-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-        .su-drop-icon { font-size: 1.75rem; margin-bottom: .5rem; color: #6366f1; }
-        .su-drop-main { font-size: .9rem; font-weight: 500; color: #374151; }
-        .su-drop-sub  { font-size: .78rem; color: #9ca3af; margin-top: 2px; }
-        .su-file-name { font-family: 'DM Mono', monospace; font-size: .78rem; color: #6366f1; margin-top: .5rem; display: flex; align-items: center; justify-content: center; gap: 6px; }
-
-        /* Progress bar */
-        .su-bar-wrap { height: 5px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
-        .su-bar-fill { height: 100%; border-radius: 99px; background: #6366f1; transition: width .4s ease; }
-        .su-bar-fill.indeterminate { width: 35% !important; animation: su-slide 1.3s ease-in-out infinite; }
-        .su-bar-fill.done  { background: #22c55e; }
-        .su-bar-fill.error { background: #ef4444; }
-        @keyframes su-slide {
-          0%   { transform: translateX(-100%); }
-          100% { transform: translateX(350%); }
-        }
-
-        /* Status row */
-        .su-status-row { display: flex; align-items: center; justify-content: space-between; }
-        .su-pct  { font-family: 'DM Mono', monospace; font-size: .8rem; color: #6b7280; }
-        .su-badge {
+        /* Status pill in header */
+        .fu-pill {
           font-family: 'DM Mono', monospace;
-          font-size: .7rem;
-          padding: 3px 10px;
-          border-radius: 99px;
-          letter-spacing: .04em;
-          text-transform: uppercase;
+          font-size: .68rem;
           font-weight: 500;
-          background: #f3f4f6;
+          letter-spacing: .05em;
+          text-transform: uppercase;
+          padding: 4px 12px;
+          border-radius: 99px;
           transition: background .3s, color .3s;
         }
 
+        .fu-body { padding: 1.25rem 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+        /* Drop zone */
+        .fu-drop {
+          border: 1.5px dashed #d1d5db;
+          border-radius: 12px;
+          padding: 1.75rem 1.5rem;
+          text-align: center;
+          cursor: pointer;
+          position: relative;
+          transition: border-color .2s, background .2s;
+          background: #fafaf9;
+        }
+        .fu-drop.drag, .fu-drop:hover { border-color: #6366f1; background: #fafaff; }
+        .fu-drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .fu-drop input:disabled { cursor: not-allowed; }
+        .fu-drop-icon { font-size: 1.5rem; margin-bottom: .4rem; }
+        .fu-drop-main { font-size: .875rem; font-weight: 500; color: #374151; }
+        .fu-drop-sub  { font-size: .75rem; color: #9ca3af; margin-top: 2px; }
+        .fu-chosen {
+          display: flex; align-items: center; justify-content: center; gap: 6px;
+          font-family: 'DM Mono', monospace; font-size: .75rem; color: #6366f1; margin-top: .5rem;
+        }
+
+        /* Bar */
+        .fu-bar-wrap { height: 4px; background: #f3f4f6; border-radius: 99px; overflow: hidden; }
+        .fu-bar-fill { height: 100%; border-radius: 99px; transition: width .5s ease; }
+        .fu-bar-fill.ind { width: 35% !important; animation: fu-slide 1.4s ease-in-out infinite; }
+        @keyframes fu-slide {
+          0%   { transform: translateX(-105%); }
+          100% { transform: translateX(370%); }
+        }
+
+        /* Poll row */
+        .fu-poll-row {
+          display: flex; align-items: center; justify-content: space-between;
+          font-family: 'DM Mono', monospace; font-size: .7rem; color: #9ca3af;
+        }
+        .fu-poll-btn {
+          background: none; border: none; cursor: pointer; padding: 0;
+          color: #6366f1; font-size: .7rem; font-family: 'DM Mono', monospace;
+          display: flex; align-items: center; gap: 4px;
+          transition: opacity .2s;
+        }
+        .fu-poll-btn:hover { opacity: .7; }
+        .fu-poll-btn:disabled { opacity: .3; cursor: not-allowed; }
+        @keyframes fu-spin { to { transform: rotate(360deg); } }
+        .fu-spin { display: inline-block; animation: fu-spin 1s linear infinite; }
+
         /* Stats */
-        .su-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-        .su-stat { background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 10px; padding: .65rem .85rem; }
-        .su-stat-label { font-size: .68rem; font-family: 'DM Mono', monospace; color: #9ca3af; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
-        .su-stat-val   { font-size: 1.1rem; font-weight: 600; font-family: 'DM Mono', monospace; color: #111827; line-height: 1; }
+        .fu-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        .fu-stat {
+          background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 10px;
+          padding: .6rem .8rem;
+        }
+        .fu-stat-l { font-size: .67rem; font-family: 'DM Mono', monospace; color: #9ca3af; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 2px; }
+        .fu-stat-v { font-size: 1.05rem; font-weight: 600; font-family: 'DM Mono', monospace; color: #111827; line-height: 1.1; }
 
         /* Log */
-        .su-log { background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 10px; padding: .65rem .9rem; max-height: 130px; overflow-y: auto; font-family: 'DM Mono', monospace; font-size: .72rem; color: #6b7280; line-height: 1.75; }
-        .su-log-row { display: flex; gap: 10px; }
-        .su-log-t   { color: #6366f1; flex-shrink: 0; }
-        .su-log-err { color: #ef4444; }
+        .fu-log {
+          background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 10px;
+          padding: .6rem .85rem; max-height: 120px; overflow-y: auto;
+          font-family: 'DM Mono', monospace; font-size: .7rem; color: #6b7280; line-height: 1.8;
+        }
+        .fu-log-row { display: flex; gap: 10px; }
+        .fu-log-t   { color: #6366f1; flex-shrink: 0; }
+        .fu-log-err { color: #ef4444; }
 
         /* Import ID */
-        .su-id { font-family: 'DM Mono', monospace; font-size: .7rem; color: #9ca3af; display: flex; gap: 8px; }
-        .su-id span { color: #374151; word-break: break-all; }
+        .fu-id {
+          font-family: 'DM Mono', monospace; font-size: .68rem; color: #9ca3af;
+          display: flex; gap: 6px; flex-wrap: wrap;
+        }
+        .fu-id span { color: #374151; }
 
         /* Buttons */
-        .su-btn {
-          width: 100%;
-          padding: .7rem;
-          border: none;
-          border-radius: 10px;
-          font-family: 'DM Sans', sans-serif;
-          font-size: .9rem;
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: background .2s, transform .1s, opacity .2s;
+        .fu-btn {
+          width: 100%; padding: .7rem; border: none; border-radius: 10px;
+          font-family: 'DM Sans', sans-serif; font-size: .875rem; font-weight: 600;
+          cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+          transition: background .15s, opacity .15s, transform .1s;
         }
-        .su-btn-primary { background: #6366f1; color: #fff; }
-        .su-btn-primary:hover:not(:disabled) { background: #4f46e5; }
-        .su-btn-primary:active:not(:disabled) { transform: scale(.98); }
-        .su-btn-primary:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
-        .su-btn-ghost { background: transparent; border: 1px solid #e5e7eb; color: #6b7280; margin-top: -.25rem; }
-        .su-btn-ghost:hover { border-color: #6366f1; color: #6366f1; }
+        .fu-primary { background: #6366f1; color: #fff; }
+        .fu-primary:hover:not(:disabled) { background: #4f46e5; }
+        .fu-primary:active:not(:disabled) { transform: scale(.98); }
+        .fu-primary:disabled { background: #e5e7eb; color: #9ca3af; cursor: not-allowed; }
+        .fu-ghost {
+          background: transparent; border: 1px solid #e5e7eb; color: #6b7280;
+        }
+        .fu-ghost:hover { border-color: #6366f1; color: #6366f1; }
 
-        @keyframes su-spin { to { transform: rotate(360deg); } }
-        .su-spin { display: inline-block; animation: su-spin 1s linear infinite; }
+        /* Error banner */
+        .fu-error {
+          background: #fef2f2; border: 1px solid #fecaca; border-radius: 10px;
+          padding: .65rem .9rem; font-size: .8rem; color: #b91c1c;
+          display: flex; gap: 8px; align-items: flex-start;
+        }
       `}</style>
 
-      <div className="su-card">
-        {/* Header */}
-        <div className="su-header">
-          <p className="su-eyebrow">SoSafe Corps — Admin</p>
-          <h2 className="su-title">Import personnel biodata</h2>
-        </div>
+      <div className="fu">
+        <div className="fu-card">
 
-        <div className="su-body">
-          {/* Drop zone */}
-          <div
-            className={`su-drop${dragOver ? " drag" : ""}`}
-            onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={handleDrop}
-          >
-            <input
-              type="file"
-              accept=".xlsx,.xls,.csv"
-              onChange={handleChange}
-              disabled={isActive}
-            />
-            <div className="su-drop-icon">📊</div>
-            <p className="su-drop-main">Drop spreadsheet here</p>
-            <p className="su-drop-sub">xlsx · xls · csv — click to browse</p>
-            {file && (
-              <div className="su-file-name">
-                <span>✓</span>
-                <span>{file.name}</span>
-              </div>
+          {/* Header */}
+          <div className="fu-head">
+            <div className="fu-head-left">
+              <p className="fu-eyebrow">SoSafe Corps — Admin</p>
+              <h2 className="fu-title">Import personnel biodata</h2>
+            </div>
+            {status !== "idle" && (
+              <span
+                className="fu-pill"
+                style={{ background: meta.bg, color: meta.accent }}
+              >
+                {meta.label}
+              </span>
             )}
           </div>
 
-          {/* Progress bar */}
-          {status !== "idle" && (
-            <div>
-              <div className="su-bar-wrap">
-                <div
-                  className={`su-bar-fill${indeterminate ? " indeterminate" : ""}${status === "completed" ? " done" : ""}${status === "failed" ? " error" : ""}`}
-                  style={{ width: indeterminate ? undefined : `${barWidth}%` }}
-                />
-              </div>
-              <div className="su-status-row" style={{ marginTop: 6 }}>
-                <span className="su-pct">
-                  {status === "uploading"
-                    ? `${uploadPct}% uploaded`
-                    : progress
-                      ? `${fmt(progress.processed)} / ${fmt(progress.total)} rows`
-                      : ""}
-                </span>
-                <span
-                  className="su-badge"
-                  style={{ background: `${statusColor}18`, color: statusColor }}
-                >
-                  {statusLabel}
-                </span>
-              </div>
-            </div>
-          )}
+          <div className="fu-body">
 
-          {/* Stats — only once we have real data */}
-          {progress && (
-            <div className="su-stats">
-              <div className="su-stat">
-                <p className="su-stat-label">Rows parsed</p>
-                <p className="su-stat-val">{fmt(progress.total)}</p>
-              </div>
-              <div className="su-stat">
-                <p className="su-stat-label">Rows inserted</p>
-                <p className="su-stat-val">{fmt(progress.processed)}</p>
-              </div>
-              <div className="su-stat">
-                <p className="su-stat-label">Chunks</p>
-                <p className="su-stat-val">{progress.done}/{progress.chunks}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Log */}
-          {log.length > 0 && (
-            <div className="su-log" role="log" aria-live="polite">
-              {log.map((e, i) => (
-                <div key={i} className={`su-log-row${e.isError ? " su-log-err" : ""}`}>
-                  <span className="su-log-t">{e.time}</span>
-                  <span>{e.text}</span>
+            {/* Drop zone */}
+            <div
+              className={`fu-drop${dragOver ? " drag" : ""}`}
+              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleChange}
+                disabled={isActive}
+              />
+              <div className="fu-drop-icon">📊</div>
+              <p className="fu-drop-main">Drop spreadsheet here</p>
+              <p className="fu-drop-sub">xlsx · xls · csv accepted — or click to browse</p>
+              {file && (
+                <div className="fu-chosen">
+                  <span>✓</span>
+                  <span>{file.name}</span>
+                  <span style={{ color: "#9ca3af" }}>({(file.size / 1024).toFixed(1)} KB)</span>
                 </div>
-              ))}
-              <div ref={logEndRef} />
+              )}
             </div>
-          )}
 
-          {/* Import ID */}
-          {importId && (
-            <div className="su-id">
-              <span>import</span>
-              <span>{importId}</span>
-            </div>
-          )}
+            {/* Progress bar + poll controls */}
+            {status !== "idle" && (
+              <div>
+                <div className="fu-bar-wrap" style={{ marginBottom: 8 }}>
+                  <div
+                    className={`fu-bar-fill${indeterminate ? " ind" : ""}`}
+                    style={{
+                      width:      indeterminate ? undefined : `${barWidth}%`,
+                      background: status === "completed" ? "#22c55e"
+                                : status === "failed"    ? "#ef4444"
+                                : meta.accent,
+                    }}
+                  />
+                </div>
 
-          {/* Upload button */}
-          <button
-            className="su-btn su-btn-primary"
-            onClick={handleUpload}
-            disabled={!file || isActive}
-            type="button"
-          >
-            {status === "uploading" ? (
-              <><span className="su-spin">⟳</span> Uploading…</>
-            ) : isActive ? (
-              <><span className="su-spin">⟳</span> Processing…</>
-            ) : (
-              <>↑ Upload &amp; import</>
+                <div className="fu-poll-row">
+                  <span>
+                    {status === "uploading"
+                      ? `${uploadPct}% transferred`
+                      : progress
+                        ? `${fmt(progress.processed)} / ${fmt(progress.total)} rows`
+                        : "Waiting for worker…"}
+                  </span>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    {lastPoll && !TERMINAL.has(status) && (
+                      <span style={{ color: "#d1d5db" }}>
+                        next in {countdown}s
+                      </span>
+                    )}
+                    {lastPoll && (
+                      <span style={{ color: "#d1d5db" }}>
+                        last {lastPoll}
+                      </span>
+                    )}
+                    {!TERMINAL.has(status) && status !== "uploading" && (
+                      <button
+                        className="fu-poll-btn"
+                        onClick={manualRefresh}
+                        disabled={!importId}
+                        title="Refresh now"
+                      >
+                        <span className={isActive ? "fu-spin" : ""}>↻</span>
+                        refresh
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
             )}
-          </button>
 
-          {/* Reset — only after terminal state */}
-          {["completed", "failed"].includes(status) && (
-            <button className="su-btn su-btn-ghost" onClick={reset} type="button">
-              ↺ Start a new import
+            {/* Stats */}
+            {progress && (
+              <div className="fu-stats">
+                <div className="fu-stat">
+                  <p className="fu-stat-l">Rows parsed</p>
+                  <p className="fu-stat-v">{fmt(progress.total)}</p>
+                </div>
+                <div className="fu-stat">
+                  <p className="fu-stat-l">Inserted</p>
+                  <p className="fu-stat-v">{fmt(progress.processed)}</p>
+                </div>
+                <div className="fu-stat">
+                  <p className="fu-stat-l">Chunks</p>
+                  <p className="fu-stat-v">{progress.done}/{progress.chunks || "?"}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Error list */}
+            {progress?.errors?.length ? (
+              <div className="fu-error">
+                <span>⚠</span>
+                <div>
+                  {progress.errors.map((e, i) => (
+                    <div key={i}>{e}</div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+
+            {/* Activity log */}
+            {log.length > 0 && (
+              <div className="fu-log" role="log" aria-live="polite">
+                {log.map((e, i) => (
+                  <div key={i} className={`fu-log-row${e.isError ? " fu-log-err" : ""}`}>
+                    <span className="fu-log-t">{e.time}</span>
+                    <span>{e.text}</span>
+                  </div>
+                ))}
+                <div ref={logEndRef} />
+              </div>
+            )}
+
+            {/* Import ID */}
+            {importId && (
+              <div className="fu-id">
+                <span>import id</span>
+                <span>{importId}</span>
+              </div>
+            )}
+
+            {/* Primary CTA */}
+            <button
+              className="fu-btn fu-primary"
+              onClick={handleUpload}
+              disabled={!file || isActive}
+              type="button"
+            >
+              {status === "uploading" ? (
+                <><span className="fu-spin">⟳</span> Uploading…</>
+              ) : isActive ? (
+                <><span className="fu-spin">⟳</span> Processing…</>
+              ) : (
+                <>↑ Upload &amp; import</>
+              )}
             </button>
-          )}
+
+            {/* Reset after terminal */}
+            {TERMINAL.has(status) && (
+              <button className="fu-btn fu-ghost" onClick={reset} type="button">
+                ↺ Start a new import
+              </button>
+            )}
+
+          </div>
         </div>
       </div>
     </div>

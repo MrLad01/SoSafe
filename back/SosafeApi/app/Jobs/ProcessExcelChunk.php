@@ -8,7 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use App\Models\NewBiodata; // FIX #1 — was incorrectly Biodata
+use App\Models\NewBiodata;
 
 class ProcessExcelChunk implements ShouldQueue
 {
@@ -19,17 +19,14 @@ class ProcessExcelChunk implements ShouldQueue
 
     public function __construct(
         private readonly array  $records,
-        private readonly string $now,      // FIX #4 — plain string, not Carbon
+        private readonly string $now,
         private readonly string $importId,
-        private readonly array  $meta,     // FIX #5 — lookups passed in, not re-queried
+        private readonly array  $meta,
     ) {}
 
     public function handle(): void
     {
         try {
-            // FIX #2 — keys already normalised (CASE_UPPER) in ImportExcelFile
-            //           and lookup maps already have uppercase-trimmed keys,
-            //           so lookups now reliably match.
             $zones     = $this->meta['zones'];
             $areas     = $this->meta['areas'];
             $divisions = $this->meta['divisions'];
@@ -37,10 +34,9 @@ class ProcessExcelChunk implements ShouldQueue
             $dataToInsert = [];
 
             foreach ($this->records as $line) {
-                // FIX #7 — array_change_key_case removed; already done at parse time
-                $zoneId     = $zones[strtoupper(trim($line['ZONE'] ?? ''))]     ?? null;
-                $areaId     = $areas[strtoupper(trim($line['AREA'] ?? ''))]     ?? null;
-                $divisionId = $divisions[strtoupper(trim($line['CITY'] ?? ''))] ?? null;
+                $zoneId     = $zones[strtoupper(trim((string)($line['ZONE'] ?? '')))]     ?? null;
+                $areaId     = $areas[strtoupper(trim((string)($line['AREA'] ?? '')))]     ?? null;
+                $divisionId = $divisions[strtoupper(trim((string)($line['CITY'] ?? '')))] ?? null;
 
                 $dataToInsert[] = [
                     'SNO'           => $line['SNO']           ?? null,
@@ -70,8 +66,11 @@ class ProcessExcelChunk implements ShouldQueue
                 ];
             }
 
-            // FIX #1 — insert into NewBiodata, not Biodata
             NewBiodata::insert($dataToInsert);
+
+            if (count($dataToInsert) >= 50) {
+                $this->updateProgressIncremental(count($dataToInsert));
+            }
 
             $this->markChunkDone(count($dataToInsert));
 
@@ -83,47 +82,55 @@ class ProcessExcelChunk implements ShouldQueue
                 'records_count' => count($this->records),
             ]);
 
-            $this->recordChunkError($e->getMessage());
+            $this->recordError($e->getMessage());
 
-            throw $e; // Let the queue retry according to $tries
+            throw $e;
         }
     }
 
-    /**
-     * Increment the "done" chunk counter and flip status to "completed"
-     * once every dispatched chunk has reported back.
-     */
-    private function markChunkDone(int $insertedCount): void
+    private function markChunkDone(int $count): void
     {
         $key = "import:{$this->importId}";
-
-        // Atomic-ish update: read → modify → write
-        // (For true atomicity use Redis HINCRBY or a DB row instead of Cache)
         $data = Cache::get($key, []);
 
-        $data['done']      = ($data['done']      ?? 0) + 1;
-        $data['processed'] = ($data['processed'] ?? 0) + $insertedCount;
+        $data['done']      = ($data['done'] ?? 0) + 1;
+        $data['processed'] = ($data['processed'] ?? 0) + $count;
 
-        // If every dispatched chunk is now done, mark the import completed
-        if (
-            isset($data['chunks']) &&
-            $data['chunks'] > 0 &&
-            $data['done'] >= $data['chunks']
-        ) {
+        $totalChunks = $data['chunks'] ?? 0;
+
+        // Calculate percentage
+        $data['percentage'] = $totalChunks > 0 
+            ? round(($data['processed'] / max($data['total'], 1)) * 100, 2)
+            : 0;
+
+        if ($totalChunks > 0 && $data['done'] >= $totalChunks) {
             $data['status']      = 'completed';
+            $data['percentage']  = 100;
             $data['finished_at'] = now()->toDateTimeString();
         }
 
         Cache::put($key, $data, now()->addHours(2));
     }
 
-    private function recordChunkError(string $message): void
+    private function recordError(string $message): void
     {
         $key  = "import:{$this->importId}";
         $data = Cache::get($key, []);
 
-        $data['errors'][] = $message;
-        $data['status']   = 'failed';
+        $data['status']      = 'failed';
+        $data['finished_at'] = now()->toDateTimeString();
+        $data['errors'][]    = $message;
+
+        Cache::put($key, $data, now()->addHours(2));
+    }
+
+    private function updateProgressIncremental(int $count): void
+    {
+        $key = "import:{$this->importId}";
+        $data = Cache::get($key, []);
+
+        $data['processed'] = ($data['processed'] ?? 0) + $count;
+        $data['percentage'] = round(($data['processed'] / max($data['total'], 1)) * 100, 2);
 
         Cache::put($key, $data, now()->addHours(2));
     }
