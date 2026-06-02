@@ -3,70 +3,97 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Jobs\ProcessExcelChunk;
 use App\Jobs\ImportExcelFile;
-use Illuminate\Support\Facades\Queue;
-use Rap2hpoutre\FastExcel\FastExcel;
 use App\Models\NewBiodata;
-use App\Models\Biodata;  
-use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\BiodataImport;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 
-
-class ExcelController extends Controller 
+class ExcelController extends Controller
 {
-    // public function import(Request $request)
-    // {
-    //     $file = $request->file('raw_data');
-
-    //     $request->validate([
-    //         'raw_data' => 'required|file|mimes:xlsx,xls,csv'
-    //     ]);
-
-    //     $path = $file->store('temp');
-    //     $fullPath = storage_path("app/{$path}");
-
-    //     NewBiodata::truncate();
-
-    //     // Use FastExcel for xlsx, Maatwebsite for xls
-    //     if ($file->getClientOriginalExtension() === 'xlsx') {
-    //         $collection = (new FastExcel)->import($fullPath);
-    //     } else {
-    //         $collection = collect(Excel::toArray([], $fullPath)[0])->skip(1)->map(function($row) {
-    //             // map array index to keys using first row as headers
-    //             return $row;
-    //         });
-    //     }
-
-    //     $chunks = $collection->chunk(1000);
-    //     $now    = now();
-
-    //     foreach ($chunks as $chunk) {
-    //         Queue::push(new ProcessExcelChunk($chunk->toArray(), $now));
-    //     }
-
-    //     return response()->json([
-    //         'message'       => 'File upload successful. Processing has begun.',
-    //         'total_records' => $collection->count(),
-    //         'chunks'        => $chunks->count()
-    //     ]);
-    // }
     public function import(Request $request)
     {
         $request->validate([
             'raw_data' => 'required|file|mimes:xlsx,xls,csv'
         ]);
 
+        // Generate a unique import ID so the client can poll progress
+        $importId = (string) Str::uuid();
+
         $path = $request->file('raw_data')->store('temp');
 
-        NewBiodata::truncate();
+        // Initialise progress in cache before dispatching so the first poll
+        // never returns 404
+        Cache::put("import:{$importId}", [
+            'status'    => 'queued',
+            'total'     => 0,
+            'processed' => 0,
+            'chunks'    => 0,
+            'done'      => 0,
+            'errors'    => [],
+            'started_at' => now()->toDateTimeString(),
+            'finished_at' => null,
+        ], now()->addHours(2));
 
-        // Returns immediately — all heavy lifting is in the queue
-        ImportExcelFile::dispatch($path, now());
+        // FIX #3  — truncate happens inside the job, just before inserts start,
+        //           so it targets the correct model (NewBiodata) at the right time.
+        // FIX #4  — pass a plain string, not a Carbon instance, to avoid
+        //           serialising a Carbon object into every job payload.
+        ImportExcelFile::dispatch($path, now()->toDateTimeString(), $importId)
+            ->onQueue('imports'); // FIX #6 — dedicated queue
 
         return response()->json([
-            'message' => 'File received. Processing has started in the background.',
+            'message'   => 'File received. Processing has started in the background.',
+            'import_id' => $importId,
         ]);
+    }
+
+    /**
+     * SSE endpoint — the browser calls this once and receives a stream of
+     * progress events until the import finishes or the connection drops.
+     *
+     * GET /import/progress/{importId}
+     */
+    public function progress(string $importId)
+    {
+        // Validate the import ID exists before opening the stream
+        if (!Cache::has("import:{$importId}")) {
+            return response()->json(['error' => 'Import not found.'], 404);
+        }
+
+        return response()->stream(function () use ($importId) {
+            // Keep sending while the client is connected and the job is running
+            while (true) {
+                $data = Cache::get("import:{$importId}");
+
+                if (!$data) {
+                    $this->sendSseEvent('error', ['message' => 'Import record expired or not found.']);
+                    break;
+                }
+
+                $this->sendSseEvent('progress', $data);
+
+                // Stop streaming once the job has finished (success or failed)
+                if (in_array($data['status'], ['completed', 'failed'])) {
+                    break;
+                }
+
+                // Flush the output buffer so the client receives the event now
+                ob_flush();
+                flush();
+
+                sleep(2); // Poll cache every 2 seconds
+            }
+        }, 200, [
+            'Content-Type'      => 'text/event-stream',
+            'Cache-Control'     => 'no-cache',
+            'X-Accel-Buffering' => 'no', // Disable nginx output buffering
+            'Connection'        => 'keep-alive',
+        ]);
+    }
+
+    private function sendSseEvent(string $event, array $data): void
+    {
+        echo "event: {$event}\n";
+        echo 'data: ' . json_encode($data) . "\n\n";
     }
 }
