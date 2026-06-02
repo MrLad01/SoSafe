@@ -1,11 +1,27 @@
+private $records;
+private $now;
+
+public function __construct(array $records, $now)
+{
+    $this->records = $records;
+    $this->now     = $now;
+}
+
 public function handle()
 {
     try {
+        $zones     = \App\Models\Zone::pluck('id', 'name')->toArray();
+        $areas     = \App\Models\Area::pluck('id', 'name')->toArray();
+        $divisions = \App\Models\Division::pluck('id', 'name')->toArray();
+
         $dataToInsert = [];
 
         foreach ($this->records as $line) {
-            // Normalize keys to uppercase to handle any case inconsistencies
             $line = array_change_key_case($line, CASE_UPPER);
+
+            $zoneId     = isset($line['ZONE']) ? ($zones[strtoupper(trim($line['ZONE']))]     ?? null) : null;
+            $areaId     = isset($line['AREA']) ? ($areas[strtoupper(trim($line['AREA']))]     ?? null) : null;
+            $divisionId = isset($line['CITY']) ? ($divisions[strtoupper(trim($line['CITY']))] ?? null) : null;
 
             $dataToInsert[] = [
                 'SNO'           => $line['SNO']           ?? null,
@@ -18,9 +34,9 @@ public function handle()
                 'NIN'           => $line['NIN']           ?? null,
                 'DOB'           => $line['DOB']           ?? null,
                 'SEX'           => $line['SEX']           ?? null,
-                'CITY'          => $line['CITY']          ?? null,
-                'ZONE'          => $line['ZONE']          ?? null,
-                'AREA'          => $line['AREA']          ?? null,
+                'CITY'          => $divisionId,
+                'ZONE'          => $zoneId,
+                'AREA'          => $areaId,
                 'SERVNO'        => $line['SERVNO']        ?? null,
                 'POSITION'      => $line['POSITION']      ?? null,
                 'ENLISTED'      => $line['ENLISTED']      ?? null,
@@ -30,17 +46,12 @@ public function handle()
                 'NOKNO'         => $line['NOKNO']         ?? null,
                 'CAPTURED'      => $line['CAPTURED']      ?? null,
                 'QUALIFICATION' => $line['QUALIFICATION'] ?? null,
-                'created_at'    => now(),
-                'updated_at'    => now(),
+                'created_at'    => $this->now,
+                'updated_at'    => $this->now,
             ];
         }
 
         Biodata::insert($dataToInsert);
-
-        Log::info('Excel chunk processed successfully', [
-            'records_count' => count($this->records),
-            'chunk_size'    => count($dataToInsert)
-        ]);
 
     } catch (\Exception $e) {
         Log::error('Failed to process Excel chunk', [
@@ -48,7 +59,6 @@ public function handle()
             'line'          => $e->getLine(),
             'records_count' => count($this->records ?? []),
         ]);
-        
         throw $e;
     }
 }
