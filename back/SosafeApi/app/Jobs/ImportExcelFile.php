@@ -19,7 +19,7 @@ class ImportExcelFile implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
-    public int $timeout   = 600;
+    public int $timeout   = 150;
     public int $tries     = 1;    // Don't retry — truncate already ran
     public int $maxExceptions = 1;
 
@@ -32,7 +32,7 @@ class ImportExcelFile implements ShouldQueue
     public function handle(): void
     {
         $fullPath  = storage_path("app/{$this->storedPath}");
-        $chunkSize = 400;   // Smaller chunks = more granular progress + less memory per job
+        $chunkSize = 1000;   // Smaller chunks = more granular progress + less memory per job
         $chunk     = [];
         $rowCount  = 0;
         $chunkNo   = 0;

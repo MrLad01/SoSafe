@@ -154,10 +154,10 @@ class ProcessExcelChunk implements ShouldQueue
                 $data         = Cache::get($key, []);
                 $data['done'] = ($data['done'] ?? 0) + 1;
 
-                // Final partial chunk is smaller than chunkSize
-                if ($count < 50 && $count > 0) {
-                    $data['processed'] = ($data['processed'] ?? 0) + $count;
-                }
+                // // Final partial chunk is smaller than chunkSize
+                // if ($count < 50 && $count > 0) {
+                //     $data['processed'] = ($data['processed'] ?? 0) + $count;
+                // }
 
                 if (
                     ($data['done'] >= ($data['chunks'] ?? 1)) &&
