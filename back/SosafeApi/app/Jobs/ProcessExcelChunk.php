@@ -161,7 +161,7 @@ class ProcessExcelChunk implements ShouldQueue
 
                 if (
                     ($data['done'] >= ($data['chunks'] ?? 1)) &&
-                    in_array($data['status'] ?? '', ['dispatched', 'processing'])
+                    in_array($data['status'] ?? '', ['dispatched'])
                 ) {
                     $data['status']      = 'completed';
                     $data['finished_at'] = now()->toDateTimeString();

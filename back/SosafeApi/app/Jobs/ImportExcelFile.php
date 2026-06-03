@@ -136,19 +136,16 @@ class ImportExcelFile implements ShouldQueue
 
     private function updateProgress(array $fields): void
     {
-        $key      = "import:{$this->importId}";
-        $existing = [];
+        $key  = "import:{$this->importId}";
+        $lock = Cache::lock("lock:progress:{$this->importId}", 10); // add a lock
 
-        try {
-            $existing = Cache::get($key, []);
-        } catch (\Throwable $e) {
-            Log::warning("Cache read failed for {$key}: " . $e->getMessage());
-        }
-
-        try {
-            Cache::put($key, array_merge($existing, $fields), now()->addHours(2));
-        } catch (\Throwable $e) {
-            Log::warning("Cache write failed for {$key}: " . $e->getMessage());
+        if ($lock->get()) {
+            try {
+                $existing = Cache::get($key, []);
+                Cache::put($key, array_merge($existing, $fields), now()->addHours(2));
+            } finally {
+                $lock->release();
+            }
         }
     }
 }
