@@ -32,7 +32,7 @@ interface LogEntry {
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const API_BASE    = "https://sosafe.onrender.com/api";
-const POLL_MS     = 3000; // poll every 3 seconds
+const POLL_MS     = 30000; // poll every 3 seconds
 const TERMINAL    = new Set<ImportStatus>(["completed", "failed"]);
 
 const STATUS_META: Record<ImportStatus, { label: string; accent: string; bg: string }> = {
