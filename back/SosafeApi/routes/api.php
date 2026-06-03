@@ -74,6 +74,7 @@ Route::middleware([JwtMiddleware::class, 'role:admin'])->group(function () {
     // In JwtMiddleware::handle(), fall back to:  $token = $request->query('token')
     // when the Authorization header is absent.
     Route::get('/import/progress/{importId}', [ExcelController::class, 'progress']);
+    Route::get('/import/status/{importId}', [ExcelController::class, 'status']);
 
     Route::get('/export',         [ExcelController::class, 'download']);
     Route::post('/new/data',      [NewBiodataController::class, 'storeBiodata']);

@@ -98,4 +98,25 @@ class ExcelController extends Controller
         echo "event: {$event}\n";
         echo 'data: ' . json_encode($data) . "\n\n";
     }
+
+    public function status(string $importId)
+    {
+        $data = Cache::get("import:{$importId}");
+
+        if (!$data) {
+            return response()->json(['error' => 'Import not found'], 404);
+        }
+
+        return response()->json([
+            'status'      => $data['status']      ?? 'queued',
+            'total'       => $data['total']        ?? 0,
+            'processed'   => $data['processed']    ?? 0,
+            'chunks'      => $data['chunks']       ?? 0,
+            'done'        => $data['done']         ?? 0,
+            'errors'      => $data['errors']       ?? [],
+            'started_at'  => $data['started_at']   ?? null,
+            'finished_at' => $data['finished_at']  ?? null,
+        ]);
+    }
+
 }

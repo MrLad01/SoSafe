@@ -1,5 +1,7 @@
 import React, { useState, useRef, useCallback, useEffect, ChangeEvent } from "react";
 import axios from "axios";
+import { fetchEventSource } from '@microsoft/fetch-event-source';
+
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -84,10 +86,15 @@ const FileUploader: React.FC = () => {
   }, []);
 
   const clearPoll = () => {
-    if (pollRef.current)  clearInterval(pollRef.current);
+    if (pollRef.current)  clearTimeout(pollRef.current);  // changed from clearInterval
     if (countRef.current) clearInterval(countRef.current);
     pollRef.current  = null;
     countRef.current = null;
+  };
+
+  const normalizeStatus = (s: string): ImportStatus => {
+    const known: ImportStatus[] = ["idle","uploading","queued","processing","dispatched","completed","failed"];
+    return known.includes(s as ImportStatus) ? (s as ImportStatus) : "processing";
   };
 
   // ── File selection ──────────────────────────────────────────────────────────
@@ -120,49 +127,52 @@ const FileUploader: React.FC = () => {
   // ── Polling ─────────────────────────────────────────────────────────────────
 
   const startPolling = useCallback((id: string) => {
-    clearPoll();
-    setCountdown(POLL_MS / 1000);
+  clearPoll();
+  let cancelled = false;
 
-    const poll = async () => {
+  fetchEventSource(`${API_BASE}/import/status/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+
+    onmessage(e) {
+      if (e.event !== "progress") return;
       try {
-        const { data } = await axios.get<ProgressData>(
-          `${API_BASE}/import/progress/${id}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
+        const data: ProgressData = JSON.parse(e.data);
+        const normalized = { ...data, status: normalizeStatus(data.status) };
 
-        setProgress(data);
-        setStatus(data.status);
+        setProgress(normalized);
+        setStatus(normalized.status);
         setLastPoll(ts());
 
-        if (data.status === "completed") {
-          addLog(`Import complete — ${fmt(data.processed)} rows inserted across ${fmt(data.chunks)} chunks.`);
-          clearPoll();
-        } else if (data.status === "failed") {
-          data.errors.forEach(e => addLog(e, true));
-          clearPoll();
+        if (normalized.status === "completed") {
+          addLog(`Import complete — ${fmt(normalized.processed)} rows inserted.`);
+          cancelled = true;
+        } else if (normalized.status === "failed") {
+          normalized.errors.forEach(err => addLog(err, true));
+          cancelled = true;
         }
-      } catch (err) {
-        const msg = axios.isAxiosError(err)
-          ? err.response?.data?.error ?? err.message
-          : "Polling error";
-        addLog(`Poll failed: ${msg}`, true);
-        // Don't stop — keep polling; transient network blips happen
+      } catch {
+        addLog("Failed to parse progress event.", true);
       }
-    };
+    },
 
-    // Fire immediately, then every POLL_MS
-    poll();
-    pollRef.current = setInterval(poll, POLL_MS);
+    onerror(err) {
+      addLog(`Stream error: ${err}`, true);
+      if (cancelled) throw err; // stops retrying
+    },
 
-    // Countdown ticker
-    countRef.current = setInterval(() => {
-      setCountdown(prev => (prev <= 1 ? POLL_MS / 1000 : prev - 1));
-    }, 1000);
-  }, [token, addLog]);
+    signal: (() => {
+      const ctrl = new AbortController();
+      // store abort so clearPoll can cancel it
+      (pollRef as any).current = { close: () => ctrl.abort() };
+      return ctrl.signal;
+    })(),
+  });
+
+}, [token, addLog]);
 
   // ── Upload ──────────────────────────────────────────────────────────────────
 
-  const handleUpload = async () => {
+  const handleUpload = async (): Promise<void> => {
     if (!file) return;
 
     clearPoll();
@@ -173,6 +183,8 @@ const FileUploader: React.FC = () => {
 
     const formData = new FormData();
     formData.append("raw_data", file);
+
+    let importId: string | null = null;
 
     try {
       const { data } = await axios.post<{ message: string; import_id: string }>(
@@ -190,10 +202,10 @@ const FileUploader: React.FC = () => {
         }
       );
 
-      addLog(`File accepted — import ID: ${data.import_id}`);
-      setImportId(data.import_id);
+      importId = data.import_id;
+      addLog(`File accepted — import ID: ${importId}`);
+      setImportId(importId);
       setStatus("queued");
-      startPolling(data.import_id);
 
     } catch (err) {
       const msg = axios.isAxiosError(err)
@@ -201,6 +213,14 @@ const FileUploader: React.FC = () => {
         : "Upload failed. Please try again.";
       addLog(msg, true);
       setStatus("failed");
+      return; // stop here, don't attempt polling
+    }
+
+    // Start polling separately — errors here won't corrupt the upload status
+    try {
+      startPolling(importId!);
+    } catch (err) {
+      addLog("Failed to start progress tracking. Import is still running on the server.", true);
     }
   };
 

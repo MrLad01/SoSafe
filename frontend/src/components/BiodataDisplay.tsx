@@ -2,31 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { Search, ChevronLeft, ChevronRight, Loader2, Download } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import * as XLSX from 'xlsx';
+import { format, parseISO } from 'date-fns';
 
 interface BiodataRecord {
   id: number;
-  SNO: string;
-  FNO: string;
-  SNAME: string;
-  FNAME: string;
-  ONAME: string;
-  ADDRESS: string;
-  PHONE: string;
-  NIN: string;
-  DOB: string;
-  SEX: string;
-  CITY: number;
-  ZONE: number;
-  AREA: number;
-  SERVNO: string;
-  POSITION: string;
-  ENLISTED: string;
-  RANK: string;
-  NOK: string;
-  RELATION: string;
-  NOKNO: string;
-  CAPTURED: string;
-  QUALIFICATION: string;
+  sno: string;
+  fno: string;
+  sname: string;
+  fname: string;
+  oname: string;
+  address: string;
+  phone: string;
+  nin: string;
+  dob: string;
+  sex: string;
+  city: number;
+  zone: number;
+  area: number;
+  servno: string;
+  position: string;
+  enlisted: string;
+  rank: string;
+  nok : string;
+  relation: string;
+  nokno: string;
+  captured: string;
+  qualification: string;
   [key: string]: string | number;
 }
 
@@ -60,6 +62,31 @@ const BiodataDisplay: React.FC = () => {
   const [selectedRecord, setSelectedRecord] = useState<BiodataRecord | null>(null);
   const [perPage]                           = useState<number>(100);
 
+  const formatRecord = (record: any) => ({
+    ...record,
+    dob:      record.dob      ? format(parseISO(record.dob),      'M/d/yyyy') : '',
+    enlisted: record.enlisted ? format(parseISO(record.enlisted), 'M/d/yyyy') : '',
+  });
+
+  const buildLocationMaps = (zones: any[]) => {
+    const zoneMap:     Record<number, string> = {};
+    const areaMap:     Record<number, string> = {};
+    const divisionMap: Record<number, string> = {};
+
+    zones.forEach(zone => {
+      zoneMap[zone.id] = zone.name;
+
+      zone.areas.forEach((area: any) => {
+        areaMap[area.id] = area.name;
+
+        area.divisions.forEach((division: any) => {
+          divisionMap[division.id] = division.name;
+        });
+      });
+    });
+
+    return { zoneMap, areaMap, divisionMap };
+  };
 
   const fetchRecords = async (): Promise<void> => {
     try {
@@ -94,7 +121,7 @@ const BiodataDisplay: React.FC = () => {
           "Authorization": `Bearer ${token}`
         }
       });
-      setSelectedRecord(response.data.data);
+      setSelectedRecord(formatRecord(response.data.data));
     } catch {
       setError('Failed to fetch record details. Please try again.');
     } finally {
@@ -106,19 +133,36 @@ const BiodataDisplay: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get<AllRecordsResponse>(`https://sosafe.onrender.com/api/old/records/all`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
-      const jsonStr  = JSON.stringify(response.data.data, null, 2);
-      const blob     = new Blob([jsonStr], { type: 'application/json' });
-      const url      = window.URL.createObjectURL(blob);
-      const link     = document.createElement('a');
-      link.href      = url;
-      link.download  = 'biodata_records.json';
-      link.click();
-      window.URL.revokeObjectURL(url);
+      const [recordsRes, zonesRes] = await Promise.all([
+        axios.get<AllRecordsResponse>(`https://sosafe.onrender.com/api/old/records/all`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        }),
+        axios.get(`https://sosafe.onrender.com/api/zones`, {
+          headers: { "Authorization": `Bearer ${token}` }
+        }),
+      ]);
+
+      const { zoneMap, areaMap, divisionMap } = buildLocationMaps(zonesRes?.data);
+
+      const formatted = recordsRes.data.data.map((row: any) => ({
+        ...row,
+        dob:      row.dob      ? format(parseISO(row.dob),      'M/d/yyyy') : '',
+        enlisted: row.enlisted ? format(parseISO(row.enlisted), 'M/d/yyyy') : '',
+        zone:     zoneMap[row.zone]         || row.zone || '',
+        area:     areaMap[row.area]         || row.area || '',
+        city:     divisionMap[row.city]     || row.city || '',
+        created_at: row.created_at ? format(parseISO(row.created_at), 'M/d/yyyy') : '',
+        updated_at: row.updated_at ? format(parseISO(row.updated_at), 'M/d/yyyy') : '',
+      }));
+      
+      // Convert JSON to worksheet
+      const worksheet  = XLSX.utils.json_to_sheet(formatted);
+      const workbook   = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Biodata Records');
+
+      // Download as .xlsx
+      XLSX.writeFile(workbook, 'biodata_records.xlsx');
+
     } catch {
       setError('Failed to fetch all records. Please try again.');
     } finally {
@@ -128,13 +172,13 @@ const BiodataDisplay: React.FC = () => {
 
   // Labels for the detail view
   const fieldLabels: Record<string, string> = {
-    SNO: 'S/N', FNO: 'Form No', SNAME: 'Surname', FNAME: 'First Name',
-    ONAME: 'Other Name', ADDRESS: 'Address', PHONE: 'Phone', NIN: 'NIN',
-    DOB: 'Date of Birth', SEX: 'Sex', CITY: 'Division', ZONE: 'Zone',
-    AREA: 'Area', SERVNO: 'Service No', POSITION: 'Position',
-    ENLISTED: 'Date Enlisted', RANK: 'Rank', NOK: 'Next of Kin',
-    RELATION: 'Relationship', NOKNO: 'NOK Phone', CAPTURED: 'Photo',
-    QUALIFICATION: 'Qualification',
+    sno: 'S/N', fno: 'Form No', sname: 'Surname', fname: 'First Name',
+    oname: 'Other Name', address: 'Address', phone: 'Phone', nin: 'NIN',
+    dob: 'Date of Birth', sex: 'Sex', city: 'Division', zone: 'Zone',
+    area: 'Area', servno: 'Service No', position: 'Position',
+    enlisted: 'Date Enlisted', rank: 'Rank', nok: 'Next of Kin',
+    relation: 'Relationship', nokno: 'NOK Phone', captured: 'Photo',
+    qualification: 'Qualification',
   };
 
   return (
@@ -190,11 +234,11 @@ const BiodataDisplay: React.FC = () => {
                 <tbody>
                   {records.map(record => (
                     <tr key={record.id} className="border-b hover:bg-gray-50 text-[0.82rem]">
-                      <td className="p-2">{record.FNO}</td>
-                      <td className="p-2">{record.SERVNO}</td>
-                      <td className="p-2">{`${record.FNAME} ${record.SNAME} ${record.ONAME ?? ''}`.trim()}</td>
-                      <td className="p-2">{record.RANK}</td>
-                      <td className="p-2">{record.SEX}</td>
+                      <td className="p-2">{record.fno}</td>
+                      <td className="p-2">{record.sno}</td>
+                      <td className="p-2">{`${record.fname} ${record.sname} ${record.oname ?? ''}`.trim()}</td>
+                      <td className="p-2">{record.rank}</td>
+                      <td className="p-2">{record.sex}</td>
                       <td className="p-2">
                         <button
                           onClick={() => fetchSingleRecord(record.id)}
