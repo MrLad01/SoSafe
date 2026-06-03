@@ -35,38 +35,35 @@ class ProcessExcelChunk implements ShouldQueue
             $dataToInsert = [];
 
             foreach ($this->records as $line) {
-                // Resolve FK IDs — keys are already UPPER from ImportExcelFile
+                // Keys are already CASE_UPPER from ImportExcelFile's callback
                 $zoneId     = $zones[strtoupper(trim((string)($line['ZONE'] ?? '')))]     ?? null;
                 $areaId     = $areas[strtoupper(trim((string)($line['AREA'] ?? '')))]     ?? null;
                 $divisionId = $divisions[strtoupper(trim((string)($line['CITY'] ?? '')))] ?? null;
 
-                // ── Column keys MUST be uppercase to match PostgreSQL quoted columns ──
-                // The new_biodatas table was created with quoted uppercase identifiers
-                // (matching Biodata). PostgreSQL treats "AREA" and "area" as different
-                // columns — using lowercase caused the "column does not exist" error.
+                // ── All keys lowercase to match the actual PostgreSQL column names ──
                 $dataToInsert[] = [
-                    'SNO'           => $line['SNO']           ?? null,
-                    'FNO'           => $line['FNO']           ?? null,
-                    'SNAME'         => $line['SNAME']         ?? null,
-                    'FNAME'         => $line['FNAME']         ?? null,
-                    'ONAME'         => $line['ONAME']         ?? null,
-                    'ADDRESS'       => $line['ADDRESS']       ?? null,
-                    'PHONE'         => $line['PHONE']         ?? null,
-                    'NIN'           => $line['NIN']           ?? null,
-                    'DOB'           => $this->safeDate($line['DOB']      ?? null),
-                    'SEX'           => $line['SEX']           ?? null,
-                    'CITY'          => $divisionId,   // FK id stored in "CITY" column
-                    'ZONE'          => $zoneId,       // FK id stored in "ZONE" column
-                    'AREA'          => $areaId,       // FK id stored in "AREA" column
-                    'SERVNO'        => $line['SERVNO']        ?? null,
-                    'POSITION'      => $line['POSITION']      ?? null,
-                    'ENLISTED'      => $this->safeDate($line['ENLISTED'] ?? null),
-                    'RANK'          => $line['RANK']          ?? null,
-                    'NOK'           => $line['NOK']           ?? null,
-                    'RELATION'      => $line['RELATION']      ?? null,
-                    'NOKNO'         => $line['NOKNO']         ?? null,
-                    'CAPTURED'      => $line['CAPTURED']      ?? null,
-                    'QUALIFICATION' => $line['QUALIFICATION'] ?? null,
+                    'sno'           => $line['SNO']           ?? null,
+                    'fno'           => $line['FNO']           ?? null,
+                    'sname'         => $line['SNAME']         ?? null,
+                    'fname'         => $line['FNAME']         ?? null,
+                    'oname'         => $line['ONAME']         ?? null,
+                    'address'       => $line['ADDRESS']       ?? null,
+                    'phone'         => $line['PHONE']         ?? null,
+                    'nin'           => $line['NIN']           ?? null,
+                    'dob'           => $this->safeDate($line['DOB']      ?? null),
+                    'sex'           => $line['SEX']           ?? null,
+                    'city'          => $divisionId,
+                    'zone'          => $zoneId,
+                    'area'          => $areaId,
+                    'servno'        => $line['SERVNO']        ?? null,
+                    'position'      => $line['POSITION']      ?? null,
+                    'enlisted'      => $this->safeDate($line['ENLISTED'] ?? null),
+                    'rank'          => $line['RANK']          ?? null,
+                    'nok'           => $line['NOK']           ?? null,
+                    'relation'      => $line['RELATION']      ?? null,
+                    'nokno'         => $line['NOKNO']         ?? null,
+                    'captured'      => $line['CAPTURED']      ?? null,
+                    'qualification' => $line['QUALIFICATION'] ?? null,
                     'created_at'    => $this->now,
                     'updated_at'    => $this->now,
                 ];
@@ -91,11 +88,11 @@ class ProcessExcelChunk implements ShouldQueue
     }
 
     /**
-     * Safely parse a date from the spreadsheet.
+     * Safely coerce a spreadsheet date cell to a Y-m-d string.
      *
-     * FastExcel sometimes returns a Carbon instance, a date string, an Excel
-     * serial float, or an empty string. This normalises all of them and rejects
-     * the 1899-12-31 Excel epoch artifact that appeared in the error log.
+     * FastExcel may hand us a Carbon instance, a date string, a numeric
+     * Excel serial, or an empty value. The 1899-12-31 epoch artifact that
+     * appeared in earlier error logs is rejected here.
      */
     private function safeDate(mixed $value): ?string
     {
@@ -103,7 +100,7 @@ class ProcessExcelChunk implements ShouldQueue
             return null;
         }
 
-        // FastExcel already parsed it to a Carbon/DateTime
+        // FastExcel already parsed it into a Carbon / DateTime
         if ($value instanceof \DateTimeInterface) {
             $year = (int) $value->format('Y');
             if ($year < 1900 || $year > 2100) return null;
@@ -113,7 +110,6 @@ class ProcessExcelChunk implements ShouldQueue
         // Numeric Excel serial date (e.g. 44927.0)
         if (is_numeric($value)) {
             try {
-                // Excel serial: days since 1900-01-01 (with the off-by-two bug)
                 $date = Carbon::createFromDate(1899, 12, 30)->addDays((int) $value);
                 if ($date->year < 1900 || $date->year > 2100) return null;
                 return $date->format('Y-m-d');
@@ -122,7 +118,7 @@ class ProcessExcelChunk implements ShouldQueue
             }
         }
 
-        // String date
+        // Plain string date
         try {
             $date = Carbon::parse((string) $value);
             if ($date->year < 1900 || $date->year > 2100) return null;
@@ -158,7 +154,7 @@ class ProcessExcelChunk implements ShouldQueue
                 $data         = Cache::get($key, []);
                 $data['done'] = ($data['done'] ?? 0) + 1;
 
-                // Handle the final partial chunk (smaller than chunkSize)
+                // Final partial chunk is smaller than chunkSize
                 if ($count < 50 && $count > 0) {
                     $data['processed'] = ($data['processed'] ?? 0) + $count;
                 }
@@ -185,12 +181,12 @@ class ProcessExcelChunk implements ShouldQueue
 
         if ($lock->get()) {
             try {
-                $data            = Cache::get($key, []);
-                $data['status']  = 'failed';
+                $data                = Cache::get($key, []);
+                $data['status']      = 'failed';
                 $data['finished_at'] = now()->toDateTimeString();
-                $errors          = $data['errors'] ?? [];
-                $errors[]        = 'Worker error: ' . $errorMsg;
-                $data['errors']  = $errors;
+                $errors              = $data['errors'] ?? [];
+                $errors[]            = 'Worker error: ' . $errorMsg;
+                $data['errors']      = $errors;
                 Cache::put($key, $data, now()->addHours(2));
             } finally {
                 $lock->release();
