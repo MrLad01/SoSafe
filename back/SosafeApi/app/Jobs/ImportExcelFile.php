@@ -19,7 +19,7 @@ class ImportExcelFile implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable;
 
-    public int $timeout   = 150;
+    public int $timeout   = 600;
     public int $tries     = 1;    // Don't retry — truncate already ran
     public int $maxExceptions = 1;
 
