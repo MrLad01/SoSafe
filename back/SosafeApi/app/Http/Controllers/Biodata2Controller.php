@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Biodata;
+use App\Models\NewBiodata;
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\Eloquent\Exception;
@@ -18,13 +19,13 @@ class Biodata2Controller extends Controller
         try {
             $perPage = (int)$perPage;
             $perPage = 100; // Default value
-            $biodata = Biodata::query()
+            $biodata = NewBiodata::query()
             ->when($request->search, function($query, $search) {
                 $query->where(function($q) use ($search) {
-                    $q->where('firstname', 'like', "%{$search}%")
-                      ->orWhere('lastname', 'like', "%{$search}%")
-                      ->orWhere('form_no', 'like', "%{$search}%")
-                      ->orWhere('code', 'like', "%{$search}%");
+                    $q->where('sname', 'like', "%{$search}%")
+                      ->orWhere('fname', 'like', "%{$search}%")
+                      ->orWhere('fno', 'like', "%{$search}%")
+                      ->orWhere('sno', 'like', "%{$search}%");
                     });
                 })
                 ->when($request->sort_by, function($query, $sortBy) {
@@ -55,9 +56,9 @@ class Biodata2Controller extends Controller
      */
     public function show($id)
     {
-        // $biodata = Biodata::findOrFail($id);
+        // $biodata = NewBiodata::findOrFail($id);
         try {
-            $biodata = Biodata::findOrFail($id);
+            $biodata = NewBiodata::findOrFail($id);
         }  catch (ModelNotFoundException $exception) {
             return response()->json(["Status"=>"Error",
             "Message"=>"Biodata with ID {$id} not found"], 404);
@@ -72,9 +73,9 @@ class Biodata2Controller extends Controller
      */
     public function findByFormNo($formNo)
     {
-        // $biodata = Biodata::where('form_no', $formNo)->firstOrFail();
+        // $biodata = NewBiodata::where('form_no', $formNo)->firstOrFail();
         try {
-            $biodata = Biodata::where('form_no', $formNo)->firstOrFail();
+            $biodata = NewBiodata::where('fno', $formNo)->firstOrFail();
         }  catch (ModelNotFoundException $exception) {
             return response()->json(["Status"=>"Error",
             "Message"=>"Biodata with form number {$formNo} not found"], 404);
@@ -93,7 +94,7 @@ class Biodata2Controller extends Controller
     {
         try {
             // $phoneNo = str_replace(['+', ' ', '-', '(', ')'], '', $phoneNo);
-            $biodata = Biodata::where('phone_no', $phoneNo)->firstOrFail();
+            $biodata = NewBiodata::where('phone', $phoneNo)->firstOrFail();
         }  catch (ModelNotFoundException $exception) {
             return response(["Status"=>"Error",
             "Message"=>"Biodata with phone number {$phoneNo} not found"]);
@@ -105,7 +106,7 @@ class Biodata2Controller extends Controller
     }
     public function getAllRecords()
     {
-        $biodata = Biodata::all();
+        $biodata = NewBiodata::all();
         return response()->json([
             'data' => $biodata,
             'total' => $biodata->count()
@@ -114,8 +115,8 @@ class Biodata2Controller extends Controller
 
     public function importStatus()
     {
-        $totalRecords = Biodata::count();
-        $lastRecord = Biodata::latest()->first();
+        $totalRecords = NewBiodata::count();
+        $lastRecord = NewBiodata::latest()->first();
         
         return response()->json([
             'total_records' => $totalRecords,
