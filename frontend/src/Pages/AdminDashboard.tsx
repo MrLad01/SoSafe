@@ -2,9 +2,9 @@ import React from "react";
 import SideBar from "../components/SideBar";
 import FileUploader from "../components/FileUploader";
 import { useAuth } from "../context/AuthContext";
-import ZoneFileUploader from "../components/ZoneFileUploader";
-import DivisionFileUploader from "../components/DivisionFileUploader";
-import AreaFileUploader from "../components/AreaFileUploader";
+// import ZoneFileUploader from "../components/ZoneFileUploader";
+// import DivisionFileUploader from "../components/DivisionFileUploader";
+// import AreaFileUploader from "../components/AreaFileUploader";
 
 
 const AdminDashboard: React.FC = () => {

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, ChangeEvent } from "react";
 import axios from "axios";
-import { fetchEventSource } from '@microsoft/fetch-event-source';
+// import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
