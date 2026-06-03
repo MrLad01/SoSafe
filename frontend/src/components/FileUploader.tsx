@@ -127,48 +127,60 @@ const FileUploader: React.FC = () => {
   // ── Polling ─────────────────────────────────────────────────────────────────
 
   const startPolling = useCallback((id: string) => {
-  clearPoll();
-  let cancelled = false;
+    clearPoll();
+    let pollCount = 0;
 
-  fetchEventSource(`${API_BASE}/import/status/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
-
-    onmessage(e) {
-      if (e.event !== "progress") return;
+    const poll = async () => {
       try {
-        const data: ProgressData = JSON.parse(e.data);
-        const normalized = { ...data, status: normalizeStatus(data.status) };
+        const currentToken = sessionStorage.getItem("authToken");
+        if (!currentToken) {
+          addLog("Session expired — import still running on server.", true);
+          clearPoll();
+          return;
+        }
 
+        // ← plain JSON endpoint, not the SSE one
+        const { data } = await axios.get<ProgressData>(
+          `${API_BASE}/import/status/${id}`,
+          { headers: { Authorization: `Bearer ${currentToken}` } }
+        );
+
+        const normalized = { ...data, status: normalizeStatus(data.status) };
         setProgress(normalized);
         setStatus(normalized.status);
         setLastPoll(ts());
+        pollCount++;
 
         if (normalized.status === "completed") {
           addLog(`Import complete — ${fmt(normalized.processed)} rows inserted.`);
-          cancelled = true;
-        } else if (normalized.status === "failed") {
-          normalized.errors.forEach(err => addLog(err, true));
-          cancelled = true;
+          clearPoll();
+          return;
         }
-      } catch {
-        addLog("Failed to parse progress event.", true);
+
+        if (normalized.status === "failed") {
+          normalized.errors.forEach(e => addLog(e, true));
+          clearPoll();
+          return;
+        }
+
+        // Fast at start, slower after stabilising
+        const delay = pollCount < 6 ? 5000 : 15000;
+        setCountdown(delay / 1000);
+        pollRef.current = setTimeout(poll, delay);
+
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          addLog("Session expired.", true);
+          clearPoll();
+          return;
+        }
+        addLog(`Poll failed, retrying…`, true);
+        pollRef.current = setTimeout(poll, 10000);
       }
-    },
+    };
 
-    onerror(err) {
-      addLog(`Stream error: ${err}`, true);
-      if (cancelled) throw err; // stops retrying
-    },
-
-    signal: (() => {
-      const ctrl = new AbortController();
-      // store abort so clearPoll can cancel it
-      (pollRef as any).current = { close: () => ctrl.abort() };
-      return ctrl.signal;
-    })(),
-  });
-
-}, [token, addLog]);
+    poll(); // fire immediately
+  }, [token, addLog]);
 
   // ── Upload ──────────────────────────────────────────────────────────────────
 
