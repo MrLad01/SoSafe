@@ -15,19 +15,15 @@ interface FormData {
 }
 
 const OfficerLoginPage = (): JSX.Element => {
-  const [loginType, setLoginType] = useState<LoginType>('officer');
-  const { login } = useAuth();
-  const posthog = usePostHog();
-  const [formData, setFormData] = useState<FormData>({
-    password: '',
-    email: '',
-    role: 'user | admin'
-  });
-  const [idNumber, setIdNumber] = useState<string>('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>('');
+  const [loginType, setLoginType]     = useState<LoginType>('officer');
+  const { login }                     = useAuth();
+  const posthog                       = usePostHog();
+  const [formData, setFormData]       = useState<FormData>({ password: '', email: '', role: 'user' });
+  const [idNumber, setIdNumber]       = useState<string>('');
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const navigate = useNavigate();
+  const navigate                      = useNavigate();
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,17 +37,13 @@ const OfficerLoginPage = (): JSX.Element => {
         }
 
         const fetchOfficerData = async (idNumber: string) => {
-          // Clean the input by removing spaces and any special characters
           const cleanId = idNumber.trim().replace(/[^a-zA-Z0-9]/g, '');
-          
-          // Check if it's a form number (starts with letter and is 6 characters)
-          const isFormNumber = /^[A-Za-z]\d{5}$/.test(cleanId) || /^[A-Za-z]\d{6}$/.test(cleanId);
-          
-          // Check if it's a phone number (contains only numbers and is 10-11 digits)
+
+          const isFormNumber  = /^[A-Za-z]\d{5}$/.test(cleanId) || /^[A-Za-z]\d{6}$/.test(cleanId);
           const isPhoneNumber = /^\d{10,11}$/.test(cleanId);
-          
-          let endpoint;
-          
+
+          let endpoint: string;
+
           if (isFormNumber) {
             endpoint = `https://sosafe.onrender.com/api/biodata2/form/${cleanId.toUpperCase()}`;
           } else if (isPhoneNumber) {
@@ -60,122 +52,69 @@ const OfficerLoginPage = (): JSX.Element => {
           } else {
             throw new Error('Invalid input: Must be either a form number or phone number');
           }
-        
-          try {
-            const response = await axios.get(endpoint, { timeout: 100000 });
-            return response;
-          } catch (error) {
-            console.error('Error fetching officer data:', error);
-            throw error;
-          }
+
+          const response = await axios.get(endpoint, { timeout: 100000 });
+          return response;
         };
-        
+
         const officerData = await fetchOfficerData(idNumber);
-        
+
         if (officerData.data.data) {
           const data = officerData.data.data;
-          sessionStorage.setItem('officerData', JSON.stringify(officerData.data.data));
+          sessionStorage.setItem('officerData', JSON.stringify(data));
 
           posthog.identify(String(data.id ?? idNumber), {
             name:        `${data.firstname ?? ''} ${data.lastname ?? ''}`.trim(),
             form_number: idNumber,
             type:        'officer',
           });
-          
-          // Default values in case of undefined or null
-          const firstName = officerData.data.data.firstname || '';
-          const lastName = officerData.data.data.lastname || '';
-          
-          // Safety checks and string processing
-          const formatName = (name: string) => {
-            if (!name) return '';
-            return name.toLowerCase()
-          };
-          
-          const officerFirstName = formatName(firstName);
-          const officerLastName = formatName(lastName);
-          
-          // Only navigate if we have at least one name component
+
+          const formatName = (name: string) => (name ? name.toLowerCase() : '');
+          const officerFirstName = formatName(data.firstname || '');
+          const officerLastName  = formatName(data.lastname  || '');
+
           if (officerFirstName || officerLastName) {
             const urlPath = [officerFirstName, officerLastName]
-                            .filter(Boolean)
-                            .join('-')
-                            .replace(/-+/g, '-');
-            
-            navigate(`/officer/${urlPath}`, { 
-              state: { officerData: officerData.data.data }
-            });
+              .filter(Boolean)
+              .join('-')
+              .replace(/-+/g, '-');
+
+            navigate(`/officer/${urlPath}`, { state: { officerData: data } });
           } else {
-            console.error('Unable to create URL: both first name and last name are empty or invalid');
-            // You might want to navigate to a fallback route or show an error message
-            navigate('/error', {
-              state: { 
-                message: 'Invalid officer name data',
-                officerId: officerData.data.data.id 
-              }
-            });
+            navigate('/error', { state: { message: 'Invalid officer name data', officerId: data.id } });
           }
         }
+
       } else {
-        if(formData.role === 'user'){
-          const response = await axios.post(
-            'https://sosafe.onrender.com/api/user/login',
-            {
-              email: formData.email,
-              password: formData.password,
-            },
-            {
-              timeout: 120000,
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            }
-          );
-          if (response.data) {
-            login(response.data.token, response.data.user);
+        // ── user_admins table: handles both 'user', 'admin' (legacy), and 'superadmin' ──
+        // 'admin' hits the separate /api/login (users table — legacy route kept for compatibility)
+        const isAdminLegacy = formData.role === 'admin';
 
-            posthog.identify(String(response.data.user.id), {
-              name:  response.data.user.name,
-              email: response.data.user.email,
-              role:  'user',
-            });
+        const response = await axios.post(
+          isAdminLegacy
+            ? 'https://sosafe.onrender.com/api/login'
+            : 'https://sosafe.onrender.com/api/user/login',
+          { email: formData.email, password: formData.password },
+          { timeout: 120000, headers: { 'Content-Type': 'application/json' } }
+        );
 
-            navigate('/admin');
-          } else {
-            throw new Error('Invalid credentials');
-          }
+        if (response.data) {
+          login(response.data.token, response.data.user);
+
+          // Use the actual role returned by the server, not just the dropdown value
+          posthog.identify(String(response.data.user.id), {
+            name:  response.data.user.name,
+            email: response.data.user.email,
+            role:  response.data.user.role,
+          });
+
+          navigate('/admin');
         } else {
-          const response = await axios.post(
-            'https://sosafe.onrender.com/api/login',
-            {
-              email: formData.email,
-              password: formData.password,
-            },
-            {
-              timeout: 120000,
-              headers: {
-                'Content-Type': 'application/json'
-              }
-            }
-          );
-          if (response.data) {
-            login(response.data.token, response.data.user);
-            
-            posthog.identify(String(response.data.user.id), {
-              name:  response.data.user.name,
-              email: response.data.user.email,
-              role:  'admin',
-            });
-
-
-            navigate('/admin');
-          } else {
-            throw new Error('Invalid credentials');
-          }
+          throw new Error('Invalid credentials');
         }
       }
     } catch (err) {
-      const errorMessage = err instanceof Error 
+      const errorMessage = err instanceof Error
         ? err.message
         : 'An error occurred during login. Please try again.';
       setError(errorMessage);
@@ -197,7 +136,6 @@ const OfficerLoginPage = (): JSX.Element => {
     updateVH();
     window.addEventListener('resize', updateVH);
     window.addEventListener('orientationchange', updateVH);
-
     return () => {
       window.removeEventListener('resize', updateVH);
       window.removeEventListener('orientationchange', updateVH);
@@ -206,20 +144,13 @@ const OfficerLoginPage = (): JSX.Element => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleBack = (): void => {
-    navigate('/personnel');
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row relative">
       <button
-        onClick={handleBack}
+        onClick={() => navigate('/personnel')}
         className="absolute top-4 left-4 flex items-center space-x-2 text-white md:text-gray-600 hover:text-green-700 transition-colors duration-200 z-10"
         type="button"
         aria-label="Go back to previous page"
@@ -228,6 +159,7 @@ const OfficerLoginPage = (): JSX.Element => {
         <span className="text-sm font-medium text-white opacity-50">Back</span>
       </button>
 
+      {/* Left panel */}
       <div className="w-full md:w-1/2 bg-gradient-to-br from-green-800 to-green-900 p-8 flex flex-col justify-center items-center text-white">
         <img src={logo} alt="OGUN SO-SAFE CORPS" className="h-24 w-auto mb-8" />
         <h1 className="text-4xl font-bold text-center mb-4">OGUN SO-SAFE CORPS</h1>
@@ -236,16 +168,17 @@ const OfficerLoginPage = (): JSX.Element => {
         </p>
       </div>
 
+      {/* Right panel */}
       <div className="w-full md:w-1/2 bg-white p-8 flex flex-col justify-center">
         <div className="max-w-md mx-auto w-full space-y-6">
+
+          {/* Tab switcher */}
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               type="button"
               onClick={() => setLoginType('officer')}
               className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md space-x-2 transition-all duration-200 ${
-                loginType === 'officer'
-                  ? 'bg-white shadow text-green-800'
-                  : 'text-gray-600 hover:text-green-700'
+                loginType === 'officer' ? 'bg-white shadow text-green-800' : 'text-gray-600 hover:text-green-700'
               }`}
             >
               <Users size={20} />
@@ -255,9 +188,7 @@ const OfficerLoginPage = (): JSX.Element => {
               type="button"
               onClick={() => setLoginType('supervisor')}
               className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md space-x-2 transition-all duration-200 ${
-                loginType === 'supervisor'
-                  ? 'bg-white shadow text-green-800'
-                  : 'text-gray-600 hover:text-green-700'
+                loginType === 'supervisor' ? 'bg-white shadow text-green-800' : 'text-gray-600 hover:text-green-700'
               }`}
             >
               <Shield size={20} />
@@ -300,14 +231,16 @@ const OfficerLoginPage = (): JSX.Element => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                   <select
                     value={formData.role}
-                    title='pick role'
+                    title="Pick role"
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-                    >
+                  >
                     <option value="user">User</option>
+                    <option value="superadmin">Superadmin</option>
                     <option value="admin">Admin</option>
                   </select>
                 </div>
+
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                     Email Address
@@ -329,6 +262,7 @@ const OfficerLoginPage = (): JSX.Element => {
                     />
                   </div>
                 </div>
+
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                     Password
@@ -351,16 +285,15 @@ const OfficerLoginPage = (): JSX.Element => {
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400" />
-                      )}
+                      {showPassword
+                        ? <EyeOff className="h-5 w-5 text-gray-400" />
+                        : <Eye    className="h-5 w-5 text-gray-400" />}
                     </button>
                   </div>
                 </div>
               </>
             )}
+
             <button
               type="submit"
               disabled={loading}

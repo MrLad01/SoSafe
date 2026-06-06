@@ -136,7 +136,7 @@ const AdminTracking: React.FC = () => {
     const fetchPostHogEvents = async () => {
       try {
         const res = await axios.get<{ results: PostHogEvent[] }>(
-          `https://us.i.posthog.com/api/projects/${projectId}/events/?limit=100`,
+          `https://us.i.posthog.com/api/projects/${projectId}/events/?limit=2000`,
           { headers: { Authorization: `Bearer ${personalKey}` } }
         );
         setPosthogLogs(res.data.results.map(mapPostHogEvent));
@@ -146,7 +146,7 @@ const AdminTracking: React.FC = () => {
     };
 
     fetchPostHogEvents();
-    const id = setInterval(fetchPostHogEvents, 30_000); // PostHog every 30s
+    const id = setInterval(fetchPostHogEvents, 300_000); // PostHog every 30s
     return () => clearInterval(id);
   }, []);
 
