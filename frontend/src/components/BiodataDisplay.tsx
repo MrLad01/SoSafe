@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronLeft, ChevronRight, Loader2, Download } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Loader2, Download, Lock } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import * as XLSX from 'xlsx';
 import { format, parseISO } from 'date-fns';
+
+// The sentinel value the backend sends when DOB is restricted
+const MASKED_DOB = '****-**-**';
 
 interface BiodataRecord {
   id: number;
@@ -24,7 +27,7 @@ interface BiodataRecord {
   position: string;
   enlisted: string;
   rank: string;
-  nok : string;
+  nok: string;
   relation: string;
   nokno: string;
   captured: string;
@@ -51,6 +54,20 @@ interface AllRecordsResponse {
   total: number;
 }
 
+/**
+ * Safely format a date string. If the backend returned the masked sentinel,
+ * pass it through unchanged so the UI can render a "restricted" indicator.
+ */
+const safeDateFormat = (dateStr: string | null | undefined, fmt = 'M/d/yyyy'): string => {
+  if (!dateStr) return '';
+  if (dateStr === MASKED_DOB) return MASKED_DOB;
+  try {
+    return format(parseISO(dateStr), fmt);
+  } catch {
+    return dateStr;
+  }
+};
+
 const BiodataDisplay: React.FC = () => {
   const { token } = useAuth();
   const [records, setRecords]               = useState<BiodataRecord[]>([]);
@@ -64,8 +81,8 @@ const BiodataDisplay: React.FC = () => {
 
   const formatRecord = (record: any) => ({
     ...record,
-    dob:      record.dob      ? format(parseISO(record.dob),      'M/d/yyyy') : '',
-    enlisted: record.enlisted ? format(parseISO(record.enlisted), 'M/d/yyyy') : '',
+    dob:      safeDateFormat(record.dob),
+    enlisted: safeDateFormat(record.enlisted),
   });
 
   const buildLocationMaps = (zones: any[]) => {
@@ -75,10 +92,8 @@ const BiodataDisplay: React.FC = () => {
 
     zones.forEach(zone => {
       zoneMap[zone.id] = zone.name;
-
       zone.areas.forEach((area: any) => {
         areaMap[area.id] = area.name;
-
         area.divisions.forEach((division: any) => {
           divisionMap[division.id] = division.name;
         });
@@ -92,15 +107,13 @@ const BiodataDisplay: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get<ApiResponse>(`https://sosafe.onrender.com/api/biodata2`, {
+      const response = await axios.get<ApiResponse>('https://sosafe.onrender.com/api/biodata2', {
         params: {
           page: currentPage,
           per_page: perPage,
-          search: search.toUpperCase() || undefined
+          search: search.toUpperCase() || undefined,
         },
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setRecords(response.data.data);
       setTotalPages(response.data.meta.last_page);
@@ -116,11 +129,10 @@ const BiodataDisplay: React.FC = () => {
   const fetchSingleRecord = async (id: number): Promise<void> => {
     try {
       setLoading(true);
-      const response = await axios.get<SingleRecordResponse>(`https://sosafe.onrender.com/api/biodata2/${id}`, {
-        headers: {
-          "Authorization": `Bearer ${token}`
-        }
-      });
+      const response = await axios.get<SingleRecordResponse>(
+        `https://sosafe.onrender.com/api/biodata2/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       setSelectedRecord(formatRecord(response.data.data));
     } catch {
       setError('Failed to fetch record details. Please try again.');
@@ -133,12 +145,13 @@ const BiodataDisplay: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
+
       const [recordsRes, zonesRes] = await Promise.all([
-        axios.get<AllRecordsResponse>(`https://sosafe.onrender.com/api/old/records/all`, {
-          headers: { "Authorization": `Bearer ${token}` }
+        axios.get<AllRecordsResponse>('https://sosafe.onrender.com/api/old/records/all', {
+          headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get(`https://sosafe.onrender.com/api/zones`, {
-          headers: { "Authorization": `Bearer ${token}` }
+        axios.get('https://sosafe.onrender.com/api/zones', {
+          headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
@@ -146,23 +159,20 @@ const BiodataDisplay: React.FC = () => {
 
       const formatted = recordsRes.data.data.map((row: any) => ({
         ...row,
-        dob:      row.dob      ? format(parseISO(row.dob),      'M/d/yyyy') : '',
-        enlisted: row.enlisted ? format(parseISO(row.enlisted), 'M/d/yyyy') : '',
-        zone:     zoneMap[row.zone]         || row.zone || '',
-        area:     areaMap[row.area]         || row.area || '',
-        city:     divisionMap[row.city]     || row.city || '',
-        created_at: row.created_at ? format(parseISO(row.created_at), 'M/d/yyyy') : '',
-        updated_at: row.updated_at ? format(parseISO(row.updated_at), 'M/d/yyyy') : '',
+        // safeDateFormat keeps masked values intact — they appear as-is in the export
+        dob:        safeDateFormat(row.dob),
+        enlisted:   safeDateFormat(row.enlisted),
+        zone:       zoneMap[row.zone]     || row.zone || '',
+        area:       areaMap[row.area]     || row.area || '',
+        city:       divisionMap[row.city] || row.city || '',
+        created_at: safeDateFormat(row.created_at),
+        updated_at: safeDateFormat(row.updated_at),
       }));
-      
-      // Convert JSON to worksheet
-      const worksheet  = XLSX.utils.json_to_sheet(formatted);
-      const workbook   = XLSX.utils.book_new();
+
+      const worksheet = XLSX.utils.json_to_sheet(formatted);
+      const workbook  = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(workbook, worksheet, 'Biodata Records');
-
-      // Download as .xlsx
       XLSX.writeFile(workbook, 'biodata_records.xlsx');
-
     } catch {
       setError('Failed to fetch all records. Please try again.');
     } finally {
@@ -170,7 +180,6 @@ const BiodataDisplay: React.FC = () => {
     }
   };
 
-  // Labels for the detail view
   const fieldLabels: Record<string, string> = {
     sno: 'S/N', fno: 'Form No', sname: 'Surname', fname: 'First Name',
     oname: 'Other Name', address: 'Address', phone: 'Phone', nin: 'NIN',
@@ -179,6 +188,21 @@ const BiodataDisplay: React.FC = () => {
     enlisted: 'Date Enlisted', rank: 'Rank', nok: 'Next of Kin',
     relation: 'Relationship', nokno: 'NOK Phone', captured: 'Photo',
     qualification: 'Qualification',
+  };
+
+  const renderFieldValue = (key: string, record: BiodataRecord) => {
+    const raw = record[key]?.toString() ?? '';
+
+    if (raw === MASKED_DOB) {
+      return (
+        <span className="inline-flex items-center gap-1 text-gray-400 italic text-xs">
+          <Lock className="h-3 w-3 shrink-0" />
+          Restricted
+        </span>
+      );
+    }
+
+    return <span className="text-gray-900">{raw || '—'}</span>;
   };
 
   return (
@@ -235,7 +259,7 @@ const BiodataDisplay: React.FC = () => {
                   {records.map(record => (
                     <tr key={record.id} className="border-b hover:bg-gray-50 text-[0.82rem]">
                       <td className="p-2">{record.fno}</td>
-                      <td className="p-2">{record.sno}</td>
+                      <td className="p-2">{record.servno}</td>
                       <td className="p-2">{`${record.fname} ${record.sname} ${record.oname ?? ''}`.trim()}</td>
                       <td className="p-2">{record.rank}</td>
                       <td className="p-2">{record.sex}</td>
@@ -283,7 +307,7 @@ const BiodataDisplay: React.FC = () => {
             {Object.entries(fieldLabels).map(([key, label]) => (
               <div key={key} className="space-y-1">
                 <div className="font-medium text-gray-500">{label}</div>
-                <div className="text-gray-900">{selectedRecord[key]?.toString() || '—'}</div>
+                <div>{renderFieldValue(key, selectedRecord)}</div>
               </div>
             ))}
           </div>

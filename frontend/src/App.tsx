@@ -1,7 +1,12 @@
-import { Route, RouterProvider, createBrowserRouter, createRoutesFromElements } from "react-router-dom";
+import { useEffect } from 'react';   // ← was missing
+import {
+  Route, RouterProvider, createBrowserRouter,
+  createRoutesFromElements, useLocation, Outlet, Navigate
+} from "react-router-dom";
 import { AgencyPage, ContactPage, ManagementTeamPage } from "./Pages/AboutPage";
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ReactNode } from 'react';
+import { usePostHog } from 'posthog-js/react';
 import AdminAgency from "./Pages/AdminAgency";
 import AdminContact from "./Pages/AdminContact";
 import AdminDashboard from "./Pages/AdminDashboard";
@@ -22,74 +27,102 @@ import PersonAlertDetail from "./components/PersonAlertDetail";
 import PersonnelPage from "./Pages/PersonnelPage";
 import SuperAdminRegistration from "./Pages/SuperAdmin Page/SuperAdminRegistration";
 import UnderConstructionPage from "./Pages/UnderConstructionPage";
-import { Navigate } from "react-router-dom";
-import 'rsuite/dist/rsuite-no-reset.min.css';
 import AssignUser from "./Pages/AssignUser";
+import 'rsuite/dist/rsuite-no-reset.min.css';
 
-interface ProtectedRouteProps {
-    children: ReactNode;
+// ── Tracks page views on every route change ──────────────────────────────────
+// Must live INSIDE the router (needs useLocation), so we render it
+// in RootLayout which wraps all routes.
+function PageViewTracker() {
+  const location = useLocation()
+  const posthog  = usePostHog()
+
+  useEffect(() => {
+    posthog?.capture('$pageview', {
+      $current_url: window.location.href,
+    })
+  }, [location.pathname]) // re-fires on every route change
+
+  return null
 }
+
+// ── Root layout: renders PageViewTracker once for the whole app ───────────────
+function RootLayout() {
+  return (
+    <>
+      <PageViewTracker />
+      <Outlet />
+    </>
+  )
+}
+
+// ── Auth guard ────────────────────────────────────────────────────────────────
+interface ProtectedRouteProps { children: ReactNode }
 
 const ProtectedRoute = ({ children }: ProtectedRouteProps): JSX.Element => {
-    const { isAuthenticated, loading } = useAuth();
-  
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="h-8 w-8 border-4 border-green-800 border-t-transparent rounded-full animate-spin"></div>
-            </div>
-        );
-    }
-  
-    return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-green-800 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
+// ── App ───────────────────────────────────────────────────────────────────────
 function App() {
-    const router = createBrowserRouter(
-        createRoutesFromElements(
-            <Route>
-                {/* Public routes */}
-                <Route index element={<Home />} />
-                <Route path="/about/agency" element={<AgencyPage />} />
-                <Route path="/about/contact" element={<ContactPage />} />
-                <Route path="/about/management" element={<ManagementTeamPage />} />
-                <Route path="/announcement/:slug" element={<NewsDetail />} />
-                <Route path="/departments" element={<DepartmentsPage />} />
-                <Route path="/missing/:person" element={<PersonAlertDetail />} />
-                <Route path="/news" element={<NewsPage />} />
-                <Route path="/news/:slug" element={<NewsDetail />} />
-                <Route path="/wanted/:person" element={<PersonAlertDetail />} />
-                <Route path="/login" element={<OfficerLoginPage />} />
-                <Route path="/personnel" element={<PersonnelPage />} />
-                <Route path="/under-construction" element={<UnderConstructionPage />} />
+  const router = createBrowserRouter(
+    createRoutesFromElements(
+      // RootLayout wraps everything so PageViewTracker fires on every navigation
+      <Route element={<RootLayout />}>
 
-                {/* Protected admin routes */}
-                <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-                <Route path="/admin/agency" element={<ProtectedRoute><AdminAgency /></ProtectedRoute>} />
-                <Route path="/admin/contact" element={<ProtectedRoute><AdminContact /></ProtectedRoute>} />
-                <Route path="/admin/database" element={<ProtectedRoute><AdminDatabase /></ProtectedRoute>} />
-                <Route path="/admin/zones" element={<ProtectedRoute><ZoneAreaDivisionTable /></ProtectedRoute>} />
-                <Route path="/admin/departments" element={<ProtectedRoute><AdminDepartments /></ProtectedRoute>} />
-                <Route path="/admin/management-team" element={<ProtectedRoute><AdminManagement /></ProtectedRoute>} />
-                <Route path="/admin/news" element={<ProtectedRoute><AdminNews /></ProtectedRoute>} />
-                <Route path="/admin/personnel" element={<ProtectedRoute><AdminPersonnel /></ProtectedRoute>} />
-                <Route path="/admin/assign-user" element={<ProtectedRoute><AssignUser /></ProtectedRoute>} />
-                <Route path="/admin/tracking" element={<ProtectedRoute><AdminTracking /></ProtectedRoute>} />
+        {/* Public routes */}
+        <Route index element={<Home />} />
+        <Route path="/about/agency"      element={<AgencyPage />} />
+        <Route path="/about/contact"     element={<ContactPage />} />
+        <Route path="/about/management"  element={<ManagementTeamPage />} />
+        <Route path="/announcement/:slug" element={<NewsDetail />} />
+        <Route path="/departments"       element={<DepartmentsPage />} />
+        <Route path="/missing/:person"   element={<PersonAlertDetail />} />
+        <Route path="/news"              element={<NewsPage />} />
+        <Route path="/news/:slug"        element={<NewsDetail />} />
+        <Route path="/wanted/:person"    element={<PersonAlertDetail />} />
+        <Route path="/login"             element={<OfficerLoginPage />} />
+        <Route path="/personnel"         element={<PersonnelPage />} />
+        <Route path="/under-construction" element={<UnderConstructionPage />} />
 
-                {/* Protected officer routes */}
-                <Route path="/officer/:name" element={<OfficerDashboard />} />
+        {/* Protected admin routes */}
+        <Route path="/admin"                  element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/agency"           element={<ProtectedRoute><AdminAgency /></ProtectedRoute>} />
+        <Route path="/admin/contact"          element={<ProtectedRoute><AdminContact /></ProtectedRoute>} />
+        <Route path="/admin/database"         element={<ProtectedRoute><AdminDatabase /></ProtectedRoute>} />
+        <Route path="/admin/zones"            element={<ProtectedRoute><ZoneAreaDivisionTable /></ProtectedRoute>} />
+        <Route path="/admin/departments"      element={<ProtectedRoute><AdminDepartments /></ProtectedRoute>} />
+        <Route path="/admin/management-team"  element={<ProtectedRoute><AdminManagement /></ProtectedRoute>} />
+        <Route path="/admin/news"             element={<ProtectedRoute><AdminNews /></ProtectedRoute>} />
+        <Route path="/admin/personnel"        element={<ProtectedRoute><AdminPersonnel /></ProtectedRoute>} />
+        <Route path="/admin/assign-user"      element={<ProtectedRoute><AssignUser /></ProtectedRoute>} />
+        <Route path="/admin/tracking"         element={<ProtectedRoute><AdminTracking /></ProtectedRoute>} />
 
-                {/* Protected super admin route */}
-                <Route path="/so-admin" element={<SuperAdminRegistration />} />
-            </Route>
-        )
-    );
+        {/* Protected officer routes */}
+        <Route path="/officer/:name" element={<OfficerDashboard />} />
 
-    return (
-        <AuthProvider>
-            <RouterProvider router={router} />
-        </AuthProvider>
-    );
+        {/* Super admin */}
+        <Route path="/so-admin" element={<SuperAdminRegistration />} />
+
+      </Route>
+    )
+  );
+
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
 
-export default App; 
+export default App;

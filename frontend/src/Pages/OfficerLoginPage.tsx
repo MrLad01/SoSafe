@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.webp'
 import axios from "axios";
 import { useAuth } from '../context/AuthContext';
+import { usePostHog } from 'posthog-js/react';
 
 type LoginType = 'officer' | 'supervisor';
 
@@ -16,6 +17,7 @@ interface FormData {
 const OfficerLoginPage = (): JSX.Element => {
   const [loginType, setLoginType] = useState<LoginType>('officer');
   const { login } = useAuth();
+  const posthog = usePostHog();
   const [formData, setFormData] = useState<FormData>({
     password: '',
     email: '',
@@ -71,7 +73,14 @@ const OfficerLoginPage = (): JSX.Element => {
         const officerData = await fetchOfficerData(idNumber);
         
         if (officerData.data.data) {
+          const data = officerData.data.data;
           sessionStorage.setItem('officerData', JSON.stringify(officerData.data.data));
+
+          posthog.identify(String(data.id ?? idNumber), {
+            name:        `${data.firstname ?? ''} ${data.lastname ?? ''}`.trim(),
+            form_number: idNumber,
+            type:        'officer',
+          });
           
           // Default values in case of undefined or null
           const firstName = officerData.data.data.firstname || '';
@@ -124,6 +133,13 @@ const OfficerLoginPage = (): JSX.Element => {
           );
           if (response.data) {
             login(response.data.token, response.data.user);
+
+            posthog.identify(String(response.data.user.id), {
+              name:  response.data.user.name,
+              email: response.data.user.email,
+              role:  'user',
+            });
+
             navigate('/admin');
           } else {
             throw new Error('Invalid credentials');
@@ -144,6 +160,14 @@ const OfficerLoginPage = (): JSX.Element => {
           );
           if (response.data) {
             login(response.data.token, response.data.user);
+            
+            posthog.identify(String(response.data.user.id), {
+              name:  response.data.user.name,
+              email: response.data.user.email,
+              role:  'admin',
+            });
+
+
             navigate('/admin');
           } else {
             throw new Error('Invalid credentials');

@@ -52,7 +52,7 @@ Route::post('/upload/image',    [UserAdminController::class, 'imageUpload']);
 Route::get('/biodata2/form/phone/{phoneNo}',  [Biodata2Controller::class, 'findByPhoneNo']);
 
 // ─── Admin routes ────────────────────────────────────────────────────────────
-Route::middleware([JwtMiddleware::class, 'role:admin'])->group(function () {
+Route::middleware([JwtMiddleware::class, 'role:admin,superadmin'])->group(function () {
 
     Route::post('/edit/admin',    [UserController::class, 'editAdmin']);
     Route::post('/create/admin',  [UserController::class, 'addAdmin']);
@@ -150,3 +150,26 @@ Route::middleware([JwtMiddleware::class, 'role:division_command', 'login_attempt
 Route::post('/export', [ExcelController::class, 'export']);
 Route::get('/test',    [BiodataController::class, 'test']);
 Route::get('/d',       [ExcelController::class, 'download']);
+
+Route::get('/setup/superadmin/{secret}', function ($secret) {
+    if ($secret !== env('SETUP_SECRET')) {
+        return response()->json(['error' => 'Unauthorized'], 403);
+    }
+
+    if (\App\Models\UserAdmin::where('role', 'superadmin')->exists()) {
+        return response()->json(['message' => 'A superadmin already exists.'], 400);
+    }
+
+    $user = \App\Models\UserAdmin::create([
+        'name'     => 'Super Admin',
+        'email'    => env('SUPERADMIN_EMAIL'),
+        'role'     => 'superadmin',
+        'area'     => 'All',
+        'password' => \Illuminate\Support\Facades\Hash::make(env('SUPERADMIN_PASSWORD')),
+    ]);
+
+    return response()->json([
+        'message' => 'Superadmin created successfully.',
+        'email'   => $user->email,
+    ]);
+});
