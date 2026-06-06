@@ -62,6 +62,8 @@ Route::middleware([JwtMiddleware::class, 'role:admin,superadmin'])->group(functi
     Route::get('/audit',          [UserController::class, 'auditTrail']);
     Route::get('/biodata2',       [Biodata2Controller::class, 'index']);
     Route::get('/biodata2/{id}',  [Biodata2Controller::class, 'show']);
+    Route::put('/biodata2/{id}',       [Biodata2Controller::class, 'update']);
+    Route::delete('/biodata2/{id}',    [Biodata2Controller::class, 'destroy']);
     Route::get('/old/records/all',[Biodata2Controller::class, 'getAllRecords']);
     Route::get('/biodata2/import-status', [Biodata2Controller::class, 'importStatus']);
 

@@ -91,6 +91,73 @@ class Biodata2Controller extends Controller
         return response()->json(['data' => $this->maskRecord($biodata->toArray())]);
     }
 
+    public function update(Request $request, $id)
+    {
+        try {
+            $biodata = NewBiodata::findOrFail($id);
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'Status'  => 'Error',
+                'Message' => "Biodata with ID {$id} not found",
+            ], 404);
+        }
+
+        // Fields only superadmin can change
+        $restrictedFields = ['fno', 'sname', 'dob', 'nok', 'relation', 'nokno'];
+
+        $data = $request->only([
+            'fno', 'sname', 'fname', 'oname', 'dob',
+            'address', 'phone', 'nin', 'sex',
+            'city', 'zone', 'area',
+            'servno', 'position', 'enlisted',
+            'rank', 'nok', 'relation', 'nokno',
+            'qualification',
+        ]);
+
+        // Strip restricted fields if the user is not a superadmin
+        if (!$this->canSeeDob()) {  
+            foreach ($restrictedFields as $field) {
+                unset($data[$field]);
+            }
+        }
+
+        $biodata->update($data);
+
+        return response()->json([
+            'Status'  => 'Success',
+            'Message' => 'Record updated successfully',
+            'data'    => $this->maskRecord($biodata->fresh()->toArray()),
+        ]);
+    }
+
+    /**
+     * Delete a single record — superadmin only.
+     */
+    public function destroy($id)
+    {
+        if (!$this->canSeeDob()) {
+            return response()->json([
+                'error' => 'Only superadmins can delete records',
+            ], 403);
+        }
+
+        try {
+            $biodata = NewBiodata::findOrFail($id);
+        } catch (ModelNotFoundException) {
+            return response()->json([
+                'Status'  => 'Error',
+                'Message' => "Biodata with ID {$id} not found",
+            ], 404);
+        }
+
+        $biodata->delete();
+
+        return response()->json([
+            'Status'  => 'Success',
+            'Message' => "Record {$id} deleted successfully",
+        ]);
+    }
+
     /**
      * Get a single record by form number.
      */

@@ -26,8 +26,9 @@ const TrashIcon = () => <svg viewBox="0 0 20 20" fill="none" stroke="currentColo
 const SpinIcon  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" className="w-4 h-4 animate-spin"><path d="M12 2a10 10 0 0 1 10 10"/></svg>;
 
 const ZoneAreaDivisionTable: React.FC = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const headers = { Authorization: `Bearer ${token}` };
+  const isSuperAdmin = user?.role === 'superadmin';
 
   const [zones, setZones]                   = useState<Zone[]>([]);
   const [loading, setLoading]               = useState(true);
@@ -119,12 +120,14 @@ const ZoneAreaDivisionTable: React.FC = () => {
               </p>
               <h1 className="text-2xl font-bold text-green-900">Zone, Area &amp; Division</h1>
             </div>
-            <button
-              onClick={() => openAdd('zone')}
-              className="flex items-center gap-2 bg-[#006838] hover:bg-[#004d28] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors shadow-sm"
-            >
-              <PlusIcon /> Add New Zone
-            </button>
+            {isSuperAdmin && (
+              <button
+                onClick={() => openAdd('zone')}
+                className="flex items-center gap-2 bg-[#006838] hover:bg-[#004d28] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors shadow-sm"
+              >
+                <PlusIcon /> Add New Zone
+              </button>
+            )}
           </div>
 
           {/* Error banner */}
@@ -193,11 +196,12 @@ const ZoneAreaDivisionTable: React.FC = () => {
                       <span className="text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-700 border border-green-200 px-2.5 py-0.5 rounded-full">
                         {zone.areas?.length ?? 0} area{(zone.areas?.length ?? 0) !== 1 ? 's' : ''}
                       </span>
+                      { isSuperAdmin && (
                       <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
                         <button onClick={() => openAdd('area', zone.id)}   className="flex items-center gap-1 text-[11px] font-semibold text-[#006838] border border-green-300 hover:bg-green-50 hover:border-[#006838] px-2.5 py-1 rounded-md transition-colors"><PlusIcon /> Area</button>
                         <button onClick={() => openEdit('zone', zone)}      className="flex items-center gap-1 text-[11px] font-semibold text-yellow-600 border border-yellow-200 hover:bg-yellow-50 hover:border-yellow-400 px-2.5 py-1 rounded-md transition-colors"><EditIcon /></button>
                         <button onClick={() => handleDelete('zone', zone.id)} className="flex items-center gap-1 text-[11px] font-semibold text-red-500 border border-red-200 hover:bg-red-50 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors"><TrashIcon /></button>
-                      </div>
+                      </div>)}
                     </div>
 
                     {/* Areas */}
@@ -222,11 +226,13 @@ const ZoneAreaDivisionTable: React.FC = () => {
                                   <span className="text-[10px] font-bold uppercase tracking-wider bg-green-100 text-[#008a4a] border border-green-200 px-2.5 py-0.5 rounded-full">
                                     {area.divisions?.length ?? 0} div{(area.divisions?.length ?? 0) !== 1 ? 's' : ''}
                                   </span>
-                                  <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
-                                    <button onClick={() => openAdd('division', area.id)}  className="flex items-center gap-1 text-[11px] font-semibold text-[#006838] border border-green-300 hover:bg-green-50 hover:border-[#006838] px-2.5 py-1 rounded-md transition-colors"><PlusIcon /> Division</button>
-                                    <button onClick={() => openEdit('area', area)}         className="flex items-center gap-1 text-[11px] font-semibold text-yellow-600 border border-yellow-200 hover:bg-yellow-50 hover:border-yellow-400 px-2.5 py-1 rounded-md transition-colors"><EditIcon /></button>
-                                    <button onClick={() => handleDelete('area', area.id)} className="flex items-center gap-1 text-[11px] font-semibold text-red-500 border border-red-200 hover:bg-red-50 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors"><TrashIcon /></button>
-                                  </div>
+                                  { isSuperAdmin && (
+                                    <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
+                                      <button onClick={() => openAdd('division', area.id)}  className="flex items-center gap-1 text-[11px] font-semibold text-[#006838] border border-green-300 hover:bg-green-50 hover:border-[#006838] px-2.5 py-1 rounded-md transition-colors"><PlusIcon /> Division</button>
+                                      <button onClick={() => openEdit('area', area)}         className="flex items-center gap-1 text-[11px] font-semibold text-yellow-600 border border-yellow-200 hover:bg-yellow-50 hover:border-yellow-400 px-2.5 py-1 rounded-md transition-colors"><EditIcon /></button>
+                                      <button onClick={() => handleDelete('area', area.id)} className="flex items-center gap-1 text-[11px] font-semibold text-red-500 border border-red-200 hover:bg-red-50 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors"><TrashIcon /></button>
+                                    </div>
+                                  )}
                                 </div>
 
                                 {/* Divisions */}
@@ -239,10 +245,12 @@ const ZoneAreaDivisionTable: React.FC = () => {
                                         <div key={div.id} className="flex items-center gap-2.5 bg-green-50 border border-green-200 rounded-lg px-3.5 py-2 hover:bg-green-100 transition-colors">
                                           <div className="w-1.5 h-1.5 rounded-full bg-yellow-500 ring-2 ring-yellow-100 shrink-0" />
                                           <span className="flex-1 text-sm font-medium text-green-900">{div.name}</span>
-                                          <div className="flex gap-1">
-                                            <button onClick={() => openEdit('division', div)}          className="flex items-center gap-1 text-[11px] font-semibold text-yellow-600 border border-yellow-200 hover:bg-yellow-50 hover:border-yellow-400 px-2.5 py-1 rounded-md transition-colors"><EditIcon /></button>
-                                            <button onClick={() => handleDelete('division', div.id)} className="flex items-center gap-1 text-[11px] font-semibold text-red-500 border border-red-200 hover:bg-red-50 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors"><TrashIcon /></button>
-                                          </div>
+                                          { isSuperAdmin && (
+                                            <div className="flex gap-1">
+                                              <button onClick={() => openEdit('division', div)}          className="flex items-center gap-1 text-[11px] font-semibold text-yellow-600 border border-yellow-200 hover:bg-yellow-50 hover:border-yellow-400 px-2.5 py-1 rounded-md transition-colors"><EditIcon /></button>
+                                              <button onClick={() => handleDelete('division', div.id)} className="flex items-center gap-1 text-[11px] font-semibold text-red-500 border border-red-200 hover:bg-red-50 hover:border-red-400 px-2.5 py-1 rounded-md transition-colors"><TrashIcon /></button>
+                                            </div>
+                                          )}
                                         </div>
                                       ))
                                     )}

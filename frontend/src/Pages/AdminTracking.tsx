@@ -139,7 +139,11 @@ const AdminTracking: React.FC = () => {
           `https://us.i.posthog.com/api/projects/${projectId}/events/?limit=2000`,
           { headers: { Authorization: `Bearer ${personalKey}` } }
         );
-        setPosthogLogs(res.data.results.map(mapPostHogEvent));
+        setPosthogLogs(
+          res.data.results
+            .filter((e) => e.event !== "$autocapture")
+            .map(mapPostHogEvent)
+        );
       } catch (err) {
         console.error("Error fetching PostHog events:", err);
       }
