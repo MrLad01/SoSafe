@@ -16,7 +16,8 @@ interface User {
 }
 
 const AssignUser: React.FC = () => {
-  const { token } = useAuth()
+  const { token, user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin';
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showResponseModal, setShowResponseModal] = useState(false);
@@ -292,7 +293,7 @@ const AssignUser: React.FC = () => {
             {error}
             </div>
         )}
-        <div className="mb-6 flex justify-between items-center">
+        { isSuperAdmin && (<div className="mb-6 flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-800">Assign User</h1>
             <button
             onClick={() => {
@@ -305,7 +306,7 @@ const AssignUser: React.FC = () => {
             <Plus size={20} />
             Add New User
             </button>
-        </div>
+        </div>)}
 
         {/* Search Bar */}
         <div className="mb-6 relative">
@@ -426,6 +427,7 @@ const AssignUser: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Login Attempts</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                {/* {isSuperAdmin && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>} */}
                 </tr>
             </thead>
             <tbody className="bg-white overflow-auto divide-y divide-gray-200">
@@ -456,34 +458,63 @@ const AssignUser: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.login_attempt == 0 ? '--' : user.login_attempt}
                     </td>
+                    {/* { isSuperAdmin && (<td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                      <button
+                          onClick={() => handleEdit(user)}
+                          className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                          <Edit2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                          <span className="hidden group-hover:inline-block transition-all  duration-300">
+                            Edit
+                          </span>
+                      </button>
+                      <button
+                          onClick={() => handleDelete(user.id)}
+                          className="text-red-600 hover:text-white hover:bg-red-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                          <Trash2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                          <span className="hidden group-hover:inline-block transition-all  duration-300">
+                            Delete
+                          </span>
+                      </button>
+                      <button
+                        onClick={() => handleReset(user.id)}
+                        className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                        <RotateCcw size={16} className="group-hover:mr-2 transition-all  duration-500"/>
+                        <span className="hidden group-hover:inline-block transition-all  duration-500">
+                            Reset login
+                        </span>
+                      </button>
+                    </td>)} */}
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
-                    <button
-                        onClick={() => handleEdit(user)}
-                        className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
-                    >
-                        <Edit2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
-                        <span className="hidden group-hover:inline-block transition-all  duration-300">
-                          Edit
+                      <button
+                          onClick={() => handleEdit(user)}
+                          className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                          <Edit2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                          <span className="hidden group-hover:inline-block transition-all  duration-300">
+                            Edit
+                          </span>
+                      </button>
+                      <button
+                          onClick={() => handleDelete(user.id)}
+                          className="text-red-600 hover:text-white hover:bg-red-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                          <Trash2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                          <span className="hidden group-hover:inline-block transition-all  duration-300">
+                            Delete
+                          </span>
+                      </button>
+                      <button
+                        onClick={() => handleReset(user.id)}
+                        className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                        <RotateCcw size={16} className="group-hover:mr-2 transition-all  duration-500"/>
+                        <span className="hidden group-hover:inline-block transition-all  duration-500">
+                            Reset login
                         </span>
-                    </button>
-                    <button
-                        onClick={() => handleDelete(user.id)}
-                        className="text-red-600 hover:text-white hover:bg-red-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
-                    >
-                        <Trash2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
-                        <span className="hidden group-hover:inline-block transition-all  duration-300">
-                          Delete
-                        </span>
-                    </button>
-                    <button
-                      onClick={() => handleReset(user.id)}
-                      className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
-                    >
-                      <RotateCcw size={16} className="group-hover:mr-2 transition-all  duration-500"/>
-                      <span className="hidden group-hover:inline-block transition-all  duration-500">
-                          Reset login
-                      </span>
-                    </button>
+                      </button>
                     </td>
                 </tr>
                 ))}

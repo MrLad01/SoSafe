@@ -20,9 +20,12 @@ interface BiodataRecord {
   nin: string;
   dob: string;
   sex: string;
-  city: number;
-  zone: number;
-  area: number;
+  // city: number;
+  // zone: number;
+  // area: number;
+  city: number | string;
+  zone: number | string;
+  area: number | string;
   servno: string;
   position: string;
   enlisted: string;
@@ -69,7 +72,8 @@ const safeDateFormat = (dateStr: string | null | undefined, fmt = 'M/d/yyyy'): s
 };
 
 const BiodataDisplay: React.FC = () => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin';
   const [records, setRecords]               = useState<BiodataRecord[]>([]);
   const [loading, setLoading]               = useState<boolean>(false);
   const [error, setError]                   = useState<string | null>(null);
@@ -78,6 +82,17 @@ const BiodataDisplay: React.FC = () => {
   const [totalPages, setTotalPages]         = useState<number>(1);
   const [selectedRecord, setSelectedRecord] = useState<BiodataRecord | null>(null);
   const [perPage]                           = useState<number>(100);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm]             = useState<Partial<BiodataRecord>>({});
+  const [zones, setZones]                   = useState<any[]>([]);
+  const [saving, setSaving]                 = useState(false);
+  const [filteredAreas, setFilteredAreas]   = useState<any[]>([]);
+  const [filteredDivisions, setFilteredDivisions] = useState<any[]>([]);
+
+  const [zoneMap, setZoneMap]     = useState<Record<number, string>>({});
+  const [areaMap, setAreaMap]     = useState<Record<number, string>>({});
+  const [divisionMap, setDivisionMap] = useState<Record<number, string>>({});
 
   const formatRecord = (record: any) => ({
     ...record,
@@ -107,16 +122,31 @@ const BiodataDisplay: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await axios.get<ApiResponse>('https://sosafe.onrender.com/api/biodata2', {
-        params: {
-          page: currentPage,
-          per_page: perPage,
-          search: search.toUpperCase() || undefined,
-        },
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setRecords(response.data.data);
-      setTotalPages(response.data.meta.last_page);
+
+      const [recordsRes, zonesRes] = await Promise.all([
+        axios.get<ApiResponse>('https://sosafe.onrender.com/api/biodata2', {
+          params: {
+            page: currentPage,
+            per_page: perPage,
+            search: search.toUpperCase() || undefined,
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+        axios.get('https://sosafe.onrender.com/api/zones', {
+          headers: { Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      setRecords(recordsRes.data.data);
+      setTotalPages(recordsRes.data.meta.last_page);
+
+      setZones(zonesRes?.data);
+
+      const maps = buildLocationMaps(zonesRes?.data);
+      setZoneMap(maps.zoneMap);
+      setAreaMap(maps.areaMap);
+      setDivisionMap(maps.divisionMap);
+
     } catch {
       setError('Failed to fetch records. Please try again.');
     } finally {
@@ -129,6 +159,7 @@ const BiodataDisplay: React.FC = () => {
   const fetchSingleRecord = async (id: number): Promise<void> => {
     try {
       setLoading(true);
+      setIsEditing(false);
       const response = await axios.get<SingleRecordResponse>(
         `https://sosafe.onrender.com/api/biodata2/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -155,9 +186,16 @@ const BiodataDisplay: React.FC = () => {
         }),
       ]);
 
+      setZones(zonesRes?.data);
+
       const { zoneMap, areaMap, divisionMap } = buildLocationMaps(zonesRes?.data);
 
-      const formatted = recordsRes.data.data.map((row: any) => ({
+      const formatted = recordsRes.data.data
+      .slice()  // avoid mutating original array
+      .sort((a: any, b: any) => {
+        return a.id - b.id; 
+      })
+      .map((row: any) => ({
         ...row,
         // safeDateFormat keeps masked values intact — they appear as-is in the export
         dob:        safeDateFormat(row.dob),
@@ -190,6 +228,75 @@ const BiodataDisplay: React.FC = () => {
     qualification: 'Qualification',
   };
 
+  const syncCascade = (form: Partial<BiodataRecord>, allZones: any[]) => {
+  const zone = allZones.find(z => z.id === Number(form.zone));
+  const areas = zone?.areas ?? [];
+  setFilteredAreas(areas);
+  const area = areas.find((a: any) => a.id === Number(form.area));
+    setFilteredDivisions(area?.divisions ?? []);
+  };
+
+  const openEdit = () => {
+    if (!selectedRecord) return;
+    const form = { ...selectedRecord };
+
+    if (form.area && (!form.zone || form.zone === '' || form.zone === 0)) {
+      const parentZone = zones.find(z =>
+        z.areas?.some((a: any) => a.id === Number(form.area))
+      );
+      if (parentZone) {
+        form.zone = parentZone.id;
+      }
+    }
+
+    if (form.city && !form.area) {
+      zones.forEach(z => {
+        z.areas?.forEach((a: any) => {
+          if (a.divisions?.some((d: any) => d.id === Number(form.city))) {
+            form.zone = z.id;
+            form.area = a.id;
+          }
+        });
+      });
+    }
+
+
+    setEditForm(form);
+    syncCascade(form, zones);
+    setIsEditing(true);
+  };
+
+  const handleEditChange = (key: string, value: string) => {
+    setEditForm(prev => {
+      const updated = { ...prev, [key]: value };
+      if (key === 'zone') { updated.area = ''; updated.city = ''; }
+      if (key === 'area') { updated.city = ''; }
+      syncCascade(updated, zones);
+      return updated;
+    });
+  };
+
+  const handleSave = async () => {
+    if (!selectedRecord) return;
+    setSaving(true);
+    try {
+      await axios.put(
+        `https://sosafe.onrender.com/api/biodata2/${selectedRecord.id}`,
+        editForm,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      await fetchRecords();
+      // Refresh the detail view with updated data
+      await fetchSingleRecord(selectedRecord.id);
+      setIsEditing(false);
+    } catch {
+      setError('Failed to save record. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
   const renderFieldValue = (key: string, record: BiodataRecord) => {
     const raw = record[key]?.toString() ?? '';
 
@@ -201,6 +308,11 @@ const BiodataDisplay: React.FC = () => {
         </span>
       );
     }
+
+    // Resolve IDs to human-readable names
+    if (key === 'zone')   return <span className="text-gray-900">{zoneMap[Number(raw)]     || raw || '—'}</span>;
+    if (key === 'area')   return <span className="text-gray-900">{areaMap[Number(raw)]     || raw || '—'}</span>;
+    if (key === 'city')   return <span className="text-gray-900">{divisionMap[Number(raw)] || raw || '—'}</span>;
 
     return <span className="text-gray-900">{raw || '—'}</span>;
   };
@@ -302,21 +414,166 @@ const BiodataDisplay: React.FC = () => {
       {/* Detail view */}
       {selectedRecord && (
         <div className="bg-white rounded-lg shadow-lg p-6">
-          <h2 className="text-xl font-bold mb-4">Record Details</h2>
-          <div className="grid grid-cols-2 gap-4 text-[0.8rem]">
-            {Object.entries(fieldLabels).map(([key, label]) => (
-              <div key={key} className="space-y-1">
-                <div className="font-medium text-gray-500">{label}</div>
-                <div>{renderFieldValue(key, selectedRecord)}</div>
-              </div>
-            ))}
+
+          {/* Detail/Edit header */}
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h2 className="text-xl font-bold">
+                {isEditing ? 'Edit Record' : 'Record Details'}
+              </h2>
+              {isEditing && !isSuperAdmin && (
+                <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                  <Lock className="h-3 w-3" /> Some fields are restricted to superadmin
+                </p>
+              )}
+            </div>
+            <div className="flex gap-2">
+              {!isEditing && (
+                <button
+                  onClick={openEdit}
+                  className="px-4 py-2 text-sm font-medium text-white bg-[#006838] hover:bg-[#004d28] rounded-lg transition-colors"
+                >
+                  Edit Record
+                </button>
+              )}
+              <button
+                onClick={() => { setSelectedRecord(null); setIsEditing(false); }}
+                className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+              >
+                Close
+              </button>
+            </div>
           </div>
-          <button
-            className="mt-4 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
-            onClick={() => setSelectedRecord(null)}
-          >
-            Close Details
-          </button>
+
+          {isEditing ? (
+            /* ── Edit mode ── */
+            <div>
+              <div className="grid grid-cols-2 gap-4 text-[0.8rem]">
+
+                {/* Restricted fields */}
+                {([
+                  { key: 'fno',      label: 'Form No'      },
+                  { key: 'sname',    label: 'Surname'       },
+                  { key: 'dob',      label: 'Date of Birth' },
+                  { key: 'nok',      label: 'Next of Kin'   },
+                  { key: 'relation', label: 'Relationship'  },
+                  { key: 'nokno',    label: 'NOK Phone'     },
+                ] as const).map(({ key, label }) => (
+                  <div key={key} className="space-y-1">
+                    <label className="font-medium text-gray-500 flex items-center gap-1">
+                      {label}
+                      {!isSuperAdmin && <Lock className="h-3 w-3 text-gray-400" />}
+                    </label>
+                    <input
+                      value={editForm[key]?.toString() ?? ''}
+                      disabled={!isSuperAdmin}
+                      onChange={e => handleEditChange(key, e.target.value)}
+                      className="w-full border border-gray-300 focus:border-[#006838] focus:ring-1 focus:ring-green-200 rounded-md px-3 py-1.5 text-sm outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                    />
+                  </div>
+                ))}
+
+                {/* Zone dropdown */}
+                <div className="space-y-1">
+                  <label className="font-medium text-gray-500">Zone</label>
+                  <select
+                    value={editForm.zone ?? ''}
+                    onChange={e => handleEditChange('zone', e.target.value)}
+                    className="w-full border border-gray-300 focus:border-[#006838] rounded-md px-3 py-1.5 text-sm outline-none transition-all"
+                  >
+                    <option value="">— Select Zone —</option>
+                    {zones.map((z: any) => (
+                      <option key={z.id} value={z.id}>{z.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Area dropdown */}
+                <div className="space-y-1">
+                  <label className="font-medium text-gray-500">Area</label>
+                  <select
+                    value={editForm.area ?? ''}
+                    onChange={e => handleEditChange('area', e.target.value)}
+                    disabled={!filteredAreas.length}
+                    className="w-full border border-gray-300 focus:border-[#006838] rounded-md px-3 py-1.5 text-sm outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">— Select Area —</option>
+                    {filteredAreas.map((a: any) => (
+                      <option key={a.id} value={a.id}>{a.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Division dropdown */}
+                <div className="space-y-1">
+                  <label className="font-medium text-gray-500">Division</label>
+                  <select
+                    value={editForm.city ?? ''}
+                    onChange={e => handleEditChange('city', e.target.value)}
+                    disabled={!filteredDivisions.length}
+                    className="w-full border border-gray-300 focus:border-[#006838] rounded-md px-3 py-1.5 text-sm outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  >
+                    <option value="">— Select Division —</option>
+                    {filteredDivisions.map((d: any) => (
+                      <option key={d.id} value={d.id}>{d.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Freely editable fields */}
+                {([
+                  { key: 'fname',         label: 'First Name'    },
+                  { key: 'oname',         label: 'Other Name'    },
+                  { key: 'address',       label: 'Address'       },
+                  { key: 'phone',         label: 'Phone'         },
+                  { key: 'nin',           label: 'NIN'           },
+                  { key: 'sex',           label: 'Sex'           },
+                  { key: 'servno',        label: 'Service No'    },
+                  { key: 'position',      label: 'Position'      },
+                  { key: 'enlisted',      label: 'Date Enlisted' },
+                  { key: 'rank',          label: 'Rank'          },
+                  { key: 'qualification', label: 'Qualification' },
+                ] as const).map(({ key, label }) => (
+                  <div key={key} className="space-y-1">
+                    <label className="font-medium text-gray-500">{label}</label>
+                    <input
+                      value={editForm[key]?.toString() ?? ''}
+                      onChange={e => handleEditChange(key, e.target.value)}
+                      className="w-full border border-gray-300 focus:border-[#006838] focus:ring-1 focus:ring-green-200 rounded-md px-3 py-1.5 text-sm outline-none transition-all"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Save / Cancel */}
+              <div className="flex justify-end gap-3 mt-6">
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-[#006838] hover:bg-[#004d28] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
+                >
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {saving ? 'Saving…' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ── Read-only mode ── */
+            <div className="grid grid-cols-2 gap-4 text-[0.8rem]">
+              {Object.entries(fieldLabels).map(([key, label]) => (
+                <div key={key} className="space-y-1">
+                  <div className="font-medium text-gray-500">{label}</div>
+                  <div>{renderFieldValue(key, selectedRecord)}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>
