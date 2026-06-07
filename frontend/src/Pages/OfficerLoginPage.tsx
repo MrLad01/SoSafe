@@ -88,7 +88,7 @@ const OfficerLoginPage = (): JSX.Element => {
       } else {
         // ── user_admins table: handles both 'user', 'admin' (legacy), and 'superadmin' ──
         // 'admin' hits the separate /api/login (users table — legacy route kept for compatibility)
-        const isAdminLegacy = formData.role === 'admin';
+        const isAdminLegacy = formData.role === 'superadmin';
 
         const response = await axios.post(
           isAdminLegacy
