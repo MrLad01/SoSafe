@@ -41,7 +41,8 @@ class UserAdminController extends Controller
         $credentials = $request->only('email', 'password');
 
         try {
-            if (! $token = auth()->guard('admin')->attempt($credentials)) {
+            // if (! $token = auth()->guard('admin')->attempt($credentials)) {
+            if (!auth()->guard('admin')->attempt($credentials)) {
                 // auditTrail('login','invalid credential');
                 return response()->json(['error' => 'Invalid credentials'], 401);
             }
@@ -51,7 +52,11 @@ class UserAdminController extends Controller
             $user->login_attempt +=1;
             $user->save();
             // (optional) Attach the role to the token.
-            $token = JWTAuth::claims(['role' => $user->role])->fromUser($user);
+            // $token = JWTAuth::claims(['role' => $user->role])->fromUser($user);
+            $token = JWTAuth::claims([
+                'role'  => $user->role,
+                'guard' => 'admin',
+            ])->fromUser($user);
             auditTrail('login','success');
             return response()->json(compact('token','user'));
         } catch (JWTException $e) {

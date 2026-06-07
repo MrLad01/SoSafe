@@ -10,6 +10,9 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
+
+        $guard = $request->attributes->get('jwt_guard', 'api');
+
         $user = auth()->guard('admin')->user();
 
         if (!$user) {
