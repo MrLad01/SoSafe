@@ -91,7 +91,16 @@ class UserController extends Controller
             'area' => $request->get('area'),
         ]);
 
-        return response()->json('Record created successfully', 201);
+        return response()->json('Record updated successfully', 200);
+
+    }
+
+    public function deleteAdmin(Request $request){
+        // $data = $this->validate($request);
+
+        $user = UserAdmin::whereId($request->id)->delete();
+
+        return response()->json('Record deleted successfully', 200);
 
     }
 

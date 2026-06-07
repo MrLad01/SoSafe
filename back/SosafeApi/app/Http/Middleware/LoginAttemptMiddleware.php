@@ -21,9 +21,13 @@ class LoginAttemptMiddleware
     {
         $email = $request->email;
         $user = UserAdmin::where('email',$email)->firstOrFail();
-        if($user->login_attempt >=2  ){
+        if($user->login_attempt >=5  ){
             auditTrail('login attempt exceeded','failed',$user->name);
             return response()->json('Access Denied, Maximum Number of login reached',403);
+        }
+        if($user->invalid_login_attempts >=3  ){
+            auditTrail('invalid login attempt exceeded','failed',$user->name);
+            return response()->json('Access Denied, Maximum Number of incorrect login attempts reached',403);
         }
         if ($user->role =='divisional_command' || $user->role =='zonal_command') {
             $expireTime = Carbon::now()->addSeconds(30);
