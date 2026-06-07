@@ -11,6 +11,7 @@ interface User {
   role: string;
   area: string;
   login_attempt: number;
+  invalid_login_attempts: number;
   created_at: string;
   last_seen: string;
 }
@@ -172,6 +173,7 @@ const AssignUser: React.FC = () => {
           area: formData.area,
           role: formData.role,
           login_attempt: 0,
+          invalid_login_attempts: 0,
           created_at: new Date().toISOString(),
           last_seen: '-'
         };
@@ -433,6 +435,7 @@ const AssignUser: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Assigned</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Login Attempts</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invalid Login Attempts</th>
                 {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th> */}
                 {isSuperAdmin && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                 </tr>
@@ -464,6 +467,9 @@ const AssignUser: React.FC = () => {
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.login_attempt == 0 ? '--' : user.login_attempt}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.invalid_login_attempts == 0 ? '--' : user.invalid_login_attempts}
                     </td>
                     { isSuperAdmin && (<td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                       <button
