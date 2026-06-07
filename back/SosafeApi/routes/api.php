@@ -56,6 +56,7 @@ Route::middleware([JwtMiddleware::class, 'role:admin,superadmin'])->group(functi
 
     Route::post('/edit/admin',    [UserController::class, 'editAdmin']);
     Route::post('/create/admin',  [UserController::class, 'addAdmin']);
+    Route::post('/delete/admin',  [UserController::class, 'deleteAdmin']);
     Route::post('/reset',         [UserController::class, 'ResetLoginAttempt']);
     Route::get('/reset-all',      [UserController::class, 'ResetAllLoginAttempt']);
     Route::get('/admins',         [UserController::class, 'getAdmins']);
