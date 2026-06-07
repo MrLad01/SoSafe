@@ -266,9 +266,16 @@ const AssignUser: React.FC = () => {
       })
     }
   };
-  const handleDelete = (userId: string) => {
+  const handleDelete = async (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       setUsers(users.filter(user => user.id !== userId));
+       await axios.post(`https://sosafe.onrender.com/api/delete/admin`,{
+          id: userId
+      } , {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
     }
   };
 
@@ -426,8 +433,8 @@ const AssignUser: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Assigned</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Login Attempts</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                {/* {isSuperAdmin && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>} */}
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th> */}
+                {isSuperAdmin && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                 </tr>
             </thead>
             <tbody className="bg-white overflow-auto divide-y divide-gray-200">
@@ -458,7 +465,7 @@ const AssignUser: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.login_attempt == 0 ? '--' : user.login_attempt}
                     </td>
-                    {/* { isSuperAdmin && (<td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                    { isSuperAdmin && (<td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                       <button
                           onClick={() => handleEdit(user)}
                           className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
@@ -486,8 +493,8 @@ const AssignUser: React.FC = () => {
                             Reset login
                         </span>
                       </button>
-                    </td>)} */}
-                    <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                    </td>)}
+                    {/* <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                       <button
                           onClick={() => handleEdit(user)}
                           className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
@@ -515,7 +522,7 @@ const AssignUser: React.FC = () => {
                             Reset login
                         </span>
                       </button>
-                    </td>
+                    </td> */}
                 </tr>
                 ))}
             </tbody>
