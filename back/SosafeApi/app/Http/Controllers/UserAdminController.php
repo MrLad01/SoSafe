@@ -44,6 +44,7 @@ class UserAdminController extends Controller
             // if (! $token = auth()->guard('admin')->attempt($credentials)) {
             if (!auth()->guard('admin')->attempt($credentials)) {
                 // auditTrail('login','invalid credential');
+                $user = auth()->guard('admin')->user();
                 $user->invalid_login_attempts +=1;
                 $user->save();
                 return response()->json(['error' => 'Invalid credentials'], 401);
