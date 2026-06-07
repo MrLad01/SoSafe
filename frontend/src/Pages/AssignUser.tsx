@@ -268,14 +268,14 @@ const AssignUser: React.FC = () => {
   };
   const handleDelete = async (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
-      setUsers(users.filter(user => user.id !== userId));
-       await axios.post(`https://sosafe.onrender.com/api/delete/admin`,{
+      await axios.post(`https://sosafe.onrender.com/api/delete/admin`,{
           id: userId
       } , {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       })
+      setUsers(users.filter(user => user.id !== userId));
     }
   };
 
