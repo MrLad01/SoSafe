@@ -31,7 +31,8 @@ class UserController extends Controller
             return response()->json($validator->errors()->toJson(), 400);
         }
         $user = UserAdmin::whereId($request->id)->update([
-            'login_attempt' => 0
+            'login_attempt' => 0,
+            'invalid_login_attempts' => 0
         ]);
 
         return response()->json('Login Attempt reset successful for this user');
