@@ -1,7 +1,8 @@
 import { useEffect } from 'react';   // ← was missing
 import {
   Route, RouterProvider, createBrowserRouter,
-  createRoutesFromElements, useLocation, Outlet, Navigate
+  createRoutesFromElements, useLocation, Outlet, Navigate,
+  NavLink
 } from "react-router-dom";
 import { AgencyPage, ContactPage, ManagementTeamPage } from "./Pages/AboutPage";
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -73,6 +74,15 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps): JSX.Element => {
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
+const RedirectRoute = ({ children }: ProtectedRouteProps): JSX.Element => {
+  useEffect(() => {
+    window.location.replace("https://sosafecorps.og.gov.ng/");
+  }, []);
+
+  // Render children (or a loading state) while the redirect happens
+  return <>{children}</>;
+};
+
 // ── App ───────────────────────────────────────────────────────────────────────
 function App() {
   const router = createBrowserRouter(
@@ -81,19 +91,33 @@ function App() {
       <Route element={<RootLayout />}>
 
         {/* Public routes */}
-        <Route index element={<Home />} />
-        <Route path="/about/agency"      element={<AgencyPage />} />
-        <Route path="/about/contact"     element={<ContactPage />} />
-        <Route path="/about/management"  element={<ManagementTeamPage />} />
-        <Route path="/announcement/:slug" element={<NewsDetail />} />
-        <Route path="/departments"       element={<DepartmentsPage />} />
-        <Route path="/missing/:person"   element={<PersonAlertDetail />} />
-        <Route path="/news"              element={<NewsPage />} />
-        <Route path="/news/:slug"        element={<NewsDetail />} />
-        <Route path="/wanted/:person"    element={<PersonAlertDetail />} />
-        <Route path="/login"             element={<OfficerLoginPage />} />
-        <Route path="/personnel"         element={<PersonnelPage />} />
-        <Route path="/under-construction" element={<UnderConstructionPage />} />
+          {/* <Route index element={<Home />} />
+          <Route path="/about/agency"      element={<AgencyPage />} />
+          <Route path="/about/contact"     element={<ContactPage />} />
+          <Route path="/about/management"  element={<ManagementTeamPage />} />
+          <Route path="/announcement/:slug" element={<NewsDetail />} />
+          <Route path="/departments"       element={<DepartmentsPage />} />
+          <Route path="/missing/:person"   element={<PersonAlertDetail />} />
+          <Route path="/news"              element={<NewsPage />} />
+          <Route path="/news/:slug"        element={<NewsDetail />} />
+          <Route path="/wanted/:person"    element={<PersonAlertDetail />} />
+          <Route path="/login"             element={<OfficerLoginPage />} />
+          <Route path="/personnel"         element={<PersonnelPage />} />
+          <Route path="/under-construction" element={<UnderConstructionPage />} /> */}
+          
+          <Route index element={<RedirectRoute><Home /></RedirectRoute>} />
+          <Route path="/about/agency"      element={<RedirectRoute><AgencyPage /></RedirectRoute>} />
+          <Route path="/about/contact"     element={<RedirectRoute><ContactPage /></RedirectRoute>} />
+          <Route path="/about/management"  element={<RedirectRoute><ManagementTeamPage /></RedirectRoute>} />
+          <Route path="/announcement/:slug" element={<RedirectRoute><NewsDetail /></RedirectRoute>} />
+          <Route path="/departments"       element={<RedirectRoute><DepartmentsPage /></RedirectRoute>} />
+          <Route path="/missing/:person"   element={<RedirectRoute><PersonAlertDetail /></RedirectRoute>} />
+          <Route path="/news"              element={<RedirectRoute><NewsPage /></RedirectRoute>} />
+          <Route path="/news/:slug"        element={<RedirectRoute><NewsDetail /></RedirectRoute>} />
+          <Route path="/wanted/:person"    element={<RedirectRoute><PersonAlertDetail /></RedirectRoute>} />
+          <Route path="/login"             element={<OfficerLoginPage />} />
+          <Route path="/personnel"         element={<RedirectRoute><PersonnelPage /></RedirectRoute>} />
+          <Route path="/under-construction" element={<RedirectRoute><UnderConstructionPage /></RedirectRoute>} />
 
         {/* Protected admin routes */}
         <Route path="/admin"                  element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
