@@ -1,6 +1,6 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { Shield, Users, ChevronRight, Mail, IdCard, Eye, EyeOff, ArrowLeft } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.webp'
 import axios from "axios";
 import { useAuth } from '../context/AuthContext';
@@ -149,15 +149,16 @@ const OfficerLoginPage = (): JSX.Element => {
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row relative">
-      <button
-        onClick={() => navigate('/personnel')}
+      <NavLink
+        // onClick={() => navigate('https://sosafecorps.og.gov.ng/')}
+        // type="button"
+        to={'https://sosafecorps.og.gov.ng/'}
         className="absolute top-4 left-4 flex items-center space-x-2 text-white md:text-gray-600 hover:text-green-700 transition-colors duration-200 z-10"
-        type="button"
         aria-label="Go back to previous page"
       >
         <ArrowLeft className="h-6 w-6 text-white opacity-50" />
         <span className="text-sm font-medium text-white opacity-50">Back</span>
-      </button>
+      </NavLink>
 
       {/* Left panel */}
       <div className="w-full md:w-1/2 bg-gradient-to-br from-green-800 to-green-900 p-8 flex flex-col justify-center items-center text-white">
