@@ -2,7 +2,6 @@ import { useEffect } from 'react';   // ← was missing
 import {
   Route, RouterProvider, createBrowserRouter,
   createRoutesFromElements, useLocation, Outlet, Navigate,
-  NavLink
 } from "react-router-dom";
 import { AgencyPage, ContactPage, ManagementTeamPage } from "./Pages/AboutPage";
 import { AuthProvider, useAuth } from './context/AuthContext';
