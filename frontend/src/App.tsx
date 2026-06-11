@@ -31,8 +31,6 @@ import AssignUser from "./Pages/AssignUser";
 import 'rsuite/dist/rsuite-no-reset.min.css';
 
 // ── Tracks page views on every route change ──────────────────────────────────
-// Must live INSIDE the router (needs useLocation), so we render it
-// in RootLayout which wraps all routes.
 function PageViewTracker() {
   const location = useLocation()
   const posthog  = usePostHog()
@@ -41,7 +39,7 @@ function PageViewTracker() {
     posthog?.capture('$pageview', {
       $current_url: window.location.href,
     })
-  }, [location.pathname]) // re-fires on every route change
+  }, [location.pathname]) 
 
   return null
 }

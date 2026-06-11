@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, ChangeEvent } from "react";
 import axios from "axios";
-// import { fetchEventSource } from '@microsoft/fetch-event-source';
 
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -35,9 +34,9 @@ interface LogEntry {
 
 const API_BASE    = "https://sosafe.onrender.com/api";
 const POLL_MS     = 30000; // poll every 3 seconds
-const TERMINAL    = new Set<ImportStatus>(["completed", "failed"]);
+const TERMINAL    = new Set< ImportStatus >( [ "completed", "failed" ] );
 
-const STATUS_META: Record<ImportStatus, { label: string; accent: string; bg: string }> = {
+const STATUS_META: Record< ImportStatus, { label: string; accent: string; bg: string }> = {
   idle:        { label: "Ready",      accent: "#6b7280", bg: "#f3f4f6" },
   uploading:   { label: "Uploading",  accent: "#3b82f6", bg: "#eff6ff" },
   queued:      { label: "Queued",     accent: "#8b5cf6", bg: "#f5f3ff" },
@@ -49,152 +48,152 @@ const STATUS_META: Record<ImportStatus, { label: string; accent: string; bg: str
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const fmt = (n?: number | null) => (typeof n === "number" ? n.toLocaleString() : "0");const ts   = () => new Date().toLocaleTimeString("en-GB", { hour12: false });
-const bpct = (done: number, total: number) =>
-  total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+const fmt = ( n?: number | null ) => ( typeof n === "number" ? n.toLocaleString() : "0" ); const ts   = () => new Date().toLocaleTimeString( "en-GB", { hour12: false } );
+const bpct = ( done: number, total: number ) =>
+  total > 0 ? Math.min( 100, Math.round( ( done / total ) * 100 ) ) : 0;
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 const FileUploader: React.FC = () => {
-  const [file,      setFile]      = useState<File | null>(null);
-  const [uploadPct, setUploadPct] = useState(0);
-  const [status,    setStatus]    = useState<ImportStatus>("idle");
-  const [progress,  setProgress]  = useState<ProgressData | null>(null);
-  const [importId,  setImportId]  = useState<string | null>(null);
-  const [log,       setLog]       = useState<LogEntry[]>([]);
-  const [dragOver,  setDragOver]  = useState(false);
-  const [lastPoll,  setLastPoll]  = useState<string>("");
-  const [countdown, setCountdown] = useState(POLL_MS / 1000);
+  const [ file,      setFile ]      =  useState< File | null >( null );
+  const [ uploadPct, setUploadPct ] =  useState(0);
+  const [ status,    setStatus ]    =  useState< ImportStatus >( "idle" );
+  const [ progress,  setProgress ]  =  useState< ProgressData | null >( null );
+  const [ importId,  setImportId ]  =  useState< string | null >( null );
+  const [ log,       setLog ]       =  useState< LogEntry[] >( [] );
+  const [ dragOver,  setDragOver ]  =  useState( false );
+  const [ lastPoll,  setLastPoll ]  =  useState< string >("");
+  const [ countdown, setCountdown ] =  useState( POLL_MS / 1000 );
 
-  const pollRef    = useRef<ReturnType<typeof setInterval> | null>(null);
-  const countRef   = useRef<ReturnType<typeof setInterval> | null>(null);
-  const logEndRef  = useRef<HTMLDivElement>(null);
-  const token      = sessionStorage.getItem("authToken");
+  const pollRef    = useRef< ReturnType< typeof setInterval > | null >( null );
+  const countRef   = useRef< ReturnType< typeof setInterval > | null >( null );
+  const logEndRef  = useRef< HTMLDivElement >( null );
+  const token      = sessionStorage.getItem( "authToken" );
 
   // Auto-scroll log
-  useEffect(() => {
+  useEffect( () => {
     logEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [log]);
+  }, [ log ]);
 
   // Cleanup on unmount
   useEffect(() => () => {
     clearPoll();
   }, []);
 
-  const addLog = useCallback((text: string, isError = false) => {
-    setLog(prev => [...prev, { time: ts(), text, isError }]);
+  const addLog = useCallback( ( text: string, isError = false ) => {
+    setLog( prev => [ ...prev, { time: ts(), text, isError }]);
   }, []);
 
   const clearPoll = () => {
-    if (pollRef.current)  clearTimeout(pollRef.current);  // changed from clearInterval
-    if (countRef.current) clearInterval(countRef.current);
+    if ( pollRef.current )  clearTimeout( pollRef.current );  // changed from clearInterval
+    if ( countRef.current ) clearInterval( countRef.current );
     pollRef.current  = null;
     countRef.current = null;
   };
 
-  const normalizeStatus = (s: string): ImportStatus => {
-    const known: ImportStatus[] = ["idle","uploading","queued","processing","dispatched","completed","failed"];
-    return known.includes(s as ImportStatus) ? (s as ImportStatus) : "processing";
+  const normalizeStatus = ( s: string ): ImportStatus => {
+    const known: ImportStatus[] = [ "idle", "uploading", "queued", "processing", "dispatched", "completed", "failed" ];
+    return known.includes( s as ImportStatus ) ? ( s as ImportStatus ) : "processing";
   };
 
   // ── File selection ──────────────────────────────────────────────────────────
 
-  const applyFile = (f: File) => {
-    const valid = /\.(xlsx|xls|csv)$/i.test(f.name);
-    if (!valid) {
-      addLog("Only .xlsx, .xls, or .csv files are accepted.", true);
+  const applyFile = ( f: File ) => {
+    const valid = /\.(xlsx|xls|csv)$/i.test( f.name );
+    if ( !valid ) {
+      addLog( "Only .xlsx, .xls, or .csv files are accepted.", true );
       return;
     }
-    setFile(f);
-    setStatus("idle");
-    setProgress(null);
-    setLog([]);
-    setUploadPct(0);
-    setImportId(null);
-    setLastPoll("");
+    setFile( f );
+    setStatus( "idle" );
+    setProgress( null );
+    setLog( [] );
+    setUploadPct( 0 );
+    setImportId( null );
+    setLastPoll( "" );
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) applyFile(e.target.files[0]);
+  const handleChange = ( e: ChangeEvent< HTMLInputElement > ) => {
+    if ( e.target.files?.[ 0 ] ) applyFile( e.target.files[ 0 ] );
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = ( e: React.DragEvent ) => {
     e.preventDefault();
-    setDragOver(false);
-    if (e.dataTransfer.files?.[0]) applyFile(e.dataTransfer.files[0]);
+    setDragOver( false );
+    if ( e.dataTransfer.files?.[ 0 ] ) applyFile( e.dataTransfer.files[ 0 ] );
   };
 
   // ── Polling ─────────────────────────────────────────────────────────────────
 
-  const startPolling = useCallback((id: string) => {
+  const startPolling = useCallback( ( id: string ) => {
     clearPoll();
     let pollCount = 0;
 
     const poll = async () => {
       try {
-        const currentToken = sessionStorage.getItem("authToken");
-        if (!currentToken) {
-          addLog("Session expired — import still running on server.", true);
+        const currentToken = sessionStorage.getItem( "authToken" );
+        if ( !currentToken ) {
+          addLog( "Session expired — import still running on server.", true );
           clearPoll();
           return;
         }
 
         // ← plain JSON endpoint, not the SSE one
-        const { data } = await axios.get<ProgressData>(
-          `${API_BASE}/import/status/${id}`,
+        const { data } = await axios.get< ProgressData >(
+          `${API_BASE}/import/status/${ id }`,
           { headers: { Authorization: `Bearer ${currentToken}` } }
         );
 
-        const normalized = { ...data, status: normalizeStatus(data.status) };
-        setProgress(normalized);
-        setStatus(normalized.status);
-        setLastPoll(ts());
+        const normalized = { ...data, status: normalizeStatus( data.status ) };
+        setProgress( normalized );
+        setStatus( normalized.status );
+        setLastPoll( ts() );
         pollCount++;
 
-        if (normalized.status === "completed") {
-          addLog(`Import complete — ${fmt(normalized.processed)} rows inserted.`);
+        if ( normalized.status === "completed" ) {
+          addLog( `Import complete — ${ fmt( normalized.processed ) } rows inserted.`);
           clearPoll();
           return;
         }
 
-        if (normalized.status === "failed") {
-          normalized.errors.forEach(e => addLog(e, true));
+        if ( normalized.status === "failed" ) {
+          normalized.errors.forEach( e => addLog( e, true ) );
           clearPoll();
           return;
         }
 
         // Fast at start, slower after stabilising
         const delay = pollCount < 6 ? 5000 : 15000;
-        setCountdown(delay / 1000);
-        pollRef.current = setTimeout(poll, delay);
+        setCountdown( delay / 1000 );
+        pollRef.current = setTimeout( poll, delay );
 
-      } catch (err) {
-        if (axios.isAxiosError(err) && err.response?.status === 401) {
-          addLog("Session expired.", true);
+      } catch ( err ) {
+        if ( axios.isAxiosError( err ) && err.response?.status === 401 ) {
+          addLog( "Session expired.", true );
           clearPoll();
           return;
         }
-        addLog(`Poll failed, retrying…`, true);
-        pollRef.current = setTimeout(poll, 10000);
+        addLog( `Poll failed, retrying…`, true );
+        pollRef.current = setTimeout( poll, 10000 );
       }
     };
 
     poll(); // fire immediately
-  }, [token, addLog]);
+  }, [ token, addLog ]);
 
   // ── Upload ──────────────────────────────────────────────────────────────────
 
   const handleUpload = async (): Promise<void> => {
-    if (!file) return;
+    if ( !file ) return;
 
     clearPoll();
-    setStatus("uploading");
+    setStatus( "uploading" );
     setUploadPct(0);
-    setLog([]);
-    setProgress(null);
+    setLog( [] );
+    setProgress( null );
 
     const formData = new FormData();
-    formData.append("raw_data", file);
+    formData.append( "raw_data", file );
 
     let importId: string | null = null;
 
@@ -205,73 +204,73 @@ const FileUploader: React.FC = () => {
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${ token }`,
           },
-          onUploadProgress: (ev) => {
-            const p = (ev.loaded / (ev.total ?? ev.loaded)) * 100;
-            setUploadPct(Math.min(Math.round(p), 100));
+          onUploadProgress: ( ev ) => {
+            const p = ( ev.loaded / ( ev.total ?? ev.loaded ) ) * 100;
+            setUploadPct( Math.min( Math.round( p ), 100 ) );
           },
         }
       );
 
       importId = data.import_id;
-      addLog(`File accepted — import ID: ${importId}`);
-      setImportId(importId);
-      setStatus("queued");
+      addLog( `File accepted — import ID: ${ importId }` );
+      setImportId( importId );
+      setStatus( "queued" );
 
-    } catch (err) {
-      const msg = axios.isAxiosError(err)
+    } catch ( err ) {
+      const msg = axios.isAxiosError( err )
         ? err.response?.data?.message ?? err.message
         : "Upload failed. Please try again.";
-      addLog(msg, true);
-      setStatus("failed");
+      addLog( msg, true );
+      setStatus( "failed" );
       return; // stop here, don't attempt polling
     }
 
     // Start polling separately — errors here won't corrupt the upload status
     try {
-      startPolling(importId!);
+      startPolling( importId! );
     } catch (err) {
-      addLog("Failed to start progress tracking. Import is still running on the server.", true);
+      addLog( "Failed to start progress tracking. Import is still running on the server.", true );
     }
   };
 
   // ── Manual refresh ──────────────────────────────────────────────────────────
 
   const manualRefresh = () => {
-    if (!importId || TERMINAL.has(status)) return;
+    if ( !importId || TERMINAL.has( status ) ) return;
     clearPoll();
-    startPolling(importId);
-    addLog("Refreshed manually.");
+    startPolling( importId );
+    addLog( "Refreshed manually." );
   };
 
   // ── Reset ───────────────────────────────────────────────────────────────────
 
   const reset = () => {
     clearPoll();
-    setFile(null);
-    setStatus("idle");
-    setProgress(null);
-    setLog([]);
-    setUploadPct(0);
-    setImportId(null);
-    setLastPoll("");
+    setFile( null );
+    setStatus( "idle" );
+    setProgress( null );
+    setLog( [] );
+    setUploadPct( 0 );
+    setImportId( null );
+    setLastPoll( "" );
   };
 
   // ── Derived ─────────────────────────────────────────────────────────────────
 
-  const isActive      = !TERMINAL.has(status) && status !== "idle";
-  const meta = STATUS_META[status] || { 
-    label: String(status || "Unknown"), 
+  const isActive      = !TERMINAL.has( status ) && status !== "idle";
+  const meta = STATUS_META[ status ] || { 
+    label: String( status || "Unknown" ), 
     accent: "#6b7280", 
     bg: "#f3f4f6" 
   };
-  const indeterminate = ["queued", "processing"].includes(status) && (!progress || progress.chunks === 0);
+  const indeterminate = [ "queued", "processing" ].includes( status ) && ( !progress || progress.chunks === 0 );
 
   const barWidth = status === "uploading"
     ? uploadPct
     : progress?.chunks
-      ? bpct(progress.done, progress.chunks)
+      ? bpct( progress.done, progress.chunks )
       : status === "queued" ? 8 : 0;
 
   // ─────────────────────────────────────────────────────────────────────────────
@@ -434,15 +433,15 @@ const FileUploader: React.FC = () => {
           {/* Header */}
           <div className="fu-head">
             <div className="fu-head-left">
-              <p className="fu-eyebrow">SoSafe Corps — Admin</p>
-              <h2 className="fu-title">Import personnel biodata</h2>
+              <p className="fu-eyebrow"> SoSafe Corps — Admin </p>
+              <h2 className="fu-title"> Import personnel biodata </h2>
             </div>
-            {status !== "idle" && (
+            { status !== "idle" && (
               <span
                 className="fu-pill"
                 style={{ background: meta.bg, color: meta.accent }}
               >
-                {meta.label}
+                { meta.label }
               </span>
             )}
           </div>
@@ -451,36 +450,36 @@ const FileUploader: React.FC = () => {
 
             {/* Drop zone */}
             <div
-              className={`fu-drop${dragOver ? " drag" : ""}`}
-              onDragOver={e => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={handleDrop}
+              className={ `fu-drop${ dragOver ? " drag" : ""}` }
+              onDragOver = { e => { e.preventDefault(); setDragOver( true ); }}
+              onDragLeave = { () => setDragOver( false ) }
+              onDrop = { handleDrop }
             >
               <input
                 type="file"
                 accept=".xlsx,.xls,.csv"
-                onChange={handleChange}
-                disabled={isActive}
+                onChange = { handleChange }
+                disabled = { isActive }
               />
-              <div className="fu-drop-icon">📊</div>
-              <p className="fu-drop-main">Drop spreadsheet here</p>
-              <p className="fu-drop-sub">xlsx · xls · csv accepted — or click to browse</p>
-              {file && (
+              <div className="fu-drop-icon"> 📊 </div>
+              <p className="fu-drop-main"> Drop spreadsheet here </p>
+              <p className="fu-drop-sub"> xlsx · xls · csv accepted — or click to browse </p>
+              { file && (
                 <div className="fu-chosen">
-                  <span>✓</span>
-                  <span>{file.name}</span>
-                  <span style={{ color: "#9ca3af" }}>({(file.size / 1024).toFixed(1)} KB)</span>
+                  <span> ✓ </span>
+                  <span> { file.name } </span>
+                  <span style = { { color: "#9ca3af" } }> ( {( file.size / 1024 ).toFixed(1)} KB ) </span>
                 </div>
               )}
             </div>
 
             {/* Progress bar + poll controls */}
-            {status !== "idle" && (
+            { status !== "idle" && (
               <div>
-                <div className="fu-bar-wrap" style={{ marginBottom: 8 }}>
+                <div className="fu-bar-wrap" style = {{ marginBottom: 8 }}>
                   <div
                     className={`fu-bar-fill${indeterminate ? " ind" : ""}`}
-                    style={{
+                    style = {{
                       width:      indeterminate ? undefined : `${barWidth}%`,
                       background: status === "completed" ? "#22c55e"
                                 : status === "failed"    ? "#ef4444"
@@ -491,32 +490,32 @@ const FileUploader: React.FC = () => {
 
                 <div className="fu-poll-row">
                   <span>
-                    {status === "uploading"
-                      ? `${uploadPct}% transferred`
+                    { status === "uploading"
+                      ? `${ uploadPct }% transferred`
                       : progress
-                        ? `${fmt(progress.processed)} / ${fmt(progress.total)} rows`
-                        : "Waiting for worker…"}
+                        ? `${ fmt( progress.processed )} / ${ fmt( progress.total )} rows`
+                        : "Waiting for worker…" }
                   </span>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    {lastPoll && !TERMINAL.has(status) && (
+                  <div style = {{ display: "flex", alignItems: "center", gap: 12 }}>
+                    { lastPoll && !TERMINAL.has( status ) && (
                       <span style={{ color: "#d1d5db" }}>
-                        next in {countdown}s
+                        next in { countdown }s
                       </span>
                     )}
-                    {lastPoll && (
+                    { lastPoll && (
                       <span style={{ color: "#d1d5db" }}>
-                        last {lastPoll}
+                        last { lastPoll }
                       </span>
                     )}
-                    {!TERMINAL.has(status) && status !== "uploading" && (
+                    {!TERMINAL.has( status ) && status !== "uploading" && (
                       <button
                         className="fu-poll-btn"
-                        onClick={manualRefresh}
-                        disabled={!importId}
-                        title="Refresh now"
+                        onClick = { manualRefresh }
+                        disabled = { !importId }
+                        title = "Refresh now"
                       >
-                        <span className={isActive ? "fu-spin" : ""}>↻</span>
+                        <span className= { isActive ? "fu-spin" : "" }> ↻ </span>
                         refresh
                       </button>
                     )}
@@ -526,75 +525,81 @@ const FileUploader: React.FC = () => {
             )}
 
             {/* Stats */}
-            {progress && (
+            { progress && (
               <div className="fu-stats">
                 <div className="fu-stat">
-                  <p className="fu-stat-l">Rows parsed</p>
-                  <p className="fu-stat-v">{fmt(progress.total)}</p>
+                  <p className="fu-stat-l"> Rows parsed </p>
+                  <p className="fu-stat-v"> { fmt( progress.total ) }</p>
                 </div>
                 <div className="fu-stat">
-                  <p className="fu-stat-l">Inserted</p>
-                  <p className="fu-stat-v">{fmt(progress.processed)}</p>
+                  <p className="fu-stat-l"> Inserted </p>
+                  <p className="fu-stat-v"> { fmt( progress.processed ) }</p>
                 </div>
                 <div className="fu-stat">
-                  <p className="fu-stat-l">Chunks</p>
-                  <p className="fu-stat-v">{progress.done}/{progress.chunks || "?"}</p>
+                  <p className="fu-stat-l"> Chunks </p>
+                  <p className="fu-stat-v"> { progress.done } / { progress.chunks || "?" } </p>
                 </div>
               </div>
             )}
 
             {/* Error list */}
-            {progress?.errors?.length ? (
+            { progress?.errors?.length ? (
               <div className="fu-error">
-                <span>⚠</span>
+                <span> ⚠ </span>
                 <div>
-                  {progress.errors.map((e, i) => (
-                    <div key={i}>{e}</div>
+                  { progress.errors.map( ( e, i ) => (
+                    <div key = { i }> { e } </div>
                   ))}
                 </div>
               </div>
             ) : null}
 
             {/* Activity log */}
-            {log.length > 0 && (
+            { log.length > 0 && (
               <div className="fu-log" role="log" aria-live="polite">
-                {log.map((e, i) => (
-                  <div key={i} className={`fu-log-row${e.isError ? " fu-log-err" : ""}`}>
-                    <span className="fu-log-t">{e.time}</span>
-                    <span>{e.text}</span>
+                { log.map( ( e, i ) => (
+                  <div key = { i } className={ `fu-log-row${ e.isError ? " fu-log-err" : ""}` }>
+                    <span className="fu-log-t"> { e.time } </span>
+                    <span> { e.text } </span>
                   </div>
                 ))}
-                <div ref={logEndRef} />
+                <div ref = { logEndRef } />
               </div>
             )}
 
             {/* Import ID */}
-            {importId && (
+            { importId && (
               <div className="fu-id">
-                <span>import id</span>
-                <span>{importId}</span>
+                <span> import id </span>
+                <span> { importId } </span>
               </div>
             )}
 
             {/* Primary CTA */}
             <button
               className="fu-btn fu-primary"
-              onClick={handleUpload}
-              disabled={!file || isActive}
+              onClick = { handleUpload }
+              disabled = { !file || isActive }
               type="button"
             >
-              {status === "uploading" ? (
-                <><span className="fu-spin">⟳</span> Uploading…</>
+              { status === "uploading" ? (
+                <>
+                  <span className="fu-spin"> ⟳ </span> Uploading…
+                </>
               ) : isActive ? (
-                <><span className="fu-spin">⟳</span> Processing…</>
+                <>
+                  <span className="fu-spin"> ⟳ </span> Processing…
+                </>
               ) : (
-                <>↑ Upload &amp; import</>
+                <>
+                  ↑ Upload &amp; import
+                </>
               )}
             </button>
 
             {/* Reset after terminal */}
-            {TERMINAL.has(status) && (
-              <button className="fu-btn fu-ghost" onClick={reset} type="button">
+            { TERMINAL.has( status ) && (
+              <button className="fu-btn fu-ghost" onClick = { reset } type="button">
                 ↺ Start a new import
               </button>
             )}
