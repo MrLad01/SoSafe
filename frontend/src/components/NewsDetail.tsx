@@ -1,4 +1,4 @@
-import { useLocation, useParams, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { format, isValid, parseISO } from 'date-fns';
 import { NavBar } from './NavBar';
@@ -123,30 +123,30 @@ const NewsDetail = () => {
                     </div>
                     <h3 className="font-semibold text-gray-900"> Author </h3>
                   </div>
-                  <p className="text-gray-700 text-sm">{state.author || 'Unknown Author'}</p>
+                  <p className="text-gray-700 text-sm"> { state.author || 'Unknown Author' } </p>
                 </div>
 
                 {/* Publication Date */}
                 <div className="mb-5 pb-5 border-b border-gray-200">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="bg-[#006838] rounded-full p-1.5">
-                      <CalendarDays className="w-4 h-4 text-white" />
+                      < CalendarDays className="w-4 h-4 text-white" />
                     </div>
-                    <h3 className="font-semibold text-gray-900">Published</h3>
+                    <h3 className="font-semibold text-gray-900"> Published </h3>
                   </div>
-                  <p className="text-gray-700 text-sm">{formattedDate}</p>
+                  <p className="text-gray-700 text-sm"> { formattedDate } </p>
                 </div>
 
                 {/* Reading Time */}
                 <div>
                   <div className="flex items-center gap-2 mb-3">
                     <div className="bg-[#006838] rounded-full p-1.5">
-                      <Clock className="w-4 h-4 text-white" />
+                      < Clock className="w-4 h-4 text-white" />
                     </div>
-                    <h3 className="font-semibold text-gray-900">Reading Time</h3>
+                    <h3 className="font-semibold text-gray-900"> Reading Time </h3>
                   </div>
                   <p className="text-gray-700 text-sm">
-                    {readingTime} min read
+                    { readingTime } min read
                   </p>
                 </div>
               </div>
@@ -154,7 +154,8 @@ const NewsDetail = () => {
           </div>
         </div>
       </main>
-      <Footer />
+
+      < Footer />
     </div>
   );
 };
