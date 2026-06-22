@@ -10,6 +10,7 @@ class Biodata extends Model
     use HasFactory;
 
     protected $fillable = [
+<<<<<<< HEAD
         'code',
         'form_no',
         'firstname',
@@ -41,4 +42,49 @@ class Biodata extends Model
         'dob'         => 'date',
         'date_engage' => 'date',
     ];
+=======
+        'SNO',
+        'FNO',
+        'SNAME',
+        'FNAME',
+        'ONAME',
+        'ADDRESS',
+        'PHONE',
+        'NIN',
+        'DOB',
+        'SEX',
+        'CITY',
+        'ZONE',
+        'AREA',
+        'SERVNO',
+        'POSITION',
+        'ENLISTED',
+        'RANK',
+        'NOK',
+        'RELATION',
+        'NOKNO',
+        'CAPTURED',
+        'QUALIFICATION',
+    ];
+
+    protected $casts = [
+        'DOB'      => 'date',
+        'ENLISTED' => 'date',
+    ];
+
+    public function zone()
+    {
+        return $this->belongsTo(Zone::class, 'ZONE');
+    }
+
+    public function area()
+    {
+        return $this->belongsTo(Area::class, 'AREA');
+    }
+
+    public function division()
+    {
+        return $this->belongsTo(Division::class, 'CITY');
+    }
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 }

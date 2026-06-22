@@ -31,7 +31,12 @@ class UserController extends Controller
             return response()->json($validator->errors()->toJson(), 400);
         }
         $user = UserAdmin::whereId($request->id)->update([
+<<<<<<< HEAD
             'login_attempt' => 0
+=======
+            'login_attempt' => 0,
+            'invalid_login_attempts' => 0
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
         ]);
 
         return response()->json('Login Attempt reset successful for this user');
@@ -91,7 +96,20 @@ class UserController extends Controller
             'area' => $request->get('area'),
         ]);
 
+<<<<<<< HEAD
         return response()->json('Record created successfully', 201);
+=======
+        return response()->json('Record updated successfully', 200);
+
+    }
+
+    public function deleteAdmin(Request $request){
+        // $data = $this->validate($request);
+
+        $user = UserAdmin::whereId($request->id)->delete();
+
+        return response()->json('Record deleted successfully', 200);
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 
     }
 

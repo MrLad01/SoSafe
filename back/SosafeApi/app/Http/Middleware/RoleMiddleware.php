@@ -12,20 +12,30 @@ use App\Models\UserAdmin;
 
 class RoleMiddleware
 {
-    /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
-     */
-    public function handle(Request $request, Closure $next,$role): Response
+    public function handle(Request $request, Closure $next, ...$roles): Response
     {
+<<<<<<< HEAD
         $user = auth()->guard('admin')->user() ? auth()->guard('admin')->user() : Auth::user() ;
         if($user->role !==$role  ){
             $role = $user->role;
             return response()->json($role."  Not Allowed");
+=======
+
+        $guard = $request->attributes->get('jwt_guard', 'api');
+
+        $user = auth()->guard('admin')->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
         }
-       
+
+        if (!in_array($user->role, $roles)) {
+            return response()->json([
+                'error' => 'Access denied. Required role: ' . implode(' or ', $roles)
+            ], 403);
+        }
+
         return $next($request);
-        // return $next($request);
     }
 }
