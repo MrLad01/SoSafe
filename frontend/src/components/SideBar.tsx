@@ -10,10 +10,12 @@ import { Contact } from 'lucide-react';
 import { Users } from 'lucide-react';
 import { Activity } from 'lucide-react';
 import { LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const SideBar: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const navigate = useNavigate(); // Hook for navigation
+  const { user } = useAuth();
 
   const handleLogout = () => {
     // Clear any authentication tokens or user data here if necessary
@@ -104,6 +106,31 @@ const SideBar: React.FC = () => {
           >
             <Users />
             Personnel
+          </NavLink>
+        </li>
+        { user?.role === 'superadmin' && (
+          <li>
+            <NavLink
+              to="/admin/assign-user"
+              end
+              className={({ isActive }) =>
+                `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
+            }
+          >
+            <UserPlus />
+            Assign User
+          </NavLink>
+        </li>)}
+        <li>
+          <NavLink
+            to="/admin/zones"
+            end
+            className={({ isActive }) =>
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
+            }
+          >
+            <Database />
+            Zones
           </NavLink>
         </li>
         <li>

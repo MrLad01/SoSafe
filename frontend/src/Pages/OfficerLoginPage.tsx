@@ -1,9 +1,17 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { Shield, Users, ChevronRight, Mail, IdCard, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+<<<<<<< HEAD
 import { useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.webp'
 import axios from "axios";
 import { useAuth } from '../context/AuthContext';
+=======
+import { NavLink, useNavigate } from 'react-router-dom';
+import logo from '../assets/logo.webp'
+import axios from "axios";
+import { useAuth } from '../context/AuthContext';
+import { usePostHog } from 'posthog-js/react';
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 
 type LoginType = 'officer' | 'supervisor';
 
@@ -14,6 +22,7 @@ interface FormData {
 }
 
 const OfficerLoginPage = (): JSX.Element => {
+<<<<<<< HEAD
   const [loginType, setLoginType] = useState<LoginType>('officer');
   const { login } = useAuth();
   const [formData, setFormData] = useState<FormData>({
@@ -24,8 +33,17 @@ const OfficerLoginPage = (): JSX.Element => {
   const [idNumber, setIdNumber] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+=======
+  const [loginType, setLoginType]     = useState<LoginType>('officer');
+  const { login }                     = useAuth();
+  const posthog                       = usePostHog();
+  const [formData, setFormData]       = useState<FormData>({ password: '', email: '', role: 'user' });
+  const [idNumber, setIdNumber]       = useState<string>('');
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState<string>('');
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const navigate = useNavigate();
+  const navigate                      = useNavigate();
 
   const handleLogin = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,6 +57,7 @@ const OfficerLoginPage = (): JSX.Element => {
         }
 
         const fetchOfficerData = async (idNumber: string) => {
+<<<<<<< HEAD
           // Clean the input by removing spaces and any special characters
           const cleanId = idNumber.trim().replace(/[^a-zA-Z0-9]/g, '');
           
@@ -50,6 +69,15 @@ const OfficerLoginPage = (): JSX.Element => {
           
           let endpoint;
           
+=======
+          const cleanId = idNumber.trim().replace(/[^a-zA-Z0-9]/g, '');
+
+          const isFormNumber  = /^[A-Za-z]\d{5}$/.test(cleanId) || /^[A-Za-z]\d{6}$/.test(cleanId);
+          const isPhoneNumber = /^\d{10,11}$/.test(cleanId);
+
+          let endpoint: string;
+
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
           if (isFormNumber) {
             endpoint = `https://sosafe.onrender.com/api/biodata2/form/${cleanId.toUpperCase()}`;
           } else if (isPhoneNumber) {
@@ -58,6 +86,7 @@ const OfficerLoginPage = (): JSX.Element => {
           } else {
             throw new Error('Invalid input: Must be either a form number or phone number');
           }
+<<<<<<< HEAD
         
           try {
             const response = await axios.get(endpoint, { timeout: 100000 });
@@ -152,6 +181,71 @@ const OfficerLoginPage = (): JSX.Element => {
       }
     } catch (err) {
       const errorMessage = err instanceof Error 
+=======
+
+          const response = await axios.get(endpoint, { timeout: 100000 });
+          return response;
+        };
+
+        const officerData = await fetchOfficerData(idNumber);
+
+        if (officerData.data.data) {
+          const data = officerData.data.data;
+          sessionStorage.setItem('officerData', JSON.stringify(data));
+
+          posthog.identify(String(data.id ?? idNumber), {
+            name:        `${data.firstname ?? ''} ${data.lastname ?? ''}`.trim(),
+            form_number: idNumber,
+            type:        'officer',
+          });
+
+          const formatName = (name: string) => (name ? name.toLowerCase() : '');
+          const officerFirstName = formatName(data.firstname || '');
+          const officerLastName  = formatName(data.lastname  || '');
+
+          if (officerFirstName || officerLastName) {
+            const urlPath = [officerFirstName, officerLastName]
+              .filter(Boolean)
+              .join('-')
+              .replace(/-+/g, '-');
+
+            navigate(`/officer/${urlPath}`, { state: { officerData: data } });
+          } else {
+            navigate('/error', { state: { message: 'Invalid officer name data', officerId: data.id } });
+          }
+        }
+
+      } else {
+        // ── user_admins table: handles both 'user', 'admin' (legacy), and 'superadmin' ──
+        // 'admin' hits the separate /api/login (users table — legacy route kept for compatibility)
+        const isAdminLegacy = formData.role === 'superadmin';
+
+        const response = await axios.post(
+          isAdminLegacy
+            ? 'https://sosafe.onrender.com/api/login'
+            : 'https://sosafe.onrender.com/api/user/login',
+          { email: formData.email, password: formData.password },
+          { timeout: 120000, headers: { 'Content-Type': 'application/json' } }
+        );
+
+        if (response.data) {
+          login(response.data.token, response.data.user);
+
+          // Use the actual role returned by the server, not just the dropdown value
+          posthog.identify(String(response.data.user.id), {
+            name:  response.data.user.name,
+            email: response.data.user.email,
+            role:  response.data.user.role,
+          });
+
+          navigate('/admin');
+        } else {
+          throw new Error('Invalid credentials');
+        }
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
         ? err.message
         : 'An error occurred during login. Please try again.';
       setError(errorMessage);
@@ -173,12 +267,12 @@ const OfficerLoginPage = (): JSX.Element => {
     updateVH();
     window.addEventListener('resize', updateVH);
     window.addEventListener('orientationchange', updateVH);
-
     return () => {
       window.removeEventListener('resize', updateVH);
       window.removeEventListener('orientationchange', updateVH);
     };
   }, [loginType]);
+<<<<<<< HEAD
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -187,23 +281,28 @@ const OfficerLoginPage = (): JSX.Element => {
       [name]: value
     }));
   };
+=======
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 
-  const handleBack = (): void => {
-    navigate('/personnel');
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row relative">
-      <button
-        onClick={handleBack}
+      <NavLink
+        // onClick={() => navigate('https://sosafecorps.og.gov.ng/')}
+        // type="button"
+        to={'https://sosafecorps.og.gov.ng/'}
         className="absolute top-4 left-4 flex items-center space-x-2 text-white md:text-gray-600 hover:text-green-700 transition-colors duration-200 z-10"
-        type="button"
         aria-label="Go back to previous page"
       >
         <ArrowLeft className="h-6 w-6 text-white opacity-50" />
         <span className="text-sm font-medium text-white opacity-50">Back</span>
-      </button>
+      </NavLink>
 
+      {/* Left panel */}
       <div className="w-full md:w-1/2 bg-gradient-to-br from-green-800 to-green-900 p-8 flex flex-col justify-center items-center text-white">
         <img src={logo} alt="OGUN SO-SAFE CORPS" className="h-24 w-auto mb-8" />
         <h1 className="text-4xl font-bold text-center mb-4">OGUN SO-SAFE CORPS</h1>
@@ -212,16 +311,26 @@ const OfficerLoginPage = (): JSX.Element => {
         </p>
       </div>
 
+      {/* Right panel */}
       <div className="w-full md:w-1/2 bg-white p-8 flex flex-col justify-center">
         <div className="max-w-md mx-auto w-full space-y-6">
+<<<<<<< HEAD
+=======
+
+          {/* Tab switcher */}
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
           <div className="flex bg-gray-100 rounded-lg p-1">
             <button
               type="button"
               onClick={() => setLoginType('officer')}
               className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md space-x-2 transition-all duration-200 ${
+<<<<<<< HEAD
                 loginType === 'officer'
                   ? 'bg-white shadow text-green-800'
                   : 'text-gray-600 hover:text-green-700'
+=======
+                loginType === 'officer' ? 'bg-white shadow text-green-800' : 'text-gray-600 hover:text-green-700'
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
               }`}
             >
               <Users size={20} />
@@ -231,9 +340,13 @@ const OfficerLoginPage = (): JSX.Element => {
               type="button"
               onClick={() => setLoginType('supervisor')}
               className={`flex-1 flex items-center justify-center py-3 px-4 rounded-md space-x-2 transition-all duration-200 ${
+<<<<<<< HEAD
                 loginType === 'supervisor'
                   ? 'bg-white shadow text-green-800'
                   : 'text-gray-600 hover:text-green-700'
+=======
+                loginType === 'supervisor' ? 'bg-white shadow text-green-800' : 'text-gray-600 hover:text-green-700'
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
               }`}
             >
               <Shield size={20} />
@@ -276,6 +389,7 @@ const OfficerLoginPage = (): JSX.Element => {
                   <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                   <select
                     value={formData.role}
+<<<<<<< HEAD
                     title='pick role'
                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
@@ -284,6 +398,18 @@ const OfficerLoginPage = (): JSX.Element => {
                     <option value="admin">Admin</option>
                   </select>
                 </div>
+=======
+                    title="Pick role"
+                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  >
+                    <option value="user">User</option>
+                    <option value="superadmin">Superadmin</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                     Email Address
@@ -305,6 +431,7 @@ const OfficerLoginPage = (): JSX.Element => {
                     />
                   </div>
                 </div>
+
                 <div>
                   <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
                     Password
@@ -327,16 +454,15 @@ const OfficerLoginPage = (): JSX.Element => {
                       className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400" />
-                      )}
+                      {showPassword
+                        ? <EyeOff className="h-5 w-5 text-gray-400" />
+                        : <Eye    className="h-5 w-5 text-gray-400" />}
                     </button>
                   </div>
                 </div>
               </>
             )}
+
             <button
               type="submit"
               disabled={loading}

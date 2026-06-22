@@ -11,12 +11,21 @@ interface User {
   role: string;
   area: string;
   login_attempt: number;
+<<<<<<< HEAD
+=======
+  invalid_login_attempts: number;
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
   created_at: string;
   last_seen: string;
 }
 
 const AssignUser: React.FC = () => {
+<<<<<<< HEAD
   const { token } = useAuth()
+=======
+  const { token, user } = useAuth();
+  const isSuperAdmin = user?.role === 'superadmin';
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
   const [users, setUsers] = useState<User[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [showResponseModal, setShowResponseModal] = useState(false);
@@ -171,6 +180,10 @@ const AssignUser: React.FC = () => {
           area: formData.area,
           role: formData.role,
           login_attempt: 0,
+<<<<<<< HEAD
+=======
+          invalid_login_attempts: 0,
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
           created_at: new Date().toISOString(),
           last_seen: '-'
         };
@@ -265,8 +278,20 @@ const AssignUser: React.FC = () => {
       })
     }
   };
+<<<<<<< HEAD
   const handleDelete = (userId: string) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
+=======
+  const handleDelete = async (userId: string) => {
+    if (window.confirm('Are you sure you want to delete this user?')) {
+      await axios.post(`https://sosafe.onrender.com/api/delete/admin`,{
+          id: userId
+      } , {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
       setUsers(users.filter(user => user.id !== userId));
     }
   };
@@ -292,7 +317,11 @@ const AssignUser: React.FC = () => {
             {error}
             </div>
         )}
+<<<<<<< HEAD
         <div className="mb-6 flex justify-between items-center">
+=======
+        { isSuperAdmin && (<div className="mb-6 flex justify-between items-center">
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
             <h1 className="text-2xl font-bold text-gray-800">Assign User</h1>
             <button
             onClick={() => {
@@ -305,7 +334,11 @@ const AssignUser: React.FC = () => {
             <Plus size={20} />
             Add New User
             </button>
+<<<<<<< HEAD
         </div>
+=======
+        </div>)}
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 
         {/* Search Bar */}
         <div className="mb-6 relative">
@@ -425,7 +458,13 @@ const AssignUser: React.FC = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Assigned</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Login</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Login Attempts</th>
+<<<<<<< HEAD
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+=======
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Invalid Login Attempts</th>
+                {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th> */}
+                {isSuperAdmin && <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
                 </tr>
             </thead>
             <tbody className="bg-white overflow-auto divide-y divide-gray-200">
@@ -456,6 +495,7 @@ const AssignUser: React.FC = () => {
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                     {user.login_attempt == 0 ? '--' : user.login_attempt}
                     </td>
+<<<<<<< HEAD
                     <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
                     <button
                         onClick={() => handleEdit(user)}
@@ -485,6 +525,69 @@ const AssignUser: React.FC = () => {
                       </span>
                     </button>
                     </td>
+=======
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                    {user.invalid_login_attempts == 0 ? '--' : user.invalid_login_attempts}
+                    </td>
+                    { isSuperAdmin && (<td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                      <button
+                          onClick={() => handleEdit(user)}
+                          className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                          <Edit2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                          <span className="hidden group-hover:inline-block transition-all  duration-300">
+                            Edit
+                          </span>
+                      </button>
+                      <button
+                          onClick={() => handleDelete(user.id)}
+                          className="text-red-600 hover:text-white hover:bg-red-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                          <Trash2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                          <span className="hidden group-hover:inline-block transition-all  duration-300">
+                            Delete
+                          </span>
+                      </button>
+                      <button
+                        onClick={() => handleReset(user.id)}
+                        className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                        <RotateCcw size={16} className="group-hover:mr-2 transition-all  duration-500"/>
+                        <span className="hidden group-hover:inline-block transition-all  duration-500">
+                            Reset login
+                        </span>
+                      </button>
+                    </td>)}
+                    {/* <td className="px-4 py-4 whitespace-nowrap text-sm font-medium space-x-4">
+                      <button
+                          onClick={() => handleEdit(user)}
+                          className="text-indigo-600 hover:text-white hover:bg-indigo-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                          <Edit2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                          <span className="hidden group-hover:inline-block transition-all  duration-300">
+                            Edit
+                          </span>
+                      </button>
+                      <button
+                          onClick={() => handleDelete(user.id)}
+                          className="text-red-600 hover:text-white hover:bg-red-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                          <Trash2 size={16} className="group-hover:mr-2 transition-all  duration-300" />
+                          <span className="hidden group-hover:inline-block transition-all  duration-300">
+                            Delete
+                          </span>
+                      </button>
+                      <button
+                        onClick={() => handleReset(user.id)}
+                        className="text-gray-600 hover:text-white hover:bg-gray-600 border px-3 py-2 shadow-sm rounded-md inline-flex items-center gap-1 group"
+                      >
+                        <RotateCcw size={16} className="group-hover:mr-2 transition-all  duration-500"/>
+                        <span className="hidden group-hover:inline-block transition-all  duration-500">
+                            Reset login
+                        </span>
+                      </button>
+                    </td> */}
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
                 </tr>
                 ))}
             </tbody>

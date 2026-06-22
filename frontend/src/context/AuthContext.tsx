@@ -9,6 +9,10 @@ interface User {
     updated_at: string;
     Area: string | null;
     login_attempt: number | null;
+<<<<<<< HEAD
+=======
+    role: string;
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 }
 
 interface TokenData {

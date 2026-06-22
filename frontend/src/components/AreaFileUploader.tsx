@@ -3,6 +3,7 @@ import { Upload, AlertCircle, CheckCircle } from "lucide-react";
 import axios from "axios";
 
 interface Message {
+<<<<<<< HEAD
   type: 'success' | 'error' | 'info';
   text: string;
 }
@@ -39,12 +40,50 @@ const AreaFileUploader: React.FC = () => {
       const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
     } catch (error) {
+=======
+  text: string;
+  type: 'success' | 'error' | 'info';
+}
+
+const AreaFileUploader: React.FC = () => {
+  const [ file, setFile ] = useState< File | null >( null );
+  const [ message, setMessage ] = useState< Message | null >( null );
+  const [ progress, setProgress ] = useState< number >(0);
+  const [ uploading, setUploading ] = useState< boolean >( false );
+
+  const handleUpload = async (): Promise<void> => {
+    if ( !file ) return;
+
+    setProgress( 0 );
+    setUploading( true );
+    
+    const formData = new FormData();
+    formData.append( 'raw_data', file );
+    
+
+    try {
+      await axios.post( 'https://sosafe.onrender.com/api/import', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: ( progressEvent ) => {
+          const progress = ( progressEvent.loaded / ( progressEvent.total || progressEvent.loaded )) * 100;
+          setProgress( Math.min( progress, 100 ));
+        }
+      });
+
+      setMessage( { type: 'success', text: 'File uploaded successfully!' } );
+      setFile( null );
+      const fileInput = document.querySelector( 'input[type="file"]' ) as HTMLInputElement;
+      if ( fileInput ) fileInput.value = '';
+
+    } catch ( error ) {
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
       setMessage({ 
         type: 'error', 
         text: axios.isAxiosError(error) 
           ? error.response?.data?.message || 'Upload failed. Please try again.'
           : 'Upload failed. Please try again.'
       });
+<<<<<<< HEAD
     } finally {
       setUploading(false);
     }
@@ -60,6 +99,25 @@ const AreaFileUploader: React.FC = () => {
         setProgress(0);
       } else {
         setMessage({ type: 'error', text: 'Please select an Excel file (.xlsx or .xls)' });
+=======
+
+    } finally {
+      setUploading( false );
+    }
+  };
+
+  const handleFileChange = ( event: ChangeEvent<HTMLInputElement> ): void => {
+    const selectedFile = event.target.files?.[0];
+    if ( selectedFile ) {
+      if ( selectedFile.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+          selectedFile.type === "application/vnd.ms-excel"
+        ) {
+        setFile( selectedFile );
+        setMessage( null );
+        setProgress(0);
+      } else {
+        setMessage( { type: 'error', text: 'Please select an Excel file (.xlsx or .xls)' } );
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
       }
     }
   };
@@ -67,7 +125,11 @@ const AreaFileUploader: React.FC = () => {
   return (
     <div className="w-full max-w-2xl hover:scale-90 bg-white rounded-lg shadow-md">
       <div className="p-6 border-b border-gray-200">
+<<<<<<< HEAD
         <h2 className="text-xl font-semibold text-gray-800">Upload Excel File for Area</h2>
+=======
+        <h2 className="text-xl font-semibold text-gray-800"> Upload Excel File for Area </h2>
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
       </div>
 
       <div className="p-6 space-y-6">
@@ -75,6 +137,7 @@ const AreaFileUploader: React.FC = () => {
           <label className="w-full flex flex-col items-center px-4 py-6 bg-white rounded-lg border-2 border-dashed border-gray-300 cursor-pointer hover:bg-gray-50">
             <Upload className="w-8 h-8 mb-4 text-gray-500" />
             <div className="flex flex-col items-center">
+<<<<<<< HEAD
               <span className="font-medium text-gray-600">Drop files to upload Area</span>
               <span className="text-sm text-gray-500">or click to select</span>
             </div>
@@ -84,10 +147,22 @@ const AreaFileUploader: React.FC = () => {
               accept=".xlsx,.xls"
               onChange={handleFileChange}
               disabled={uploading}
+=======
+              <span className="font-medium text-gray-600"> Drop files to upload Area </span>
+              <span className="text-sm text-gray-500"> or click to select </span>
+            </div>
+            <input
+              type = "file"
+              className="hidden"
+              accept = ".xlsx,.xls"
+              onChange = { handleFileChange }
+              disabled = { uploading }
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
             />
           </label>
         </div>
 
+<<<<<<< HEAD
         {file && (
           <div className="text-sm text-gray-600">
             Selected file: {file.name}
@@ -95,18 +170,35 @@ const AreaFileUploader: React.FC = () => {
         )}
 
         {progress > 0 && (
+=======
+        { file && (
+          <div className="text-sm text-gray-600">
+            Selected file: { file.name }
+          </div>
+        )}
+
+        { progress > 0 && (
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
           <div className="space-y-2">
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
                 className="bg-green-600 h-2 rounded-full transition-all duration-300"
+<<<<<<< HEAD
                 style={{ width: `${Math.min(progress, 100)}%` }}
               />
             </div>
             <span className="text-sm text-gray-600">{Math.min(Math.round(progress), 100)}% uploaded</span>
+=======
+                style = {{ width: `${ Math.min( progress, 100 )}%` }}
+              />
+            </div>
+            <span className="text-sm text-gray-600">{ Math.min( Math.round( progress ), 100)}% uploaded </span>
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
           </div>
         )}
 
         <button
+<<<<<<< HEAD
           onClick={handleUpload}
           disabled={!file || uploading}
           className={`w-full py-2 px-4 rounded-md text-white font-medium
@@ -120,6 +212,22 @@ const AreaFileUploader: React.FC = () => {
         </button>
 
         {message && (
+=======
+          onClick = { handleUpload }
+          disabled = { !file || uploading }
+          className={`w-full py-2 px-4 rounded-md text-white font-medium
+            ${ !file || uploading 
+              ? 'bg-gray-400 cursor-not-allowed' 
+              : 'bg-green-600 hover:bg-green-700'
+            } transition-colors duration-200
+            `}
+          type = "button"
+        >
+          { uploading ? 'Uploading area...' : 'Upload Area' }
+        </button>
+
+        { message && (
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
           <div className={`flex items-center gap-2 p-4 rounded-md ${
             message.type === 'success' 
               ? 'bg-green-50 text-green-800' 
@@ -127,12 +235,20 @@ const AreaFileUploader: React.FC = () => {
               ? 'bg-red-50 text-red-800'
               : 'bg-blue-50 text-blue-800'
           }`}>
+<<<<<<< HEAD
             {message.type === 'success' ? (
+=======
+            { message.type === 'success' ? (
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
               <CheckCircle className="w-5 h-5" />
             ) : (
               <AlertCircle className="w-5 h-5" />
             )}
+<<<<<<< HEAD
             <p className="text-sm font-medium">{message.text}</p>
+=======
+            <p className="text-sm font-medium"> { message.text } </p>
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
           </div>
         )}
       </div>

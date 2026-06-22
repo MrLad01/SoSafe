@@ -33,7 +33,7 @@ interface AlertsDisplayProps {
 const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeople }) => {
   const navigate = useNavigate();
 
-  const handlePersonDetails = (content: Person, type: 'missing' | 'wanted') => {
+  const handlePersonDetails = ( content: Person, type: 'missing' | 'wanted' ) => {
     const personSlug = content.name.toLowerCase().replace(/\s+/g, '-');
     navigate(`/${type}/${personSlug}`, { 
       state: { ...content }
@@ -47,8 +47,8 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4M12 20V4" />
         </svg>
       </div>
-      <h3 className="text-xl font-semibold mb-2">No {title}</h3>
-      <p className="text-center">There are currently no {title.toLowerCase()} to display</p>
+      <h3 className="text-xl font-semibold mb-2">No { title }</h3>
+      <p className="text-center">There are currently no { title.toLowerCase() } to display</p>
     </div>
   );
 
@@ -60,31 +60,31 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
     <div 
       className={`
         bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-500 max-w-md mx-auto
-        ${isSelected ? 'transform scale-100 opacity-100' : 'transform scale-95 opacity-70'}
+        ${ isSelected ? 'transform scale-100 opacity-100' : 'transform scale-95 opacity-70' }
       `}
     >
       <div className="relative h-[19rem] group">
         <img
-          src={person.image}
-          alt={person.name}
+          src = { person.image }
+          alt = { person.name }
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-4 left-4 right-4">
-          <h3 className="text-white font-bold text-xl">{person.name}</h3>
-          <p className="text-white/80 text-sm">{person.date}</p>
+          <h3 className="text-white font-bold text-xl"> { person.name } </h3>
+          <p className="text-white/80 text-sm"> { person.date } </p>
         </div>
       </div>
       <div className="p-4">
-        <p className="text-gray-600 mb-2 line-clamp-2">{person.description}</p>
+        <p className="text-gray-600 mb-2 line-clamp-2"> { person.description } </p>
         <p className="text-sm text-gray-500">
-          <span className="font-semibold">Last seen:</span> {person.location}
+          <span className="font-semibold">Last seen:</span> { person.location }
         </p>
         <button 
           className="mt-4 w-full bg-[#FFD700] text-[#006838] font-semibold shadow-md py-2 px-4 rounded 
                      hover:bg-white hover:text-[#006838] hover:border-[#006838] hover:border-2 
                      transition-colors duration-300 outline-none"
-          onClick={() => handlePersonDetails(person, type)}
+          onClick = { () => handlePersonDetails( person, type ) }
         >
           More Information
         </button>
@@ -98,7 +98,7 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
     delay: number;
     type: 'missing' | 'wanted';
   }> = ({ title, items, delay, type }) => {
-    const [emblaRef, emblaApi] = useEmblaCarousel(
+    const [ emblaRef, emblaApi ] = useEmblaCarousel(
       {
         loop: true,
         align: 'center',
@@ -109,31 +109,31 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
       [Autoplay({ delay, stopOnInteraction: false })]
     );
 
-    const [selectedIndex, setSelectedIndex] = useState(0);
-    const [scrollSnaps, setScrollSnaps] = useState<number[]>([]);
+    const [ selectedIndex, setSelectedIndex ] = useState(0);
+    const [ scrollSnaps, setScrollSnaps ] = useState<number[]>([]);
 
     const onSelect = useCallback(() => {
-      if (!emblaApi) return;
-      setSelectedIndex(emblaApi.selectedScrollSnap());
-    }, [emblaApi]);
+      if ( !emblaApi ) return;
+      setSelectedIndex( emblaApi.selectedScrollSnap() );
+    }, [ emblaApi ]);
 
     useEffect(() => {
       if (!emblaApi) return;
       
       onSelect();
-      setScrollSnaps(emblaApi.scrollSnapList());
-      emblaApi.on('select', onSelect);
+      setScrollSnaps( emblaApi.scrollSnapList() );
+      emblaApi.on( 'select', onSelect );
       
       return () => {
-        emblaApi.off('select', onSelect);
+        emblaApi.off( 'select', onSelect );
       };
-    }, [emblaApi, onSelect]);
+    }, [ emblaApi, onSelect ]);
 
-    if (items.length === 0) {
+    if ( items.length === 0 ) {
       return (
         <div className="w-full max-w-lg mx-auto">
-          <h2 className="text-2xl font-bold text-[#006838] mb-4">{title}</h2>
-          <EmptyState title={title} />
+          <h2 className="text-2xl font-bold text-[#006838] mb-4"> { title } </h2>
+          <EmptyState title = { title } />
         </div>
       );
     }
@@ -141,17 +141,17 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
     return (
       <div className="w-full max-w-lg mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-[#006838]">{title}</h2>
+          <h2 className="text-2xl font-bold text-[#006838]"> { title } </h2>
         </div>
 
-        <div className="overflow-hidden" ref={emblaRef}>
+        <div className="overflow-hidden" ref = { emblaRef }>
           <div className="flex">
-            {items.map((item, index) => (
-              <div key={item.caseNumber} className="flex-none w-full pl-4 first:pl-0">
+            { items.map( ( item, index ) => (
+              <div key = { item.caseNumber } className="flex-none w-full pl-4 first:pl-0">
                 <PersonCard 
-                  person={item} 
-                  isSelected={selectedIndex === index} 
-                  type={type}
+                  person = { item } 
+                  isSelected = { selectedIndex === index } 
+                  type = { type }
                 />
               </div>
             ))}
@@ -159,16 +159,16 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
         </div>
 
         <div className="flex justify-center mt-4 gap-2">
-          {scrollSnaps.map((_, index) => (
+          { scrollSnaps.map( ( _, index ) => (
             <button
-              key={index}
+              key = { index }
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 index === selectedIndex 
                   ? 'bg-[#FFD700] w-8' 
                   : 'bg-gray-300 hover:bg-gray-400'
               }`}
-              onClick={() => emblaApi?.scrollTo(index)}
-              aria-label={`Go to slide ${index + 1}`}
+              onClick = { () => emblaApi?.scrollTo(index) }
+              aria-label = { `Go to slide ${index + 1}` }
             />
           ))}
         </div>
@@ -181,6 +181,7 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center">
           <CarouselSection 
+<<<<<<< HEAD
             delay={4000} 
             items={wantedPeople} 
             title="Wanted People" 
@@ -191,6 +192,18 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
             items={missingPersons} 
             title="Missing Persons" 
             type="missing" 
+=======
+            delay = { 4000 } 
+            items = { wantedPeople } 
+            title = "Wanted People" 
+            type = "wanted" 
+          />
+          <CarouselSection 
+            delay = { 4800 } 
+            items = { missingPersons } 
+            title = "Missing Persons" 
+            type = "missing" 
+>>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
           />
         </div>
       </div>
