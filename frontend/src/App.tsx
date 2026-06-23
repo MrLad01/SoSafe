@@ -29,17 +29,18 @@ import SuperAdminRegistration from "./Pages/SuperAdmin Page/SuperAdminRegistrati
 import UnderConstructionPage from "./Pages/UnderConstructionPage";
 import AssignUser from "./Pages/AssignUser";
 import 'rsuite/dist/rsuite-no-reset.min.css';
+import BiometricsPage from './Pages/BiometricsPage';
 
 // ── Tracks page views on every route change ──────────────────────────────────
 function PageViewTracker() {
   const location = useLocation()
-  const posthog  = usePostHog()
+  const posthog = usePostHog()
 
   useEffect(() => {
     posthog?.capture('$pageview', {
       $current_url: window.location.href,
     })
-  }, [location.pathname]) 
+  }, [location.pathname])
 
   return null
 }
@@ -88,7 +89,7 @@ function App() {
       <Route element={<RootLayout />}>
 
         {/* Public routes */}
-          {/* <Route index element={<Home />} />
+        {/* <Route index element={<Home />} />
           <Route path="/about/agency"      element={<AgencyPage />} />
           <Route path="/about/contact"     element={<ContactPage />} />
           <Route path="/about/management"  element={<ManagementTeamPage />} />
@@ -101,33 +102,34 @@ function App() {
           <Route path="/login"             element={<OfficerLoginPage />} />
           <Route path="/personnel"         element={<PersonnelPage />} />
           <Route path="/under-construction" element={<UnderConstructionPage />} /> */}
-          
-          <Route index element={<RedirectRoute><Home /></RedirectRoute>} />
-          <Route path="/about/agency"      element={<RedirectRoute><AgencyPage /></RedirectRoute>} />
-          <Route path="/about/contact"     element={<RedirectRoute><ContactPage /></RedirectRoute>} />
-          <Route path="/about/management"  element={<RedirectRoute><ManagementTeamPage /></RedirectRoute>} />
-          <Route path="/announcement/:slug" element={<RedirectRoute><NewsDetail /></RedirectRoute>} />
-          <Route path="/departments"       element={<RedirectRoute><DepartmentsPage /></RedirectRoute>} />
-          <Route path="/missing/:person"   element={<RedirectRoute><PersonAlertDetail /></RedirectRoute>} />
-          <Route path="/news"              element={<RedirectRoute><NewsPage /></RedirectRoute>} />
-          <Route path="/news/:slug"        element={<RedirectRoute><NewsDetail /></RedirectRoute>} />
-          <Route path="/wanted/:person"    element={<RedirectRoute><PersonAlertDetail /></RedirectRoute>} />
-          <Route path="/login"             element={<OfficerLoginPage />} />
-          <Route path="/personnel"         element={<RedirectRoute><PersonnelPage /></RedirectRoute>} />
-          <Route path="/under-construction" element={<RedirectRoute><UnderConstructionPage /></RedirectRoute>} />
+
+        <Route index element={<RedirectRoute><Home /></RedirectRoute>} />
+        <Route path="/about/agency" element={<RedirectRoute><AgencyPage /></RedirectRoute>} />
+        <Route path="/about/contact" element={<RedirectRoute><ContactPage /></RedirectRoute>} />
+        <Route path="/about/management" element={<RedirectRoute><ManagementTeamPage /></RedirectRoute>} />
+        <Route path="/announcement/:slug" element={<RedirectRoute><NewsDetail /></RedirectRoute>} />
+        <Route path="/departments" element={<RedirectRoute><DepartmentsPage /></RedirectRoute>} />
+        <Route path="/missing/:person" element={<RedirectRoute><PersonAlertDetail /></RedirectRoute>} />
+        <Route path="/news" element={<RedirectRoute><NewsPage /></RedirectRoute>} />
+        <Route path="/news/:slug" element={<RedirectRoute><NewsDetail /></RedirectRoute>} />
+        <Route path="/wanted/:person" element={<RedirectRoute><PersonAlertDetail /></RedirectRoute>} />
+        <Route path="/login" element={<OfficerLoginPage />} />
+        <Route path="/personnel" element={<RedirectRoute><PersonnelPage /></RedirectRoute>} />
+        <Route path="/under-construction" element={<RedirectRoute><UnderConstructionPage /></RedirectRoute>} />
 
         {/* Protected admin routes */}
-        <Route path="/admin"                  element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin/agency"           element={<ProtectedRoute><AdminAgency /></ProtectedRoute>} />
-        <Route path="/admin/contact"          element={<ProtectedRoute><AdminContact /></ProtectedRoute>} />
-        <Route path="/admin/database"         element={<ProtectedRoute><AdminDatabase /></ProtectedRoute>} />
-        <Route path="/admin/zones"            element={<ProtectedRoute><ZoneAreaDivisionTable /></ProtectedRoute>} />
-        <Route path="/admin/departments"      element={<ProtectedRoute><AdminDepartments /></ProtectedRoute>} />
-        <Route path="/admin/management-team"  element={<ProtectedRoute><AdminManagement /></ProtectedRoute>} />
-        <Route path="/admin/news"             element={<ProtectedRoute><AdminNews /></ProtectedRoute>} />
-        <Route path="/admin/personnel"        element={<ProtectedRoute><AdminPersonnel /></ProtectedRoute>} />
-        <Route path="/admin/assign-user"      element={<ProtectedRoute><AssignUser /></ProtectedRoute>} />
-        <Route path="/admin/tracking"         element={<ProtectedRoute><AdminTracking /></ProtectedRoute>} />
+        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/agency" element={<ProtectedRoute><AdminAgency /></ProtectedRoute>} />
+        <Route path="/admin/contact" element={<ProtectedRoute><AdminContact /></ProtectedRoute>} />
+        <Route path="/admin/database" element={<ProtectedRoute><AdminDatabase /></ProtectedRoute>} />
+        <Route path="/admin/zones" element={<ProtectedRoute><ZoneAreaDivisionTable /></ProtectedRoute>} />
+        <Route path="/admin/departments" element={<ProtectedRoute><AdminDepartments /></ProtectedRoute>} />
+        <Route path="/admin/management-team" element={<ProtectedRoute><AdminManagement /></ProtectedRoute>} />
+        <Route path="/admin/news" element={<ProtectedRoute><AdminNews /></ProtectedRoute>} />
+        <Route path="/admin/personnel" element={<ProtectedRoute><AdminPersonnel /></ProtectedRoute>} />
+        <Route path="/admin/biometrics" element={<ProtectedRoute><BiometricsPage /></ProtectedRoute>} />
+        <Route path="/admin/assign-user" element={<ProtectedRoute><AssignUser /></ProtectedRoute>} />
+        <Route path="/admin/tracking" element={<ProtectedRoute><AdminTracking /></ProtectedRoute>} />
 
         {/* Protected officer routes */}
         <Route path="/officer/:name" element={<OfficerDashboard />} />
