@@ -181,18 +181,6 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center">
           <CarouselSection 
-<<<<<<< HEAD
-            delay={4000} 
-            items={wantedPeople} 
-            title="Wanted People" 
-            type="wanted" 
-          />
-          <CarouselSection 
-            delay={4800} 
-            items={missingPersons} 
-            title="Missing Persons" 
-            type="missing" 
-=======
             delay = { 4000 } 
             items = { wantedPeople } 
             title = "Wanted People" 
@@ -203,7 +191,6 @@ const AlertsDisplay: React.FC<AlertsDisplayProps> = ({ missingPersons, wantedPeo
             items = { missingPersons } 
             title = "Missing Persons" 
             type = "missing" 
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
           />
         </div>
       </div>
