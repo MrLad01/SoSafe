@@ -95,15 +95,11 @@ php artisan migrate --force\n\
 php artisan db:seed --force --class=Database\\\\Seeders\\\\ZoneSeeder\n\
 php artisan db:seed --force --class=Database\\\\Seeders\\\\AreaSeeder\n\
 php artisan db:seed --force --class=Database\\\\Seeders\\\\DivisionSeeder\n\
-<<<<<<< HEAD
-php artisan config:cache\n\
-php artisan route:cache\n\
-=======
+
 php artisan config:clear\n\
 php artisan cache:clear\n\
 php artisan route:clear\n\
 php artisan config:cache\n\
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 php artisan view:cache\n\
 /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf' > /usr/local/bin/docker-entrypoint.sh \
     && chmod +x /usr/local/bin/docker-entrypoint.sh

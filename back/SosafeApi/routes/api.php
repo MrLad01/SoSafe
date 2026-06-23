@@ -19,18 +19,9 @@ use App\Http\Controllers\NewBiodataController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Biodata2Controller;
 use App\Http\Controllers\UserAdminController;
-<<<<<<< HEAD
-
 use App\Http\Controllers\ZoneController;
 use App\Http\Controllers\AreaController;
 use App\Http\Controllers\DivisionController;
-
-
-=======
-use App\Http\Controllers\ZoneController;
-use App\Http\Controllers\AreaController;
-use App\Http\Controllers\DivisionController;
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 
 /*
 |--------------------------------------------------------------------------
@@ -41,22 +32,6 @@ use App\Http\Controllers\DivisionController;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-<<<<<<< HEAD
-Route::get('admin/check', [authenticationController::class, 'check']);
-Route::post('upload', [authenticationController::class, 'upload']);
-Route::post('register', [authenticationController::class, 'register']);
-Route::post('login', [authenticationController::class, 'login']);
-Route::middleware(['login_attempt'])->post('user/login', [UserAdminController::class, 'login']);
-// Route::get('user', [authenticationController::class, 'getUser']);
-Route::get('missing', [MissingWantedController::class, 'getMissing']);
-Route::get('hero', [HeroController::class, 'getHero']);
-Route::get('division', [DivisionCommandController::class, 'getDivision']);
-Route::get('zonal_command', [ZonalCommandController::class, 'getZonalCommands']);
-Route::get('community', [CommunityController::class, 'getCommunities']);
-Route::get('news', [NewsController::class, 'getNews']);
-Route::post('logout', [authenticationController::class, 'logout']);
-=======
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 
 Route::get('admin/check',       [authenticationController::class, 'check']);
 Route::post('upload',           [authenticationController::class, 'upload']);
@@ -71,7 +46,7 @@ Route::get('community',         [CommunityController::class, 'getCommunities']);
 Route::get('news',              [NewsController::class, 'getNews']);
 Route::post('logout',           [authenticationController::class, 'logout']);
 
-<<<<<<< HEAD
+
 Route::post('/get',[BiodataController::class, 'record']);
 Route::get('/biodata2/form/{formNo}', [Biodata2Controller::class, 'findByFormNo']);
 Route::post('/upload/image', [UserAdminController::class, 'imageUpload']);
@@ -87,62 +62,10 @@ Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     Route::get('/reset-all', [UserController::class, 'ResetAllLoginAttempt']);
     Route::get('/admins', [UserController::class, 'getAdmins']);
     Route::get('/audit', [UserController::class, 'auditTrail']);
-    Route::get('/biodata2', [Biodata2Controller::class, 'index']);
-    Route::get('/biodata2/{id}', [Biodata2Controller::class, 'show']);
-    Route::get('/old/records/all', [Biodata2Controller::class, 'getAllRecords']);
-    Route::get('/biodata2/import-status', [Biodata2Controller::class, 'importStatus']);
-    
-    Route::post('/import',[ExcelController::class, 'import']);
-    Route::get('/export',[ExcelController::class, 'download']);
-    Route::post('/new/data',[NewBiodataController::class, 'storeBiodata']);
-    Route::get('/new/records/all', [NewBiodataController::class, 'getAllRecords']);
-
-    Route::get('/check/{name?}',[ExcelController::class, 'check']);
-
-    Route::get('raw/data',[BiodataController::class, 'getdata']);
-    Route::get('user', [authenticationController::class, 'getUser']);
-    // news controller
-    Route::post('news', [NewsController::class, 'storeNews']);
-    Route::put('news/{id}', [NewsController::class, 'editNews']);
-    Route::delete('news/{id}',[NewsController::class,'deleteNews']);
-    
-    // missing/wanted controller
-    Route::post('missing', [MissingWantedController::class, 'storeNews']);
-    Route::put('Missing/{id}', [MissingWantedController::class, 'editMissing']);
-    Route::delete('Missing/{id}',[MissingWantedController::class,'deleteMissing']);
-    
-    // hero controller
-    Route::post('hero', [HeroController::class, 'storeNews']);
-    Route::put('Hero/{id}', [HeroController::class, 'editHero']);
-    Route::delete('Hero/{id}',[HeroController::class,'deleteHero']);
-    
-    //community controller
-    
-    Route::post('community', [CommunityController::class, 'storeCommunity']);
-    Route::put('community/{id}', [CommunityController::class, 'editCommunity']);
-    Route::delete('community/{id}',[CommunityController::class,'deleteCommunity']);
-=======
-Route::post('/get',             [BiodataController::class, 'record']);
-Route::get('/biodata2/form/{formNo}',         [Biodata2Controller::class, 'findByFormNo']);
-Route::post('/upload/image',    [UserAdminController::class, 'imageUpload']);
-Route::get('/biodata2/form/phone/{phoneNo}',  [Biodata2Controller::class, 'findByPhoneNo']);
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
-
-// ─── Admin routes ────────────────────────────────────────────────────────────
-Route::middleware([JwtMiddleware::class, 'role:admin,superadmin'])->group(function () {
-
-    Route::post('/edit/admin',    [UserController::class, 'editAdmin']);
-    Route::post('/create/admin',  [UserController::class, 'addAdmin']);
-    Route::post('/delete/admin',  [UserController::class, 'deleteAdmin']);
-    Route::post('/reset',         [UserController::class, 'ResetLoginAttempt']);
-    Route::get('/reset-all',      [UserController::class, 'ResetAllLoginAttempt']);
-    Route::get('/admins',         [UserController::class, 'getAdmins']);
-    Route::get('/audit',          [UserController::class, 'auditTrail']);
     Route::get('/biodata2',       [Biodata2Controller::class, 'index']);
     Route::get('/biodata2/{id}',  [Biodata2Controller::class, 'show']);
     Route::put('/biodata2/{id}',       [Biodata2Controller::class, 'update']);
     Route::delete('/biodata2/{id}',    [Biodata2Controller::class, 'destroy']);
-    Route::get('/old/records/all',[Biodata2Controller::class, 'getAllRecords']);
     Route::get('/biodata2/import-status', [Biodata2Controller::class, 'importStatus']);
 
     // ── Excel import (corrected) ──────────────────────────────────────────────
@@ -156,45 +79,6 @@ Route::middleware([JwtMiddleware::class, 'role:admin,superadmin'])->group(functi
     Route::get('/import/progress/{importId}', [ExcelController::class, 'progress']);
     Route::get('/import/status/{importId}', [ExcelController::class, 'status']);
 
-<<<<<<< HEAD
-    // biodata controller
-    Route::post('biodata', [SoSafeCorpsBiodataController::class, 'storeBiodata']);
-    Route::put('biodata/{id}', [SosafeCorpsBiodataController::class, 'editSosafe']);
-    Route::get('biodata', [SosafeCorpsBiodataController::class, 'getBiodatas']);
-
-    // Zone Area Division Controller
-    Route::get('zones', [ ZoneController::class, 'index' ]);
-
-    Route::post('zones', [ ZoneController::class, 'storeZone' ]);
-    Route::put('zones/{zone}', [ ZoneController::class, 'updateZone' ]);
-    Route::delete('zones/{zone}', [ ZoneController::class, 'destroyZone' ]);
-
-    Route::post('areas', [ AreaController::class, 'storeArea' ]);
-    Route::put('areas/{area}', [ AreaController::class, 'updateArea' ]);
-    Route::delete('areas/{area}', [ AreaController::class, 'destroyArea' ]);
-
-    Route::post('zone-divisions', [ DivisionController::class, 'storeDivision' ]);
-    Route::put('zone-divisions/{division}', [ DivisionController::class, 'updateDivision' ]);
-    Route::delete('zone-divisions/{division}', [ DivisionController::class, 'destroyDivision' ]);
-
-});
-//Admin Zonal Area Controller
-Route::middleware([JwtMiddleware::class,'role:zonal_command','login_attempt'])->group(function(){
-    Route::get('/z/records',[AdminZonalCommandController::class, 'getSoSafeCorpsBiodata']);
-    Route::get('/z/records',[AdminZonalCommandController::class, 'storeBiodata']);
-    Route::get('/z/record', [AdminZonalCommandController::class, 'getNewRecords']);
-    Route::get('/z/download', [AdminZonalCommandController::class, 'download']);
-
-});
-
-// Admin Division Controller
-
-Route::middleware([JwtMiddleware::class,'role:division_command','login_attempt'])->group(function(){
-    Route::get('/d/records',[AdminDivisionCommandController::class, 'getSoSafeCorpsBiodata']);
-    Route::get('/d/records',[AdminDivisionCommandController::class, 'storeBiodata']);
-    Route::get('/d/record/edit', [AdminDivisionCommandController::class, 'editBiodata']);
-    Route::get('/d/download', [AdminDivisionCommandController::class, 'download']);
-=======
     Route::get('/export',         [ExcelController::class, 'download']);
     Route::post('/new/data',      [NewBiodataController::class, 'storeBiodata']);
     Route::get('/new/records/all',[NewBiodataController::class, 'getAllRecords']);
@@ -257,7 +141,6 @@ Route::middleware([JwtMiddleware::class, 'role:zonal_command', 'login_attempt'])
     Route::get('/z/records',  [AdminZonalCommandController::class, 'getSoSafeCorpsBiodata']);
     Route::get('/z/record',   [AdminZonalCommandController::class, 'getNewRecords']);
     Route::get('/z/download', [AdminZonalCommandController::class, 'download']);
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 });
 
 // ─── Division command routes ─────────────────────────────────────────────────
@@ -268,14 +151,5 @@ Route::middleware([JwtMiddleware::class, 'role:division_command', 'login_attempt
 });
 
 Route::post('/export', [ExcelController::class, 'export']);
-<<<<<<< HEAD
-
-
-
-Route::get('/test',[biodataController::class, 'test']);
-Route::get('/d',[ExcelController::class, 'download']);
-
-=======
 Route::get('/test',    [BiodataController::class, 'test']);
 Route::get('/d',       [ExcelController::class, 'download']);
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2

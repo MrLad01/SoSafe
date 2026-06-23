@@ -10,39 +10,6 @@ class Biodata extends Model
     use HasFactory;
 
     protected $fillable = [
-<<<<<<< HEAD
-        'code',
-        'form_no',
-        'firstname',
-        'lastname',
-        'othername',
-        'address',
-        'phone_no',
-        'dob',
-        'sex',
-        'community',
-        'za_command',
-        'division_command',
-        'service_code',
-        'position',
-        'date_engage',
-        'rank',
-        'nok',
-        'relationship',
-        'nok_phone',
-        'photo',
-        'qualification',
-    ];
-
-    // Optional: If you want to control timestamps
-    // public $timestamps = true;
-
-    // Cast dates properly
-    protected $casts = [
-        'dob'         => 'date',
-        'date_engage' => 'date',
-    ];
-=======
         'SNO',
         'FNO',
         'SNAME',
@@ -86,5 +53,4 @@ class Biodata extends Model
     {
         return $this->belongsTo(Division::class, 'CITY');
     }
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 }
