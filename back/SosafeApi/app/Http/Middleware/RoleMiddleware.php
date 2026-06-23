@@ -14,12 +14,6 @@ class RoleMiddleware
 {
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-<<<<<<< HEAD
-        $user = auth()->guard('admin')->user() ? auth()->guard('admin')->user() : Auth::user() ;
-        if($user->role !==$role  ){
-            $role = $user->role;
-            return response()->json($role."  Not Allowed");
-=======
 
         $guard = $request->attributes->get('jwt_guard', 'api');
 
@@ -27,7 +21,6 @@ class RoleMiddleware
 
         if (!$user) {
             return response()->json(['error' => 'Unauthenticated.'], 401);
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
         }
 
         if (!in_array($user->role, $roles)) {
