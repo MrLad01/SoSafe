@@ -8,11 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class NewBiodata extends Model
 {
     use HasFactory;
-<<<<<<< HEAD
-    
-    
-}
-=======
 
     // PostgreSQL columns are lowercase (unquoted at migration time).
     // Laravel quotes insert keys exactly as written — these must match
@@ -62,4 +57,3 @@ class NewBiodata extends Model
         return $this->belongsTo(Division::class, 'city');
     }
 }
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
