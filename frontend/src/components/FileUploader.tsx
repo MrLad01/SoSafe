@@ -1,11 +1,3 @@
-<<<<<<< HEAD
-import React, { useState, ChangeEvent } from "react";
-import { Upload, AlertCircle, CheckCircle } from "lucide-react";
-import axios from "axios";
-
-interface Message {
-  type: 'success' | 'error' | 'info';
-=======
 import React, { useState, useRef, useCallback, useEffect, ChangeEvent } from "react";
 import axios from "axios";
 
@@ -34,13 +26,10 @@ interface ProgressData {
 
 interface LogEntry {
   time: string;
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
   text: string;
   isError: boolean;
 }
 
-<<<<<<< HEAD
-=======
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const API_BASE    = "https://sosafe.onrender.com/api";
@@ -65,7 +54,6 @@ const bpct = ( done: number, total: number ) =>
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 const FileUploader: React.FC = () => {
   const [ file,      setFile ]      =  useState< File | null >( null );
   const [ uploadPct, setUploadPct ] =  useState(0);
@@ -77,69 +65,6 @@ const FileUploader: React.FC = () => {
   const [ lastPoll,  setLastPoll ]  =  useState< string >("");
   const [ countdown, setCountdown ] =  useState( POLL_MS / 1000 );
 
-<<<<<<< HEAD
-  const token = sessionStorage.getItem('authToken');
-
-  const handleUpload = async (): Promise<void> => {
-    if (!file) return;
-
-    setUploading(true);
-    setProgress(0);
-    
-    const formData = new FormData();
-    formData.append('raw_data', file);
-
-    console.log(formData);
-
-     
-    try {
-      await axios.post('https://sosafe.onrender.com/api/import', formData, {
-        headers: { 
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`
-        },
-        onUploadProgress: (progressEvent) => {
-          const progress = (progressEvent.loaded / (progressEvent.total || progressEvent.loaded)) * 100;
-          setProgress(Math.min(progress, 100));
-        }
-      });
-
-      setMessage({ type: 'success', text: 'File uploaded successfully!' });
-      setFile(null);
-      const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-    } catch (error) {
-      setMessage({ 
-        type: 'error', 
-        text: axios.isAxiosError(error) 
-          ? error.response?.data?.message || 'Upload failed. Please try again.'
-          : 'Upload failed. Please try again.'
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const selectedFile = event.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
-          selectedFile.type === "application/vnd.ms-excel") {
-        setFile(selectedFile);
-        setMessage(null);
-        setProgress(0);
-      } else {
-        setMessage({ type: 'error', text: 'Please select an Excel file (.xlsx or .xls)' });
-      }
-    }
-  };
-
-  return (
-    <div className="w-full max-w-2xl bg-white rounded-lg shadow-md">
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-xl font-semibold text-gray-800">Upload Excel File for Biodata</h2>
-      </div>
-=======
   const pollRef    = useRef< ReturnType< typeof setInterval > | null >( null );
   const countRef   = useRef< ReturnType< typeof setInterval > | null >( null );
   const logEndRef  = useRef< HTMLDivElement >( null );
@@ -358,7 +283,6 @@ const FileUploader: React.FC = () => {
     }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap');
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
 
         .fu * { box-sizing: border-box; }
 
@@ -512,61 +436,6 @@ const FileUploader: React.FC = () => {
               <p className="fu-eyebrow"> SoSafe Corps — Admin </p>
               <h2 className="fu-title"> Import personnel biodata </h2>
             </div>
-<<<<<<< HEAD
-            <input
-              type="file"
-              className="hidden"
-              accept=".xlsx,.xls"
-              onChange={handleFileChange}
-              disabled={uploading}
-            />
-          </label>
-        </div>
-
-        {file && (
-          <div className="text-sm text-gray-600">
-            Selected file: {file.name}
-          </div>
-        )}
-
-        {progress > 0 && (
-          <div className="space-y-2">
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${Math.min(progress, 100)}%` }}
-              />
-            </div>
-            <span className="text-sm text-gray-600">{Math.min(Math.round(progress), 100)}% uploaded</span>
-          </div>
-        )}
-
-        <button
-          onClick={handleUpload}
-          disabled={!file || uploading}
-          className={`w-full py-2 px-4 rounded-md text-white font-medium
-            ${!file || uploading 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-green-600 hover:bg-green-700'
-            } transition-colors duration-200`}
-          type="button"
-        >
-          {uploading ? 'Uploading...' : 'Upload File'}
-        </button>
-
-        {message && (
-          <div className={`flex items-center gap-2 p-4 rounded-md ${
-            message.type === 'success' 
-              ? 'bg-green-50 text-green-800' 
-              : message.type === 'error'
-              ? 'bg-red-50 text-red-800'
-              : 'bg-blue-50 text-blue-800'
-          }`}>
-            {message.type === 'success' ? (
-              <CheckCircle className="w-5 h-5" />
-            ) : (
-              <AlertCircle className="w-5 h-5" />
-=======
             { status !== "idle" && (
               <span
                 className="fu-pill"
@@ -574,7 +443,6 @@ const FileUploader: React.FC = () => {
               >
                 { meta.label }
               </span>
->>>>>>> 7bbd93f145c97d2fa914aaaf836835dedac94fd2
             )}
           </div>
 
