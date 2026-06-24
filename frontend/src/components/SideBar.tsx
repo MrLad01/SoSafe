@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { NavLink, useNavigate  } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.webp";
-import { Newspaper, UserPlus } from 'lucide-react';
+import { Fingerprint, Newspaper, UserPlus } from 'lucide-react';
 import { Database } from 'lucide-react';
 import { Group } from 'lucide-react';
 import { Info } from 'lucide-react';
@@ -108,19 +108,19 @@ const SideBar: React.FC = () => {
             Personnel
           </NavLink>
         </li>
-        { user?.role === 'superadmin' && (
+        {user?.role === 'superadmin' && (
           <li>
             <NavLink
               to="/admin/assign-user"
               end
               className={({ isActive }) =>
                 `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
-            }
-          >
-            <UserPlus />
-            Assign User
-          </NavLink>
-        </li>)}
+              }
+            >
+              <UserPlus />
+              Assign User
+            </NavLink>
+          </li>)}
         <li>
           <NavLink
             to="/admin/zones"
@@ -167,6 +167,18 @@ const SideBar: React.FC = () => {
           >
             <Database />
             Database
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to="/admin/biometrics"
+            end
+            className={({ isActive }) =>
+              `flex p-2 rounded gap-2 ${isActive ? "bg-green-600" : "hover:bg-green-700 hover:shadow-sm"}`
+            }
+          >
+            <Fingerprint />
+            Biometrics
           </NavLink>
         </li>
         <li>
