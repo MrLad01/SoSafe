@@ -23,6 +23,10 @@ class RoleMiddleware
             return response()->json(['error' => 'Unauthenticated.'], 401);
         }
 
+        if ($user->role === 'superadmin') {
+            return $next($request);
+        }
+
         if (!in_array($user->role, $roles)) {
             return response()->json([
                 'error' => 'Access denied. Required role: ' . implode(' or ', $roles)
