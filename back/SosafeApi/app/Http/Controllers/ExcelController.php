@@ -13,13 +13,17 @@ class ExcelController extends Controller
     public function import(Request $request)
     {
         $request->validate([
-            'raw_data' => 'required|file|mimes:xlsx,xls,csv'
+            'raw_data' => 'required|file|mimes:xlsx,xls,csv|max:1048576'
         ]);
 
         // Generate a unique import ID so the client can poll progress
         $importId = (string) Str::uuid();
 
-        $path = $request->file('raw_data')->store('temp');
+        // $path = $request->file('raw_data')->store('temp');
+        $path = $request->file('raw_data')->storeAs(
+            'temp',
+            $importId . '_' . $request->file('raw_data')->getClientOriginalName()
+        );
 
         // Initialise progress in cache before dispatching so the first poll
         // never returns 404

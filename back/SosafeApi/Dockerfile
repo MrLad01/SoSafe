@@ -70,11 +70,11 @@ RUN composer dump-autoload --optimize \
 COPY .env.example .env
 
 # Configure PHP settings
-RUN echo "upload_max_filesize = 100M" > /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "post_max_size = 100M" >> /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "max_execution_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "max_input_time = 600" >> /usr/local/etc/php/conf.d/uploads.ini \
-    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+RUN echo "upload_max_filesize = 1024M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 1100M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "max_execution_time = 0" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "max_input_time = 0" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 512M" >> /usr/local/etc/php/conf.d/uploads.ini
 
 # Configure Nginx and PHP-FPM
 COPY docker/nginx.conf /etc/nginx/sites-available/default

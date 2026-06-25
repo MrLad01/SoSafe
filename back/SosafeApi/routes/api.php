@@ -71,11 +71,7 @@ Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     // ── Excel import (corrected) ──────────────────────────────────────────────
     Route::post('/import',        [ExcelController::class, 'import']);
 
-    // SSE progress stream — kept inside the admin group so it's JWT-protected.
-    // The browser EventSource API does NOT send custom headers, so JWT is read
-    // from a query-string token instead of the Authorization header.
-    // In JwtMiddleware::handle(), fall back to:  $token = $request->query('token')
-    // when the Authorization header is absent.
+
     Route::get('/import/progress/{importId}', [ExcelController::class, 'progress']);
     Route::get('/import/status/{importId}', [ExcelController::class, 'status']);
 

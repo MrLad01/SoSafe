@@ -32,7 +32,7 @@ class ImportExcelFile implements ShouldQueue
     public function handle(): void
     {
         $fullPath  = storage_path("app/{$this->storedPath}");
-        $chunkSize = 1000;   // Smaller chunks = more granular progress + less memory per job
+        $chunkSize = 5000;   // Smaller chunks = more granular progress + less memory per job
         $chunk     = [];
         $rowCount  = 0;
         $chunkNo   = 0;
