@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import * as XLSX from 'xlsx';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns';
-import { Search, ChevronLeft, ChevronRight, Loader2, Download, Lock } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight, Loader2, Download, Lock, UserIcon } from 'lucide-react';
 
 // The sentinel value the backend sends when DOB is restricted
 const MASKED_DOB = '****-**-**';
@@ -55,12 +56,12 @@ interface AllRecordsResponse {
 }
 
 
-const safeDateFormat = ( dateStr: string | null | undefined, fmt = 'M/d/yyyy' ): string => {
-  if ( !dateStr ) return '';
-  if ( dateStr === MASKED_DOB ) return MASKED_DOB;
-  
+const safeDateFormat = (dateStr: string | null | undefined, fmt = 'M/d/yyyy'): string => {
+  if (!dateStr) return '';
+  if (dateStr === MASKED_DOB) return MASKED_DOB;
+
   try {
-    return format( parseISO( dateStr ), fmt );
+    return format(parseISO(dateStr), fmt);
   } catch {
     return dateStr;
   }
@@ -68,45 +69,46 @@ const safeDateFormat = ( dateStr: string | null | undefined, fmt = 'M/d/yyyy' ):
 
 const BiodataDisplay: React.FC = () => {
   const { token, user } = useAuth();
+  const navigate = useNavigate();
   const isSuperAdmin = user?.role === 'superadmin';
 
-  const [ currentPage, setCurrentPage ]       =  useState< number >(1);
-  const [ error, setError ]                   =  useState< string | null >( null );
-  const [ loading, setLoading ]               =  useState< boolean >( false );
-  const [ perPage ]                           =  useState< number >(100);
-  const [ records, setRecords ]               =  useState< BiodataRecord[] >( [] );
-  const [ search, setSearch ]                 =  useState< string >( '' );
-  const [ selectedRecord, setSelectedRecord ] =  useState< BiodataRecord | null >( null );
-  const [ totalPages, setTotalPages ]         =  useState< number >(1);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [perPage] = useState<number>(100);
+  const [records, setRecords] = useState<BiodataRecord[]>([]);
+  const [search, setSearch] = useState<string>('');
+  const [selectedRecord, setSelectedRecord] = useState<BiodataRecord | null>(null);
+  const [totalPages, setTotalPages] = useState<number>(1);
 
-  const [ editForm, setEditForm ]             = useState< Partial< BiodataRecord >>( {} );
-  const [ filteredAreas, setFilteredAreas ]   = useState< any[] >( [] );
-  const [ filteredDivisions, setFilteredDivisions ] = useState< any[] >( [] );
-  const [ isEditing, setIsEditing ] = useState( false );
-  const [ saving, setSaving ]                 = useState( false );
-  const [ zones, setZones ]                   = useState< any[] >( [] );
+  const [editForm, setEditForm] = useState<Partial<BiodataRecord>>({});
+  const [filteredAreas, setFilteredAreas] = useState<any[]>([]);
+  const [filteredDivisions, setFilteredDivisions] = useState<any[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [zones, setZones] = useState<any[]>([]);
 
-  const [ areaMap, setAreaMap ]     = useState< Record< number, string >>( {} );
-  const [ divisionMap, setDivisionMap ] = useState< Record< number, string >>( {} );
-  const [ zoneMap, setZoneMap ]     = useState< Record< number, string >>( {} );
+  const [areaMap, setAreaMap] = useState<Record<number, string>>({});
+  const [divisionMap, setDivisionMap] = useState<Record<number, string>>({});
+  const [zoneMap, setZoneMap] = useState<Record<number, string>>({});
 
-  const formatRecord = ( record: any ) => ({
+  const formatRecord = (record: any) => ({
     ...record,
-    dob:      safeDateFormat( record.dob ),
-    enlisted: safeDateFormat( record.enlisted ),
+    dob: safeDateFormat(record.dob),
+    enlisted: safeDateFormat(record.enlisted),
   });
 
-  const buildLocationMaps = ( zones: any[] ) => {
-    const zoneMap:     Record< number, string > = {};
-    const areaMap:     Record< number, string > = {};
-    const divisionMap: Record< number, string > = {};
+  const buildLocationMaps = (zones: any[]) => {
+    const zoneMap: Record<number, string> = {};
+    const areaMap: Record<number, string> = {};
+    const divisionMap: Record<number, string> = {};
 
-    zones.forEach( zone => {
-      zoneMap[ zone.id ] = zone.name;
-      zone.areas.forEach( ( area: any ) => {
-        areaMap[ area.id ] = area.name;
-        area.divisions.forEach( ( division: any ) => {
-          divisionMap[ division.id ] = division.name;
+    zones.forEach(zone => {
+      zoneMap[zone.id] = zone.name;
+      zone.areas.forEach((area: any) => {
+        areaMap[area.id] = area.name;
+        area.divisions.forEach((division: any) => {
+          divisionMap[division.id] = division.name;
         });
       });
     });
@@ -116,11 +118,11 @@ const BiodataDisplay: React.FC = () => {
 
   const fetchRecords = async (): Promise<void> => {
     try {
-      setLoading( true );
-      setError( null );
+      setLoading(true);
+      setError(null);
 
-      const [ recordsRes, zonesRes ] = await Promise.all([
-        axios.get< ApiResponse >( 'https://sosafe.onrender.com/api/biodata2', {
+      const [recordsRes, zonesRes] = await Promise.all([
+        axios.get<ApiResponse>('https://sosafe.onrender.com/api/biodata2', {
           params: {
             page: currentPage,
             per_page: perPage,
@@ -128,144 +130,144 @@ const BiodataDisplay: React.FC = () => {
           },
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get( 'https://sosafe.onrender.com/api/zones', {
+        axios.get('https://sosafe.onrender.com/api/zones', {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
-      setRecords( recordsRes.data.data );
-      setTotalPages( recordsRes.data.meta.last_page );
+      setRecords(recordsRes.data.data);
+      setTotalPages(recordsRes.data.meta.last_page);
 
-      setZones( zonesRes?.data );
+      setZones(zonesRes?.data);
 
-      const maps = buildLocationMaps( zonesRes?.data );
-      setAreaMap( maps.areaMap );
-      setDivisionMap( maps.divisionMap );
-      setZoneMap( maps.zoneMap );
+      const maps = buildLocationMaps(zonesRes?.data);
+      setAreaMap(maps.areaMap);
+      setDivisionMap(maps.divisionMap);
+      setZoneMap(maps.zoneMap);
 
     } catch {
-      setError( 'Failed to fetch records. Please try again.' );
+      setError('Failed to fetch records. Please try again.');
     } finally {
-      setLoading( false );
+      setLoading(false);
     }
   };
 
-  useEffect(() => { fetchRecords(); }, [ currentPage, search ]);
+  useEffect(() => { fetchRecords(); }, [currentPage, search]);
 
-  const fetchSingleRecord = async ( id: number ): Promise<void> => {
+  const fetchSingleRecord = async (id: number): Promise<void> => {
     try {
-      setLoading( true );
-      setIsEditing( false );
+      setLoading(true);
+      setIsEditing(false);
 
-      const response = await axios.get< SingleRecordResponse >(
-        `https://sosafe.onrender.com/api/biodata2/${ id }`,
+      const response = await axios.get<SingleRecordResponse>(
+        `https://sosafe.onrender.com/api/biodata2/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setSelectedRecord( formatRecord( response.data.data ));
+      setSelectedRecord(formatRecord(response.data.data));
     } catch {
-      setError( 'Failed to fetch record details. Please try again.' );
+      setError('Failed to fetch record details. Please try again.');
     } finally {
-      setLoading( false );
+      setLoading(false);
     }
   };
 
   const fetchAllRecords = async (): Promise<void> => {
     try {
-      setLoading( true );
-      setError( null );
+      setLoading(true);
+      setError(null);
 
-      const [ recordsRes, zonesRes ] = await Promise.all([
-        axios.get< AllRecordsResponse >( 'https://sosafe.onrender.com/api/old/records/all', {
+      const [recordsRes, zonesRes] = await Promise.all([
+        axios.get<AllRecordsResponse>('https://sosafe.onrender.com/api/old/records/all', {
           headers: { Authorization: `Bearer ${token}` },
         }),
-        axios.get( 'https://sosafe.onrender.com/api/zones', {
+        axios.get('https://sosafe.onrender.com/api/zones', {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
 
-      setZones( zonesRes?.data );
+      setZones(zonesRes?.data);
 
-      const { zoneMap, areaMap, divisionMap } = buildLocationMaps( zonesRes?.data );
+      const { zoneMap, areaMap, divisionMap } = buildLocationMaps(zonesRes?.data);
 
       const formatted = recordsRes.data.data
-      .slice() 
-      .sort( ( a: any, b: any ) => {
-        return a.id - b.id; 
-      })
-      .map( ( row: any ) => ({
-        ...row,
-        dob:        safeDateFormat( row.dob ),
-        enlisted:   safeDateFormat( row.enlisted ),
-        zone:       zoneMap[ row.zone ]     || row.zone || '',
-        area:       areaMap[ row.area ]     || row.area || '',
-        city:       divisionMap[ row.city ] || row.city || '',
-        created_at: safeDateFormat( row.created_at ),
-        updated_at: safeDateFormat( row.updated_at ),
-      }));
+        .slice()
+        .sort((a: any, b: any) => {
+          return a.id - b.id;
+        })
+        .map((row: any) => ({
+          ...row,
+          dob: safeDateFormat(row.dob),
+          enlisted: safeDateFormat(row.enlisted),
+          zone: zoneMap[row.zone] || row.zone || '',
+          area: areaMap[row.area] || row.area || '',
+          city: divisionMap[row.city] || row.city || '',
+          created_at: safeDateFormat(row.created_at),
+          updated_at: safeDateFormat(row.updated_at),
+        }));
 
-      const worksheet = XLSX.utils.json_to_sheet( formatted );
-      const workbook  = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet( workbook, worksheet, 'Biodata Records' );
-      XLSX.writeFile( workbook, 'biodata_records.xlsx' );
+      const worksheet = XLSX.utils.json_to_sheet(formatted);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Biodata Records');
+      XLSX.writeFile(workbook, 'biodata_records.xlsx');
     } catch {
-      setError( 'Failed to fetch all records. Please try again.' );
+      setError('Failed to fetch all records. Please try again.');
     } finally {
-      setLoading( false );
+      setLoading(false);
     }
   };
 
   const fieldLabels: Record<string, string> = {
-    sno: 'S/N', 
-    fno: 'Form No', 
-    sname: 'Surname', 
+    sno: 'S/N',
+    fno: 'Form No',
+    sname: 'Surname',
     fname: 'First Name',
-    oname: 'Other Name', 
-    address: 'Address', 
-    phone: 'Phone', 
+    oname: 'Other Name',
+    address: 'Address',
+    phone: 'Phone',
     nin: 'NIN',
-    dob: 'Date of Birth', 
-    sex: 'Sex', 
-    city: 'Division', 
+    dob: 'Date of Birth',
+    sex: 'Sex',
+    city: 'Division',
     zone: 'Zone',
-    area: 'Area', 
-    servno: 'Service No', 
+    area: 'Area',
+    servno: 'Service No',
     position: 'Position',
-    enlisted: 'Date Enlisted', 
-    rank: 'Rank', 
+    enlisted: 'Date Enlisted',
+    rank: 'Rank',
     nok: 'Next of Kin',
-    relation: 'Relationship', 
-    nokno: 'NOK Phone', 
+    relation: 'Relationship',
+    nokno: 'NOK Phone',
     captured: 'Photo',
     qualification: 'Qualification',
   };
 
-  const syncCascade = ( form: Partial< BiodataRecord >, allZones: any[]) => {
-    const zone = allZones.find( z => z.id === Number( form.zone ));
+  const syncCascade = (form: Partial<BiodataRecord>, allZones: any[]) => {
+    const zone = allZones.find(z => z.id === Number(form.zone));
 
     const areas = zone?.areas ?? [];
-    setFilteredAreas( areas );
+    setFilteredAreas(areas);
 
-    const area = areas.find(( a: any ) => a.id === Number( form.area ));
-    setFilteredDivisions( area?.divisions ?? [] );
+    const area = areas.find((a: any) => a.id === Number(form.area));
+    setFilteredDivisions(area?.divisions ?? []);
   };
 
   const openEdit = () => {
-    if ( !selectedRecord ) return;
+    if (!selectedRecord) return;
     const form = { ...selectedRecord };
 
-    if ( form.area && ( !form.zone || form.zone === '' || form.zone === 0 )) {
+    if (form.area && (!form.zone || form.zone === '' || form.zone === 0)) {
       const parentZone = zones.find(z =>
-        z.areas?.some( ( a: any ) => a.id === Number( form.area ))
+        z.areas?.some((a: any) => a.id === Number(form.area))
       );
-      if ( parentZone ) {
+      if (parentZone) {
         form.zone = parentZone.id;
       }
     }
 
-    if ( form.city && !form.area ) {
-      zones.forEach( z => {
-        z.areas?.forEach( ( a: any ) => {
-          if ( a.divisions?.some( ( d: any ) => d.id === Number( form.city ))) {
+    if (form.city && !form.area) {
+      zones.forEach(z => {
+        z.areas?.forEach((a: any) => {
+          if (a.divisions?.some((d: any) => d.id === Number(form.city))) {
             form.zone = z.id;
             form.area = a.id;
           }
@@ -273,25 +275,25 @@ const BiodataDisplay: React.FC = () => {
       });
     }
 
-    setEditForm( form );
-    syncCascade( form, zones );
-    setIsEditing( true );
+    setEditForm(form);
+    syncCascade(form, zones);
+    setIsEditing(true);
   };
 
-  const handleEditChange = ( key: string, value: string ) => {
-    setEditForm( prev => {
-      const updated = { ...prev, [ key ] : value };
+  const handleEditChange = (key: string, value: string) => {
+    setEditForm(prev => {
+      const updated = { ...prev, [key]: value };
       if (key === 'zone') { updated.area = ''; updated.city = ''; }
       if (key === 'area') { updated.city = ''; }
-      syncCascade( updated, zones );
+      syncCascade(updated, zones);
 
       return updated;
     });
   };
 
   const handleSave = async () => {
-    if ( !selectedRecord ) return;
-    setSaving( true );
+    if (!selectedRecord) return;
+    setSaving(true);
 
     try {
       await axios.put(
@@ -301,17 +303,17 @@ const BiodataDisplay: React.FC = () => {
       );
       await fetchRecords();
       // Refresh the detail view with updated data
-      await fetchSingleRecord( selectedRecord.id );
-      setIsEditing( false );
+      await fetchSingleRecord(selectedRecord.id);
+      setIsEditing(false);
     } catch {
-      setError( 'Failed to save record. Please try again.' );
+      setError('Failed to save record. Please try again.');
     } finally {
-      setSaving( false );
+      setSaving(false);
     }
   };
 
-  const renderFieldValue = ( key: string, record: BiodataRecord ) => {
-    const raw = record[ key ]?.toString() ?? '';
+  const renderFieldValue = (key: string, record: BiodataRecord) => {
+    const raw = record[key]?.toString() ?? '';
 
     if (raw === MASKED_DOB) {
       return (
@@ -323,11 +325,11 @@ const BiodataDisplay: React.FC = () => {
     }
 
     // Resolve IDs to human-readable names
-    if ( key === 'zone' )   return <span className="text-gray-900"> { zoneMap[ Number(raw) ]     || raw || '—'} </span>;
-    if ( key === 'area' )   return <span className="text-gray-900"> { areaMap[ Number(raw) ]     || raw || '—'} </span>;
-    if ( key === 'city' )   return <span className="text-gray-900"> { divisionMap[ Number(raw) ] || raw || '—'} </span>;
+    if (key === 'zone') return <span className="text-gray-900"> {zoneMap[Number(raw)] || raw || '—'} </span>;
+    if (key === 'area') return <span className="text-gray-900"> {areaMap[Number(raw)] || raw || '—'} </span>;
+    if (key === 'city') return <span className="text-gray-900"> {divisionMap[Number(raw)] || raw || '—'} </span>;
 
-    return <span className="text-gray-900"> { raw || '—' } </span>;
+    return <span className="text-gray-900"> {raw || '—'} </span>;
   };
 
   return (
@@ -338,7 +340,7 @@ const BiodataDisplay: React.FC = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold"> Biodata Records </h2>
           <button
-            onClick = { fetchAllRecords }
+            onClick={fetchAllRecords}
             className="flex items-center px-4 py-2 bg-[#006838] text-white rounded-lg hover:bg-green-600 transition-colors"
           >
             <Download className="h-4 w-4 mr-2" />
@@ -353,93 +355,93 @@ const BiodataDisplay: React.FC = () => {
             <input
               type="text"
               placeholder="Search by name, form number, service no..."
-              value = { search }
-              onChange = { e => { setSearch( e.target.value ); setCurrentPage(1); }}
+              value={search}
+              onChange={e => { setSearch(e.target.value); setCurrentPage(1); }}
               className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
             />
           </div>
         </div>
 
-        { loading ? (
+        {loading ? (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
           </div>
-        ) : 
-        error ? 
-        (
-          <div className="text-red-500 text-center p-4"> { error } </div>
-        ) : 
-        (
-          <>
-            <div className="overflow-x-auto h-[40vh] overflow-y-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="p-2 text-left font-semibold"> Form No </th>
-                    <th className="p-2 text-left font-semibold"> Service No </th>
-                    <th className="p-2 text-left font-semibold"> Name </th>
-                    <th className="p-2 text-left font-semibold"> Rank </th>
-                    <th className="p-2 text-left font-semibold"> Sex </th>
-                    <th className="p-2 text-left font-semibold"> Actions </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  { records.map( record => (
-                    <tr key = { record.id } className="border-b hover:bg-gray-50 text-[0.82rem]">
-                      <td className="p-2"> { record.fno } </td>
-                      <td className="p-2"> { record.servno } </td>
-                      <td className="p-2"> {`${ record.fname } ${ record.sname } ${ record.oname ?? ''}`.trim() } </td>
-                      <td className="p-2"> { record.rank } </td>
-                      <td className="p-2"> { record.sex } </td>
-                      <td className="p-2">
-                        <button
-                          onClick = { () => fetchSingleRecord( record.id ) }
-                          className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
-                        >
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+        ) :
+          error ?
+            (
+              <div className="text-red-500 text-center p-4"> {error} </div>
+            ) :
+            (
+              <>
+                <div className="overflow-x-auto h-[40vh] overflow-y-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="p-2 text-left font-semibold"> Form No </th>
+                        <th className="p-2 text-left font-semibold"> Service No </th>
+                        <th className="p-2 text-left font-semibold"> Name </th>
+                        <th className="p-2 text-left font-semibold"> Rank </th>
+                        <th className="p-2 text-left font-semibold"> Sex </th>
+                        <th className="p-2 text-left font-semibold"> Actions </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {records.map(record => (
+                        <tr key={record.id} className="border-b hover:bg-gray-50 text-[0.82rem]">
+                          <td className="p-2"> {record.fno} </td>
+                          <td className="p-2"> {record.servno} </td>
+                          <td className="p-2"> {`${record.fname} ${record.sname} ${record.oname ?? ''}`.trim()} </td>
+                          <td className="p-2"> {record.rank} </td>
+                          <td className="p-2"> {record.sex} </td>
+                          <td className="p-2">
+                            <button
+                              onClick={() => fetchSingleRecord(record.id)}
+                              className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+                            >
+                              View Details
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-            {/* Pagination */}
-            <div className="flex justify-between items-center mt-4">
-              <button
-                onClick = { () => setCurrentPage( p => p - 1 )}
-                disabled = { currentPage === 1 }
-                className="px-4 py-1 text-[0.8rem] border border-gray-300 rounded-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
-              >
-                <ChevronLeft className="h-4 w-4 mr-2" /> Previous
-              </button>
-              <span className="text-[0.7rem]"> Page { currentPage } of { totalPages } </span>
-              <button
-                onClick = { () => setCurrentPage( p => p + 1 ) }
-                disabled = { currentPage === totalPages }
-                className="px-4 py-1 text-[0.8rem] border border-gray-300 rounded-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
-              >
-                Next <ChevronRight className="h-4 w-4 ml-2" />
-              </button>
-            </div>
-          </>
-        )}
+                {/* Pagination */}
+                <div className="flex justify-between items-center mt-4">
+                  <button
+                    onClick={() => setCurrentPage(p => p - 1)}
+                    disabled={currentPage === 1}
+                    className="px-4 py-1 text-[0.8rem] border border-gray-300 rounded-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+                  </button>
+                  <span className="text-[0.7rem]"> Page {currentPage} of {totalPages} </span>
+                  <button
+                    onClick={() => setCurrentPage(p => p + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-1 text-[0.8rem] border border-gray-300 rounded-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                  >
+                    Next <ChevronRight className="h-4 w-4 ml-2" />
+                  </button>
+                </div>
+              </>
+            )}
       </div>
 
       {/* Detail view */}
-      { selectedRecord && (
+      {selectedRecord && (
         <div className="bg-white rounded-lg shadow-lg p-6">
 
           {/* Detail/Edit header */}
           <div className="flex justify-between items-center mb-4">
             <div>
               <h2 className="text-xl font-bold">
-                { isEditing ? 'Edit Record' : 'Record Details'}
+                {isEditing ? 'Edit Record' : 'Record Details'}
               </h2>
-              { 
-                  isEditing && 
-                  !isSuperAdmin && 
+              {
+                isEditing &&
+                !isSuperAdmin &&
                 (
                   <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
                     <Lock className="h-3 w-3" /> Some fields are restricted to superadmin
@@ -450,14 +452,14 @@ const BiodataDisplay: React.FC = () => {
             <div className="flex gap-2">
               {!isEditing && (
                 <button
-                  onClick = { openEdit }
+                  onClick={openEdit}
                   className="px-4 py-2 text-sm font-medium text-white bg-[#006838] hover:bg-[#004d28] rounded-lg transition-colors"
                 >
                   Edit Record
                 </button>
               )}
               <button
-                onClick = { () => { setSelectedRecord( null ); setIsEditing( false ); }}
+                onClick={() => { setSelectedRecord(null); setIsEditing(false); }}
                 className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
               >
                 Close
@@ -465,29 +467,29 @@ const BiodataDisplay: React.FC = () => {
             </div>
           </div>
 
-          { isEditing ? ( 
+          {isEditing ? (
             /* ── Edit mode ── */
             <div>
               <div className="grid grid-cols-2 gap-4 text-[0.8rem]">
 
                 {/* Restricted fields */}
                 {([
-                  { key: 'fno',      label: 'Form No'      },
-                  { key: 'sname',    label: 'Surname'       },
-                  { key: 'dob',      label: 'Date of Birth' },
-                  { key: 'nok',      label: 'Next of Kin'   },
-                  { key: 'relation', label: 'Relationship'  },
-                  { key: 'nokno',    label: 'NOK Phone'     },
+                  { key: 'fno', label: 'Form No' },
+                  { key: 'sname', label: 'Surname' },
+                  { key: 'dob', label: 'Date of Birth' },
+                  { key: 'nok', label: 'Next of Kin' },
+                  { key: 'relation', label: 'Relationship' },
+                  { key: 'nokno', label: 'NOK Phone' },
                 ] as const).map(({ key, label }) => (
-                  <div key = { key } className="space-y-1">
+                  <div key={key} className="space-y-1">
                     <label className="font-medium text-gray-500 flex items-center gap-1">
-                      { label }
-                      { !isSuperAdmin && <Lock className="h-3 w-3 text-gray-400" />}
+                      {label}
+                      {!isSuperAdmin && <Lock className="h-3 w-3 text-gray-400" />}
                     </label>
                     <input
-                      value = { editForm[ key ]?.toString() ?? ''}
-                      disabled = { !isSuperAdmin }
-                      onChange = { e => handleEditChange( key, e.target.value ) }
+                      value={editForm[key]?.toString() ?? ''}
+                      disabled={!isSuperAdmin}
+                      onChange={e => handleEditChange(key, e.target.value)}
                       className="w-full border border-gray-300 focus:border-[#006838] focus:ring-1 focus:ring-green-200 rounded-md px-3 py-1.5 text-sm outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
                     />
                   </div>
@@ -497,13 +499,13 @@ const BiodataDisplay: React.FC = () => {
                 <div className="space-y-1">
                   <label className="font-medium text-gray-500"> Zone </label>
                   <select
-                    value = { editForm.zone ?? '' }
-                    onChange = { e => handleEditChange( 'zone', e.target.value )}
+                    value={editForm.zone ?? ''}
+                    onChange={e => handleEditChange('zone', e.target.value)}
                     className="w-full border border-gray-300 focus:border-[#006838] rounded-md px-3 py-1.5 text-sm outline-none transition-all"
                   >
-                    <option value = ""> — Select Zone — </option>
-                    { zones.map( ( z: any  ) => (
-                      <option key = { z.id } value = { z.id }> { z.name } </option>
+                    <option value=""> — Select Zone — </option>
+                    {zones.map((z: any) => (
+                      <option key={z.id} value={z.id}> {z.name} </option>
                     ))}
                   </select>
                 </div>
@@ -512,14 +514,14 @@ const BiodataDisplay: React.FC = () => {
                 <div className="space-y-1">
                   <label className="font-medium text-gray-500"> Area </label>
                   <select
-                    value = { editForm.area ?? '' }
-                    onChange = { e => handleEditChange( 'area', e.target.value )}
-                    disabled = { !filteredAreas.length }
+                    value={editForm.area ?? ''}
+                    onChange={e => handleEditChange('area', e.target.value)}
+                    disabled={!filteredAreas.length}
                     className="w-full border border-gray-300 focus:border-[#006838] rounded-md px-3 py-1.5 text-sm outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
-                    <option value = "" > — Select Area — </option>
-                    { filteredAreas.map( ( a: any ) => (
-                      <option key = { a.id } value = { a.id }> { a.name } </option>
+                    <option value="" > — Select Area — </option>
+                    {filteredAreas.map((a: any) => (
+                      <option key={a.id} value={a.id}> {a.name} </option>
                     ))}
                   </select>
                 </div>
@@ -528,76 +530,164 @@ const BiodataDisplay: React.FC = () => {
                 <div className="space-y-1">
                   <label className="font-medium text-gray-500"> Division </label>
                   <select
-                    value = { editForm.city ?? '' }
-                    onChange = { e => handleEditChange( 'city', e.target.value )}
-                    disabled = { !filteredDivisions.length }
+                    value={editForm.city ?? ''}
+                    onChange={e => handleEditChange('city', e.target.value)}
+                    disabled={!filteredDivisions.length}
                     className="w-full border border-gray-300 focus:border-[#006838] rounded-md px-3 py-1.5 text-sm outline-none transition-all disabled:bg-gray-100 disabled:cursor-not-allowed"
                   >
-                    <option value = ""> — Select Division — </option>
-                    { filteredDivisions.map( ( d: any ) => (
-                      <option key = { d.id } value = { d.id}> { d.name } </option>
+                    <option value=""> — Select Division — </option>
+                    {filteredDivisions.map((d: any) => (
+                      <option key={d.id} value={d.id}> {d.name} </option>
                     ))}
                   </select>
                 </div>
 
                 {/* Freely editable fields */}
                 {([
-                  { key: 'fname',         label: 'First Name'    },
-                  { key: 'oname',         label: 'Other Name'    },
-                  { key: 'address',       label: 'Address'       },
-                  { key: 'phone',         label: 'Phone'         },
-                  { key: 'nin',           label: 'NIN'           },
-                  { key: 'sex',           label: 'Sex'           },
-                  { key: 'servno',        label: 'Service No'    },
-                  { key: 'position',      label: 'Position'      },
-                  { key: 'enlisted',      label: 'Date Enlisted' },
-                  { key: 'rank',          label: 'Rank'          },
+                  { key: 'fname', label: 'First Name' },
+                  { key: 'oname', label: 'Other Name' },
+                  { key: 'address', label: 'Address' },
+                  { key: 'phone', label: 'Phone' },
+                  { key: 'nin', label: 'NIN' },
+                  { key: 'sex', label: 'Sex' },
+                  { key: 'servno', label: 'Service No' },
+                  { key: 'position', label: 'Position' },
+                  { key: 'enlisted', label: 'Date Enlisted' },
+                  { key: 'rank', label: 'Rank' },
                   { key: 'qualification', label: 'Qualification' },
-                ] as const).map(( { key, label } ) => (
-                  <div key = { key } className="space-y-1">
-                    <label className="font-medium text-gray-500"> { label } </label>
+                ] as const).map(({ key, label }) => (
+                  <div key={key} className="space-y-1">
+                    <label className="font-medium text-gray-500"> {label} </label>
                     <input
-                      value = { editForm[ key ]?.toString() ?? '' }
-                      onChange = { e => handleEditChange( key, e.target.value )}
+                      value={editForm[key]?.toString() ?? ''}
+                      onChange={e => handleEditChange(key, e.target.value)}
                       className="w-full border border-gray-300 focus:border-[#006838] focus:ring-1 focus:ring-green-200 rounded-md px-3 py-1.5 text-sm outline-none transition-all"
                     />
                   </div>
                 ))}
               </div>
+              {/* ── Biometrics inputs ── */}
+              <div className="mt-6 pt-5 border-t border-gray-100">
+                <div className="grid grid-cols-2 gap-4">
+
+                  {/* Photo upload */}
+                  <div className="space-y-2">
+                    <label className="font-medium text-gray-500 text-[0.8rem]">Photo</label>
+                    {(editForm as any).captured && (editForm as any).captured !== '' ? (
+                      <div className="relative w-32 h-32 group">
+                        <img
+                          src={(editForm as any).captured}
+                          alt="User photo"
+                          className="w-32 h-32 object-cover rounded-lg border border-green-200"
+                        />
+                        <span
+                          onClick={ () => navigate('/admin/biometrics') }
+                          className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 rounded-lg cursor-pointer transition-opacity"
+                        >
+                          <span className="text-white text-[11px] font-semibold">Change</span>
+                        </span>
+                      </div>
+                    ) : (
+                      <div
+                        onClick={ () => navigate('/admin/biometrics') }
+                        className="flex flex-col items-center justify-center w-32 h-32 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400 gap-2 cursor-pointer hover:border-green-300 hover:bg-green-50 transition-colors"
+                      >
+                        <UserIcon className="w-10 h-10 opacity-30" />
+                        <span className="text-[11px] text-center leading-tight">Click to upload photo</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Fingerprint scan */}
+                  <div className="space-y-2">
+                    <label className="font-medium text-gray-500 text-[0.8rem]">Fingerprint</label>
+                    {(selectedRecord as any).fingerprint_template ? (
+                      <div className="flex flex-col items-center justify-center w-32 h-32 rounded-lg border border-green-200 bg-green-50 gap-2">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 text-green-600">
+                          <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" /><path d="M14 13.12c0 2.38 0 6.38-1 8.88" /><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" /><path d="M2 12a10 10 0 0 1 18-6" /><path d="M2 17c1 .5 2.5 1 4 1.5" /><path d="M20 13c.2 3-.3 6-2 8" /><path d="M7 13.87C6.37 17.64 5 19.96 5 22" /><path d="M7 7a5 5 0 0 1 9.33-2.5" /><path d="M12 6a6 6 0 0 1 6 6c0 .7-.04 1.37-.1 2" /><path d="M9 7.5A5.83 5.83 0 0 0 6.12 12" />
+                        </svg>
+                        <span className="text-[11px] font-semibold text-green-700">On record</span>
+                        <button
+                          type="button"
+                          onClick={ () => navigate('/admin/biometrics') }
+                          className="text-[10px] font-semibold text-[#006838] border border-green-300 hover:bg-green-100 px-2.5 py-0.5 rounded-md transition-colors"
+                        >
+                          Re-scan
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center w-32 h-32 rounded-lg border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400 gap-2">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 opacity-30">
+                          <path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" /><path d="M14 13.12c0 2.38 0 6.38-1 8.88" /><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" /><path d="M2 12a10 10 0 0 1 18-6" /><path d="M2 17c1 .5 2.5 1 4 1.5" /><path d="M20 13c.2 3-.3 6-2 8" /><path d="M7 13.87C6.37 17.64 5 19.96 5 22" /><path d="M7 7a5 5 0 0 1 9.33-2.5" /><path d="M12 6a6 6 0 0 1 6 6c0 .7-.04 1.37-.1 2" /><path d="M9 7.5A5.83 5.83 0 0 0 6.12 12" />
+                        </svg>
+                        <span className="text-[11px] text-center leading-tight">No fingerprint found</span>
+                        <button
+                          type="button"
+                          onClick={ () => navigate('/admin/biometrics') }
+                          className="text-[10px] font-semibold text-[#006838] border border-green-300 hover:bg-green-50 px-2.5 py-0.5 rounded-md transition-colors"
+                        >
+                          Scan
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+              </div>
 
               {/* Save / Cancel */}
               <div className="flex justify-end gap-3 mt-6">
                 <button
-                  onClick = { () => setIsEditing( false )}
+                  onClick={() => setIsEditing(false)}
                   className="px-5 py-2 text-sm font-medium text-gray-700 border border-gray-300 hover:bg-gray-50 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick = { handleSave }
-                  disabled = { saving }
+                  onClick={handleSave}
+                  disabled={saving}
                   className="flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-[#006838] hover:bg-[#004d28] disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors"
                 >
-                  { saving && <Loader2 className="h-4 w-4 animate-spin" /> }
-                  { saving ? 'Saving…' : 'Save Changes' }
+                  {saving && <Loader2 className="h-4 w-4 animate-spin" />}
+                  {saving ? 'Saving…' : 'Save Changes'}
                 </button>
               </div>
             </div>
           ) : (
             /* ── Read-only mode ── */
-            <div className="grid grid-cols-2 gap-4 text-[0.8rem]">
-              { Object.entries( fieldLabels ).map(( [ key, label ] ) => (
-                <div key = { key } className="space-y-1">
-                  <div className="font-medium text-gray-500"> { label } </div>
-                  <div> { renderFieldValue( key, selectedRecord ) } </div>
-                </div>
-              ))}
-            </div>
+            <>
+              {/* ── Photo section ── */}
+              <div className="mt-6 pt-5 mb-6 border-t border-gray-100">
+                {selectedRecord.captured && selectedRecord.captured !== '' ? (
+                  // <img
+                  //   src={selectedRecord.captured}
+                  //   alt="User photo"
+                  //   className="w-32 h-32 object-cover rounded-lg border border-green-200"
+                  // />
+                  <div className="flex flex-col items-center justify-center w-32 h-32 rounded-lg border border-gray-200 bg-gray-50 text-gray-300">
+                    <UserIcon className="w-14 h-14" />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center w-32 h-32 rounded-lg border border-gray-200 bg-gray-50 text-gray-300">
+                    <UserIcon className="w-14 h-14" />
+                  </div>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-4 text-[0.8rem]">
+                {Object.entries(fieldLabels).map(([key, label]) => (
+                  <div key={key} className="space-y-1">
+                    <div className="font-medium text-gray-500"> {label} </div>
+                    <div> {renderFieldValue(key, selectedRecord)} </div>
+                  </div>
+                ))}
+              </div>
+
+            </>
           )}
         </div>
       )}
     </div>
   );
-};
+}
 
 export default BiodataDisplay;
