@@ -8,6 +8,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use App\Models\NewBiodata;
 use Carbon\Carbon;
 
@@ -69,7 +70,12 @@ class ProcessExcelChunk implements ShouldQueue
                 ];
             }
 
-            NewBiodata::insert($dataToInsert);
+            // NewBiodata::insert($dataToInsert);
+            DB::transaction(function () use ($dataToInsert) {
+                foreach (array_chunk($dataToInsert, 500) as $batch) {
+                    NewBiodata::insert($batch);
+                }
+            });
 
             $this->updateProgressIncremental(count($dataToInsert));
             $this->markChunkDone(count($dataToInsert));
