@@ -9,6 +9,36 @@ import { Search, ChevronLeft, ChevronRight, Loader2, Download, Lock, UserIcon } 
 // The sentinel value the backend sends when DOB is restricted
 const MASKED_DOB = '****-**-**';
 
+// interface BiodataRecord {
+//   id: number;
+//   sno: string;
+//   fno: string;
+//   sname: string;
+//   fname: string;
+//   oname: string;
+//   address: string;
+//   phone: string;
+//   nin: string;
+//   dob: string;
+//   sex: string;
+//   // city: number | string;
+//   // zone: number | string;
+//   // area: number | string;
+//   city: number | string | null;
+//   zone: number | string | null;
+//   area: number | string | null;
+//   [key: string]: any;
+//   servno: string;
+//   position: string;
+//   enlisted: string;
+//   rank: string;
+//   nok: string;
+//   relation: string;
+//   nokno: string;
+//   captured: string;
+//   qualification: string;
+//   [key: string]: string | number;
+// }
 interface BiodataRecord {
   id: number;
   sno: string;
@@ -21,9 +51,9 @@ interface BiodataRecord {
   nin: string;
   dob: string;
   sex: string;
-  city: number | string;
-  zone: number | string;
-  area: number | string;
+  city: number | string | null;
+  zone: number | string | null;
+  area: number | string | null;
   servno: string;
   position: string;
   enlisted: string;
@@ -33,7 +63,7 @@ interface BiodataRecord {
   nokno: string;
   captured: string;
   qualification: string;
-  [key: string]: string | number;
+  [key: string]: any;   // keep this one only
 }
 
 interface ApiResponse {
@@ -91,6 +121,19 @@ const BiodataDisplay: React.FC = () => {
   const [areaMap, setAreaMap] = useState<Record<number, string>>({});
   const [divisionMap, setDivisionMap] = useState<Record<number, string>>({});
   const [zoneMap, setZoneMap] = useState<Record<number, string>>({});
+
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState('');
+  const [newStatus, setNewStatus] = useState('');
+  const api = 'https://sosafe.onrender.com/api/biodata2';
+  const auth = { headers: { Authorization: `Bearer ${token}` } };
+
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [bulkArea, setBulkArea] = useState('');
+  const [bulkStatus, setBulkStatus] = useState('');
+  const [bulkComment, setBulkComment] = useState('');
+  const [bulkBusy, setBulkBusy] = useState(false);
+  
 
   const formatRecord = (record: any) => ({
     ...record,
@@ -164,6 +207,7 @@ const BiodataDisplay: React.FC = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setSelectedRecord(formatRecord(response.data.data));
+      await loadComments(id);
     } catch {
       setError('Failed to fetch record details. Please try again.');
     } finally {
@@ -332,6 +376,86 @@ const BiodataDisplay: React.FC = () => {
     return <span className="text-gray-900"> {raw || '—'} </span>;
   };
 
+  const handleAreaChange = async (record: BiodataRecord, areaId: string) => {
+    const area = zones.flatMap(z => z.areas).find((a: any) => a.id === Number(areaId));
+    const patch = {
+      area: area ? area.id : null,
+      zone: area ? area.zone_id : null,
+      city: null, // reset division when area changes
+    };
+
+    // update the row instantly
+    setRecords(rs => rs.map(r => (r.id === record.id ? { ...r, ...patch } : r)));
+
+    try {
+      await axios.put(`https://sosafe.onrender.com/api/biodata2/${record.id}`, patch, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {
+      setError('Failed to save area. Please try again.');
+      fetchRecords(); // roll back to server state
+    }
+  };
+
+  const loadComments = async (id: number) =>
+    setComments((await axios.get(`${api}/${id}/comments`, auth)).data);
+
+  const addComment = async () => {
+    if (!selectedRecord || !newComment.trim()) return;
+    try {
+      await axios.post(`${api}/${selectedRecord.id}/comments`,
+        { body: newComment, status: newStatus || null }, auth);
+      setNewComment(''); setNewStatus('');
+      await loadComments(selectedRecord.id);
+      fetchRecords(); // refresh the Status badge in the list
+    } catch {
+      setError('Failed to add comment.');
+    }
+  };
+
+  const toggleOne = (id: number) =>
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+
+  const pageIds = records.map(r => r.id);
+  const allOnPageSelected = pageIds.length > 0 && pageIds.every(id => selectedIds.has(id));
+
+  const togglePage = () =>
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      allOnPageSelected ? pageIds.forEach(id => next.delete(id)) : pageIds.forEach(id => next.add(id));
+      return next;
+    });
+
+  const bulkAssignArea = async () => {
+    if (!bulkArea || !selectedIds.size) return;
+    setBulkBusy(true);
+    try {
+      await axios.post('https://sosafe.onrender.com/api/bulk-biodata/area',
+        { ids: [...selectedIds], area: Number(bulkArea) },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setSelectedIds(new Set()); setBulkArea('');
+      await fetchRecords();
+    } catch { setError('Bulk area update failed.'); }
+    finally { setBulkBusy(false); }
+  };
+
+  const bulkAddComment = async () => {
+    if (!bulkComment.trim() || !selectedIds.size) return;
+    setBulkBusy(true);
+    try {
+      await axios.post('https://sosafe.onrender.com/api/bulk-biodata/comment',
+        { ids: [...selectedIds], body: bulkComment, status: bulkStatus || null },
+        { headers: { Authorization: `Bearer ${token}` } });
+      setSelectedIds(new Set()); setBulkComment(''); setBulkStatus('');
+      await fetchRecords();
+    } catch { setError('Bulk comment failed.'); }
+    finally { setBulkBusy(false); }
+  };
+
   return (
     <div className="w-full max-w-7xl mx-auto p-4 space-y-4">
       <div className="bg-white rounded-lg shadow-lg p-6">
@@ -373,7 +497,41 @@ const BiodataDisplay: React.FC = () => {
             ) :
             (
               <>
-                <div className="overflow-x-auto h-[40vh] overflow-y-auto">
+                {selectedIds.size > 0 && (
+                  <div className="mb-4 p-3 rounded-lg border border-green-200 bg-green-50 flex flex-wrap items-center gap-3 text-sm">
+                    <span className="font-semibold">{selectedIds.size} selected</span>
+                    <button onClick={() => setSelectedIds(new Set())} className="underline text-gray-600">Clear</button>
+
+                    <div className="flex items-center gap-2">
+                      <select value={bulkArea} onChange={e => setBulkArea(e.target.value)}
+                              className="border rounded-md px-2 py-1">
+                        <option value="">Assign to area…</option>
+                        {zones.map((z: any) => (
+                          <optgroup key={z.id} label={z.name}>
+                            {z.areas.map((a: any) => <option key={a.id} value={a.id}>{a.name}</option>)}
+                          </optgroup>
+                        ))}
+                      </select>
+                      <button onClick={bulkAssignArea} disabled={!bulkArea || bulkBusy}
+                              className="px-3 py-1 bg-[#006838] text-white rounded-md disabled:opacity-50">Assign</button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <select value={bulkStatus} onChange={e => setBulkStatus(e.target.value)}
+                              className="border rounded-md px-2 py-1">
+                        <option value="">No status change</option>
+                        <option value="active">Active</option>
+                        <option value="retired">Retired</option>
+                        <option value="deceased">Deceased</option>
+                      </select>
+                      <input value={bulkComment} onChange={e => setBulkComment(e.target.value)}
+                            placeholder="Comment for all selected…" className="border rounded-md px-3 py-1 w-64" />
+                      <button onClick={bulkAddComment} disabled={!bulkComment.trim() || bulkBusy}
+                              className="px-3 py-1 bg-[#006838] text-white rounded-md disabled:opacity-50">Add comment</button>
+                    </div>
+                  </div>
+                )}
+                {/* <div className="overflow-x-auto h-[40vh] overflow-y-auto">
                   <table className="w-full border-collapse">
                     <thead>
                       <tr className="bg-gray-50">
@@ -382,6 +540,9 @@ const BiodataDisplay: React.FC = () => {
                         <th className="p-2 text-left font-semibold"> Name </th>
                         <th className="p-2 text-left font-semibold"> Rank </th>
                         <th className="p-2 text-left font-semibold"> Sex </th>
+                        <th className="p-2 text-left font-semibold">Zone</th>
+                        <th className="p-2 text-left font-semibold">Area</th>
+                        <th className="p-2 text-left font-semibold">Status</th>
                         <th className="p-2 text-left font-semibold"> Actions </th>
                       </tr>
                     </thead>
@@ -393,6 +554,30 @@ const BiodataDisplay: React.FC = () => {
                           <td className="p-2"> {`${record.fname} ${record.sname} ${record.oname ?? ''}`.trim()} </td>
                           <td className="p-2"> {record.rank} </td>
                           <td className="p-2"> {record.sex} </td>
+                          <td className="p-2">{zoneMap[Number(record.zone)] ?? '—'}</td>
+                          <td className="p-2">
+                            <select
+                              value={record.area ?? ''}
+                              onChange={e => handleAreaChange(record, e.target.value)}
+                              className="border border-gray-300 rounded-md px-2 py-1 text-xs"
+                            >
+                              <option value="">— Area —</option>
+                              {zones.map((z: any) => (
+                                <optgroup key={z.id} label={z.name}>
+                                  {z.areas.map((a: any) => (
+                                    <option key={a.id} value={a.id}>{a.name}</option>
+                                  ))}
+                                </optgroup>
+                              ))}
+                            </select>
+                          </td>
+                          <td className="p-2">
+                            {record.latest_status && record.latest_status !== 'active' && (
+                              <span className="px-2 py-0.5 rounded-full text-[0.7rem] bg-red-100 text-red-700 capitalize">
+                                {record.latest_status}
+                              </span>
+                            )}
+                          </td>
                           <td className="p-2">
                             <button
                               onClick={() => fetchSingleRecord(record.id)}
@@ -405,10 +590,136 @@ const BiodataDisplay: React.FC = () => {
                       ))}
                     </tbody>
                   </table>
+                </div> */}
+                <div className="border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="overflow-auto max-h-[calc(100vh-22rem)] min-h-[320px]">
+                    <table className="w-full text-sm border-separate border-spacing-0">
+                      <thead className="sticky top-0 z-10">
+                        <tr className="bg-gray-50 text-[0.7rem] uppercase tracking-wide text-gray-500">
+                          <th className="w-10 px-3 py-3 border-b border-gray-200">
+                            <input
+                              type="checkbox"
+                              checked={allOnPageSelected}
+                              onChange={togglePage}
+                              className="h-4 w-4 accent-[#006838] cursor-pointer"
+                            />
+                          </th>
+                          <th className="px-3 py-3 text-left font-semibold border-b border-gray-200 whitespace-nowrap">Form No</th>
+                          <th className="px-3 py-3 text-left font-semibold border-b border-gray-200 whitespace-nowrap">Service No</th>
+                          <th className="px-3 py-3 text-left font-semibold border-b border-gray-200">Name</th>
+                          <th className="px-3 py-3 text-left font-semibold border-b border-gray-200">Rank</th>
+                          <th className="px-3 py-3 text-left font-semibold border-b border-gray-200">Sex</th>
+                          <th className="px-3 py-3 text-left font-semibold border-b border-gray-200">Zone</th>
+                          <th className="px-3 py-3 text-left font-semibold border-b border-gray-200">Area</th>
+                          <th className="px-3 py-3 text-left font-semibold border-b border-gray-200">Status</th>
+                          <th className="px-3 py-3 text-right font-semibold border-b border-gray-200">Actions</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {records.map(record => {
+                          const selected = selectedIds.has(record.id);
+                          const name = `${record.fname ?? ''} ${record.sname ?? ''} ${record.oname ?? ''}`
+                            .replace(/\s+/g, ' ')
+                            .trim();
+
+                          return (
+                            <tr
+                              key={record.id}
+                              className={`transition-colors ${selected ? 'bg-green-50' : 'hover:bg-gray-50'}`}
+                            >
+                              <td className="px-3 py-2.5 border-b border-gray-100">
+                                <input
+                                  type="checkbox"
+                                  checked={selected}
+                                  onChange={() => toggleOne(record.id)}
+                                  className="h-4 w-4 accent-[#006838] cursor-pointer"
+                                />
+                              </td>
+
+                              <td className="px-3 py-2.5 border-b border-gray-100 font-mono text-xs text-gray-700 whitespace-nowrap">
+                                {record.fno || '—'}
+                              </td>
+
+                              <td className="px-3 py-2.5 border-b border-gray-100 font-mono text-xs text-gray-500 whitespace-nowrap">
+                                {record.servno || '—'}
+                              </td>
+
+                              <td className="px-3 py-2.5 border-b border-gray-100 font-medium text-gray-900 min-w-[220px]">
+                                {name || '—'}
+                              </td>
+
+                              <td className="px-3 py-2.5 border-b border-gray-100 whitespace-nowrap">
+                                {record.rank ? (
+                                  <span className="px-2 py-0.5 rounded-md bg-gray-100 text-gray-700 text-xs font-medium">
+                                    {record.rank}
+                                  </span>
+                                ) : '—'}
+                              </td>
+
+                              <td className="px-3 py-2.5 border-b border-gray-100 text-xs text-gray-600 whitespace-nowrap">
+                                {record.sex ? record.sex.charAt(0) + record.sex.slice(1).toLowerCase() : '—'}
+                              </td>
+
+                              <td className="px-3 py-2.5 border-b border-gray-100 whitespace-nowrap">
+                                {zoneMap[Number(record.zone)] ? (
+                                  <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-800 text-xs font-medium">
+                                    {zoneMap[Number(record.zone)]}
+                                  </span>
+                                ) : (
+                                  <span className="text-gray-300">Unassigned</span>
+                                )}
+                              </td>
+
+                              <td className="px-3 py-2.5 border-b border-gray-100">
+                                <select
+                                  value={record.area ?? ''}
+                                  onChange={e => handleAreaChange(record, e.target.value)}
+                                  className={`w-44 border rounded-lg px-2 py-1.5 text-xs outline-none bg-white
+                                    focus:border-[#006838] focus:ring-2 focus:ring-green-100
+                                    ${record.area ? 'border-gray-300 text-gray-900' : 'border-dashed border-gray-300 text-gray-400'}`}
+                                >
+                                  <option value="">Select area…</option>
+                                  {zones.map((z: any) => (
+                                    <optgroup key={z.id} label={z.name}>
+                                      {z.areas.map((a: any) => (
+                                        <option key={a.id} value={a.id}>{a.name}</option>
+                                      ))}
+                                    </optgroup>
+                                  ))}
+                                </select>
+                              </td>
+
+                              <td className="px-3 py-2.5 border-b border-gray-100 whitespace-nowrap">
+                                {record.latest_status === 'deceased' && (
+                                  <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">Deceased</span>
+                                )}
+                                {record.latest_status === 'retired' && (
+                                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">Retired</span>
+                                )}
+                                {(!record.latest_status || record.latest_status === 'active') && (
+                                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">Active</span>
+                                )}
+                              </td>
+
+                              <td className="px-3 py-2.5 border-b border-gray-100 text-right">
+                                <button
+                                  onClick={() => fetchSingleRecord(record.id)}
+                                  className="px-3 py-1.5 text-xs font-medium whitespace-nowrap border border-gray-300 rounded-lg hover:bg-[#006838] hover:text-white hover:border-[#006838] transition-colors"
+                                >
+                                  View details
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
 
                 {/* Pagination */}
-                <div className="flex justify-between items-center mt-4">
+                {/* <div className="flex justify-between items-center mt-4">
                   <button
                     onClick={() => setCurrentPage(p => p - 1)}
                     disabled={currentPage === 1}
@@ -423,6 +734,29 @@ const BiodataDisplay: React.FC = () => {
                     className="px-4 py-1 text-[0.8rem] border border-gray-300 rounded-md flex items-center disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
                   >
                     Next <ChevronRight className="h-4 w-4 ml-2" />
+                  </button>
+                </div> */}
+                <div className="flex items-center justify-between mt-4">
+                  <button
+                    onClick={() => setCurrentPage(p => p - 1)}
+                    disabled={currentPage === 1}
+                    className="inline-flex items-center gap-1 px-4 py-2 text-xs font-medium border border-gray-300 rounded-lg
+                              hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" /> Previous
+                  </button>
+
+                  <span className="text-xs text-gray-500">
+                    Page <b className="text-gray-900">{currentPage}</b> of {totalPages}
+                  </span>
+
+                  <button
+                    onClick={() => setCurrentPage(p => p + 1)}
+                    disabled={currentPage === totalPages}
+                    className="inline-flex items-center gap-1 px-4 py-2 text-xs font-medium border border-gray-300 rounded-lg
+                              hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next <ChevronRight className="h-4 w-4" />
                   </button>
                 </div>
               </>
@@ -459,7 +793,7 @@ const BiodataDisplay: React.FC = () => {
                 </button>
               )}
               <button
-                onClick={() => { setSelectedRecord(null); setIsEditing(false); }}
+                onClick={() => { setSelectedRecord(null); setIsEditing(false); setComments([]); }}
                 className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
               >
                 Close
@@ -684,6 +1018,54 @@ const BiodataDisplay: React.FC = () => {
 
             </>
           )}
+
+           <div className="mt-6 pt-5 border-t border-gray-100">
+            <h3 className="font-semibold mb-3">Comments</h3>
+
+            <div className="flex flex-wrap gap-2 mb-4">
+              <select
+                value={newStatus}
+                onChange={e => setNewStatus(e.target.value)}
+                className="border border-gray-300 rounded-md px-2 py-1.5 text-sm"
+              >
+                <option value="">No status change</option>
+                <option value="active">Active</option>
+                <option value="retired">Retired</option>
+                <option value="deceased">Deceased</option>
+              </select>
+
+              <input
+                value={newComment}
+                onChange={e => setNewComment(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addComment()}
+                placeholder="Add a comment…"
+                className="flex-1 min-w-[200px] border border-gray-300 rounded-md px-3 py-1.5 text-sm outline-none focus:border-[#006838]"
+              />
+
+              <button
+                onClick={addComment}
+                disabled={!newComment.trim()}
+                className="px-4 py-1.5 bg-[#006838] text-white rounded-md text-sm disabled:opacity-50"
+              >
+                Add
+              </button>
+            </div>
+
+            {comments.length === 0 ? (
+              <p className="text-xs text-gray-400">No comments yet.</p>
+            ) : (
+              comments.map(c => (
+                <div key={c.id} className="text-xs border-b border-gray-100 py-2">
+                  <span className="font-medium">{c.author ?? 'Admin'}</span>
+                  {c.status && (
+                    <span className="ml-2 px-2 py-0.5 rounded-full bg-gray-100 capitalize">{c.status}</span>
+                  )}
+                  <span className="ml-2 text-gray-400">{new Date(c.created_at).toLocaleString()}</span>
+                  <p className="mt-1 text-sm text-gray-800">{c.body}</p>
+                </div>
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>

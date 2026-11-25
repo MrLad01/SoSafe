@@ -68,6 +68,12 @@ Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     Route::delete('/biodata2/{id}',    [Biodata2Controller::class, 'destroy']);
     Route::get('/biodata2/import-status', [Biodata2Controller::class, 'importStatus']);
 
+    Route::get('/biodata2/{id}/comments',  [Biodata2Controller::class, 'comments']);
+    Route::post('/biodata2/{id}/comments', [Biodata2Controller::class, 'addComment']);
+
+    Route::post('/bulk-biodata/area',    [Biodata2Controller::class, 'bulkAssignArea']);
+    Route::post('/bulk-biodata/comment', [Biodata2Controller::class, 'bulkComment']);
+
     // ── Excel import (corrected) ──────────────────────────────────────────────
     Route::post('/import',        [ExcelController::class, 'import']);
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\NewBiodata;
+use App\Models\MemberComment;  
+use App\Models\Area; 
 use Illuminate\Http\Request;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -40,21 +42,69 @@ class Biodata2Controller extends Controller
     /**
      * Get all records with pagination.
      */
+    // public function index(Request $request)
+    // {
+    //     try {
+    //         $biodata = NewBiodata::query()
+    //             ->when($request->search, function ($query, $search) {
+    //                 $query->where(function ($q) use ($search) {
+    //                     $q->where('sname', 'like', "%{$search}%")
+    //                       ->orWhere('fname', 'like', "%{$search}%")
+    //                       ->orWhere('fno',   'like', "%{$search}%")
+    //                       ->orWhere('sno',   'like', "%{$search}%");
+    //                 });
+    //             })
+    //             ->when($request->sort_by, function ($query, $sortBy) use ($request) {
+    //                 $query->orderBy($sortBy, $request->sort_direction ?? 'asc');
+    //             })
+    //             ->paginate(100);
+
+    //         return response()->json([
+    //             'data' => $this->maskCollection($biodata->items()),
+    //             'meta' => [
+    //                 'current_page' => $biodata->currentPage(),
+    //                 'last_page'    => $biodata->lastPage(),
+    //                 'per_page'     => $biodata->perPage(),
+    //                 'total'        => $biodata->total(),
+    //             ],
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'error'   => 'An error occurred while fetching records.',
+    //             'message' => $e->getMessage(),
+    //         ], 500);
+    //     }
+    // }
     public function index(Request $request)
     {
         try {
+            $sortable = ['id', 'fno', 'servno', 'sname', 'fname', 'rank', 'sex', 'zone', 'area'];
+
             $biodata = NewBiodata::query()
+                ->select('new_biodatas.*')
+                ->addSelect([
+                    'latest_status' => MemberComment::select('status')
+                        ->whereColumn('member_comments.fno', 'new_biodatas.fno')
+                        ->whereNotNull('status')
+                        ->orderByDesc('id')
+                        ->limit(1),
+                ])
                 ->when($request->search, function ($query, $search) {
                     $query->where(function ($q) use ($search) {
                         $q->where('sname', 'like', "%{$search}%")
-                          ->orWhere('fname', 'like', "%{$search}%")
-                          ->orWhere('fno',   'like', "%{$search}%")
-                          ->orWhere('sno',   'like', "%{$search}%");
+                        ->orWhere('fname', 'like', "%{$search}%")
+                        ->orWhere('fno',   'like', "%{$search}%")
+                        ->orWhere('sno',   'like', "%{$search}%");
                     });
                 })
-                ->when($request->sort_by, function ($query, $sortBy) use ($request) {
-                    $query->orderBy($sortBy, $request->sort_direction ?? 'asc');
-                })
+                ->when(
+                    in_array($request->sort_by, $sortable, true),
+                    fn ($query) => $query->orderBy(
+                        $request->sort_by,
+                        $request->sort_direction === 'desc' ? 'desc' : 'asc'
+                    )
+                )
+                ->orderBy('id')          // stable order so pages don't repeat or skip rows
                 ->paginate(100);
 
             return response()->json([
@@ -215,5 +265,78 @@ class Biodata2Controller extends Controller
             'total_records'       => $totalRecords,
             'last_record_created' => $lastRecord?->created_at,
         ]);
+    }
+
+    public function comments($id)
+    {
+        $m = NewBiodata::findOrFail($id);
+        return response()->json(MemberComment::where('fno', $m->fno)->latest()->get());
+    }
+
+    public function addComment(Request $request, $id)
+    {
+        $request->validate([
+            'body'   => 'required|string|max:2000',
+            'status' => 'nullable|in:active,retired,deceased',
+        ]);
+        $m = NewBiodata::findOrFail($id);
+
+        $c = MemberComment::create([
+            'fno'    => $m->fno,
+            'status' => $request->status,
+            'body'   => $request->body,
+            'author' => auth()->guard('admin')->user()?->name,
+        ]);
+        return response()->json($c, 201);
+    }
+
+    public function bulkAssignArea(Request $request)
+    {
+        $data = $request->validate([
+            'ids'   => 'required|array|min:1|max:5000',
+            'ids.*' => 'integer',
+            'area'  => 'required|integer|exists:areas,id',
+        ]);
+
+        $area = Area::findOrFail($data['area']);
+
+        $updated = NewBiodata::whereIn('id', $data['ids'])->update([
+            'area' => $area->id,
+            'zone' => $area->zone_id,   // zone follows the area
+            'city' => null,
+        ]);
+
+        return response()->json(['updated' => $updated]);
+    }
+
+    public function bulkComment(Request $request)
+    {
+        $data = $request->validate([
+            'ids'    => 'required|array|min:1|max:5000',
+            'ids.*'  => 'integer',
+            'body'   => 'required|string|max:2000',
+            'status' => 'nullable|in:active,retired,deceased',
+        ]);
+
+        $author = auth()->guard('admin')->user()?->name;
+        $now    = now();
+
+        $rows = NewBiodata::whereIn('id', $data['ids'])
+            ->whereNotNull('fno')
+            ->pluck('fno')
+            ->map(fn ($fno) => [
+                'fno'        => $fno,
+                'status'     => $data['status'] ?? null,
+                'body'       => $data['body'],
+                'author'     => $author,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ])->all();
+
+        foreach (array_chunk($rows, 500) as $batch) {
+            MemberComment::insert($batch);
+        }
+
+        return response()->json(['added' => count($rows)]);
     }
 }
