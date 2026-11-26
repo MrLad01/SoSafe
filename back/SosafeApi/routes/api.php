@@ -74,6 +74,8 @@ Route::middleware([JwtMiddleware::class,'role:admin'])->group(function () {
     Route::post('/bulk-biodata/area',    [Biodata2Controller::class, 'bulkAssignArea']);
     Route::post('/bulk-biodata/comment', [Biodata2Controller::class, 'bulkComment']);
 
+    Route::get('/biodata2-export', [Biodata2Controller::class, 'getAllRecords']);
+
     // ── Excel import (corrected) ──────────────────────────────────────────────
     Route::post('/import',        [ExcelController::class, 'import']);
 

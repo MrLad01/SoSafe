@@ -220,14 +220,24 @@ const BiodataDisplay: React.FC = () => {
       setLoading(true);
       setError(null);
 
+      // const [recordsRes, zonesRes] = await Promise.all([
+      //   axios.get<AllRecordsResponse>('https://sosafe.onrender.com/api/old/records/all', {
+      //     headers: { Authorization: `Bearer ${token}` },
+      //   }),
+      //   axios.get('https://sosafe.onrender.com/api/zones', {
+      //     headers: { Authorization: `Bearer ${token}` },
+      //   }),
+      // ]);
+
       const [recordsRes, zonesRes] = await Promise.all([
-        axios.get<AllRecordsResponse>('https://sosafe.onrender.com/api/old/records/all', {
+        axios.get<AllRecordsResponse>('https://sosafe.onrender.com/api/biodata2-export', {
           headers: { Authorization: `Bearer ${token}` },
         }),
         axios.get('https://sosafe.onrender.com/api/zones', {
           headers: { Authorization: `Bearer ${token}` },
         }),
       ]);
+
 
       setZones(zonesRes?.data);
 
@@ -238,13 +248,24 @@ const BiodataDisplay: React.FC = () => {
         .sort((a: any, b: any) => {
           return a.id - b.id;
         })
-        .map((row: any) => ({
+        // .map((row: any) => ({
+        //   ...row,
+        //   dob: safeDateFormat(row.dob),
+        //   enlisted: safeDateFormat(row.enlisted),
+        //   zone: zoneMap[row.zone] || row.zone || '',
+        //   area: areaMap[row.area] || row.area || '',
+        //   city: divisionMap[row.city] || row.city || '',
+        //   created_at: safeDateFormat(row.created_at),
+        //   updated_at: safeDateFormat(row.updated_at),
+        // }));
+        .map(({ latest_status, ...row }: any) => ({
           ...row,
           dob: safeDateFormat(row.dob),
           enlisted: safeDateFormat(row.enlisted),
-          zone: zoneMap[row.zone] || row.zone || '',
-          area: areaMap[row.area] || row.area || '',
-          city: divisionMap[row.city] || row.city || '',
+          zone: zoneMap[row.zone] || '',
+          area: areaMap[row.area] || '',
+          city: divisionMap[row.city] || '',
+          status: latest_status ?? 'active',
           created_at: safeDateFormat(row.created_at),
           updated_at: safeDateFormat(row.updated_at),
         }));

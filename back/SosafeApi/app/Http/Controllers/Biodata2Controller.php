@@ -246,9 +246,27 @@ class Biodata2Controller extends Controller
      * Get all records — also used for Excel download.
      * DOB masking applies here too, so non-superadmins get masked DOBs in the export.
      */
+    // public function getAllRecords()
+    // {
+    //     $biodata = NewBiodata::all();
+
+    //     return response()->json([
+    //         'data'  => $this->maskCollection($biodata),
+    //         'total' => $biodata->count(),
+    //     ]);
+    // }
     public function getAllRecords()
     {
-        $biodata = NewBiodata::all();
+        $biodata = NewBiodata::query()
+            ->select('new_biodatas.*')
+            ->addSelect(['latest_status' => MemberComment::select('status')
+                ->whereColumn('member_comments.fno', 'new_biodatas.fno')
+                ->whereNotNull('status')
+                ->orderByDesc('id')
+                ->limit(1)])
+            // ->visibleTo($this->actor())   // keep this line once you add the zonal/area/divisional admin scope
+            ->orderBy('id')
+            ->get();
 
         return response()->json([
             'data'  => $this->maskCollection($biodata),
