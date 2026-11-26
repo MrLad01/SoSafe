@@ -277,7 +277,7 @@ class Biodata2Controller extends Controller
     {
         $request->validate([
             'body'   => 'required|string|max:2000',
-            'status' => 'nullable|in:active,retired,deceased',
+            'status' => 'nullable|in:active,inactive,retired,deceased',
         ]);
         $m = NewBiodata::findOrFail($id);
 

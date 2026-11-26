@@ -30,6 +30,10 @@ class UserAdmin  extends Authenticatable implements JWTSubject
         'role',
         'area',
         'last_seen',
+        'fno',
+        'zone_id',
+        'area_id',
+        'division_id'
     ];
     public function getJWTIdentifier()
     {

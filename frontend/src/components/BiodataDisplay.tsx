@@ -521,6 +521,7 @@ const BiodataDisplay: React.FC = () => {
                               className="border rounded-md px-2 py-1">
                         <option value="">No status change</option>
                         <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
                         <option value="retired">Retired</option>
                         <option value="deceased">Deceased</option>
                       </select>
@@ -691,6 +692,9 @@ const BiodataDisplay: React.FC = () => {
                               </td>
 
                               <td className="px-3 py-2.5 border-b border-gray-100 whitespace-nowrap">
+                                {record.latest_status === 'inactive' && (
+                                  <span className="px-2 py-0.5 rounded-full bg-amber-100 text-red-400 text-xs font-medium">Inactive</span>
+                                )}
                                 {record.latest_status === 'deceased' && (
                                   <span className="px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-xs font-medium">Deceased</span>
                                 )}
@@ -1030,6 +1034,7 @@ const BiodataDisplay: React.FC = () => {
               >
                 <option value="">No status change</option>
                 <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
                 <option value="retired">Retired</option>
                 <option value="deceased">Deceased</option>
               </select>
