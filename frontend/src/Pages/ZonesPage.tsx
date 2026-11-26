@@ -140,9 +140,10 @@ const ZoneAreaDivisionTable: React.FC = () => {
 
           {/* Stats */}
           {!loading && zones.length > 0 && (
-            <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-4 gap-3 mb-5">
               {[
-                { label: 'Total Zones',     val: zones.length,    icon: '🗺️', cls: 'text-[#006838]' },
+                { label: 'HeadQuarters',     val:1,    icon: '🗺️', cls: 'text-[#006838]' },
+                { label: 'Total Zones',     val: zones.length - 1,    icon: '🗺️', cls: 'text-[#006838]' },
                 { label: 'Total Areas',     val: totalAreas,      icon: '📍', cls: 'text-[#008a4a]' },
                 { label: 'Total Divisions', val: totalDivisions,  icon: '🏢', cls: 'text-yellow-600' },
               ].map(s => (

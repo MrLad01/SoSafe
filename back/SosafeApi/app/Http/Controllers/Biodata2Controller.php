@@ -315,7 +315,7 @@ class Biodata2Controller extends Controller
             'ids'    => 'required|array|min:1|max:5000',
             'ids.*'  => 'integer',
             'body'   => 'required|string|max:2000',
-            'status' => 'nullable|in:active,retired,deceased',
+            'status' => 'nullable|in:active,inactive,retired,deceased',
         ]);
 
         $author = auth()->guard('admin')->user()?->name;
