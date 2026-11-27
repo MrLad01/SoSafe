@@ -5,3 +5,4 @@ frontend/.env
 !.env.example
 frontend/.env
 frontend/.env.*
+*.tsbuildinfo
